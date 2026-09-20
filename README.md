@@ -21,7 +21,7 @@ Chrome で `chrome://extensions` を開き、デベロッパーモードをオ�
 3. 「表示中のタブを追跡して検査する」をオンのままにしておくと、タブ切替と読み込み完了のたびに再検査します。
 4. 側面パネルはサイトと本文を別レーンで出し、詳細画面で質問ごとと送った本文を見ます。
 
-画面だけ見る場合は `npm run preview` です。
+画面だけ見る場合は `npm run preview` です。ストア提出用の zip は `npm run zip` で `.output/` に出ます。掲載文と審査用の記入例は [`store/listing.md`](store/listing.md)、プライバシーポリシーは [`docs/privacy.html`](docs/privacy.html) です。
 
 ## 検査項目
 
@@ -39,3 +39,17 @@ Chrome で `chrome://extensions` を開き、デベロッパーモードをオ�
 | `certainty_matches_evidence` | 本文 | noul | 断定の強さが根拠に見合っているか |
 
 コード側で見るのは HTTPS、著者・日付メタ、語数、外部ホストです。判定は通過 / 要確認 / 要警戒 / 対象外 / エラーの 5 種類で、一つの信頼スコアにはしません。
+
+## Chrome ウェブストア
+
+提出物は次の通りです。
+
+| 提出物 | 場所 |
+| --- | --- |
+| 拡張 zip | `npm run zip` → `.output/*.zip` |
+| 掲載文・権限の理由 | `store/listing.md` |
+| アイコン / プロモ画像 | `store/images/` |
+| スクリーンショット | `store/images/screenshot-*.png` |
+| プライバシーポリシー | https://s-hiraoku.github.io/jev-page-checker/privacy.html |
+
+ダッシュボードでの作業は、Google の開発者アカウントで [Chrome Developer Dashboard](https://chrome.google.com/webstore/devconsole) に入り、Add new item から zip を上げ、`store/listing.md` を転記して Submit for Review するだけです。開発者登録の 5 ドルと Google ログインは、アカウントの持ち主だけができます。

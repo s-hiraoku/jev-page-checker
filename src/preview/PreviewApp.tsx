@@ -18,7 +18,9 @@ function pageFromHash(): "side" | "options" | "details" {
 }
 
 export function PreviewApp() {
-  const [scene, setScene] = useState("pass");
+  const params = new URLSearchParams(window.location.search);
+  const store = params.get("store") === "1";
+  const [scene, setScene] = useState(() => params.get("scene") ?? "pass");
   const [page, setPage] = useState(pageFromHash);
   const [bridge, setBridge] = useState<Bridge | null>(null);
 
@@ -38,6 +40,42 @@ export function PreviewApp() {
     };
   }, [scene]);
 
+  const panel = (
+    <>
+      {bridge === null ? <p className="shell">プレビューを組み立てています…</p> : null}
+      {bridge !== null && page === "side" ? (
+        <div style={{ maxWidth: 380, minHeight: "100vh", borderLeft: store ? "1px solid var(--line)" : undefined }}>
+          <SidePanelApp bridge={bridge} />
+        </div>
+      ) : null}
+      {bridge !== null && page === "options" ? <OptionsApp bridge={bridge} /> : null}
+      {bridge !== null && page === "details" ? <DetailsApp bridge={bridge} /> : null}
+    </>
+  );
+
+  if (store && page === "side") {
+    return (
+      <div style={{ display: "flex", minHeight: "100vh", background: "#d9e1e8" }}>
+        <section style={{ flex: 1, padding: 48, color: "#172033" }}>
+          <p style={{ fontFamily: "Libre Baskerville, serif", letterSpacing: "0.14em", textTransform: "uppercase", fontSize: 12 }}>
+            {scene === "fail" ? "example page" : "example news"}
+          </p>
+          <h1 style={{ fontSize: 36, margin: "8px 0 16px" }}>
+            {scene === "fail" ? "Doctors hate this: one pill reverses aging in 11 days" : "City delays river bridge opening after inspection"}
+          </h1>
+          <p style={{ maxWidth: 560, color: "#5a6a78" }}>
+            {scene === "fail"
+              ? "販売ページの例です。発行元も出典も無く、数字が本文の中で食い違っています。側面パネルはサイトと本文を分けて見ます。"
+              : "報道ページの例です。発行元、著者、検査メモへのリンクがあります。側面パネルは一つの点数にせず、質問ごとに判定します。"}
+          </p>
+        </section>
+        {panel}
+      </div>
+    );
+  }
+
+  if (store) return <div>{panel}</div>;
+
   return (
     <div>
       <nav className="row" style={{ padding: 12, borderBottom: "1px solid var(--line)", background: "var(--card)" }}>
@@ -56,10 +94,7 @@ export function PreviewApp() {
           詳細
         </button>
       </nav>
-      {bridge === null ? <p className="shell">プレビューを組み立てています…</p> : null}
-      {bridge !== null && page === "side" ? <div style={{ maxWidth: 380 }}><SidePanelApp bridge={bridge} /></div> : null}
-      {bridge !== null && page === "options" ? <OptionsApp bridge={bridge} /> : null}
-      {bridge !== null && page === "details" ? <DetailsApp bridge={bridge} /> : null}
+      {panel}
     </div>
   );
 }
