@@ -28,7 +28,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run build
       - run: npm run zip
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: chrome-web-store-zip
           path: .output/*.zip
