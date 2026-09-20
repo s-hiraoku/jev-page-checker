@@ -20,23 +20,22 @@ def png(size: int, pixels: list[tuple[int, int, int]]) -> bytes:
 
 def icon(size: int) -> bytes:
     paper = (231, 237, 242)
-    ink = (52, 85, 120)
-    mark = (23, 32, 51)
+    site = (52, 85, 120)
+    page = (90, 106, 120)
+    inset = max(1, round(size * 0.12))
+    gap = max(1, round(size * 0.08))
+    mid = size // 2
     pixels: list[tuple[int, int, int]] = []
-    cx = cy = (size - 1) / 2
-    outer = size * 0.42
-    inner = size * 0.28
     for y in range(size):
         for x in range(size):
-            dx = x - cx
-            dy = y - cy
-            r = (dx * dx + dy * dy) ** 0.5
-            if inner < r <= outer:
-                pixels.append(ink)
-            elif abs(dx) < size * 0.07 and -size * 0.16 < dy < size * 0.2:
-                pixels.append(mark)
-            else:
+            if x < inset or x >= size - inset or y < inset or y >= size - inset:
                 pixels.append(paper)
+            elif mid - gap // 2 <= y < mid + (gap + 1) // 2:
+                pixels.append(paper)
+            elif y < mid:
+                pixels.append(site)
+            else:
+                pixels.append(page)
     return png(size, pixels)
 
 

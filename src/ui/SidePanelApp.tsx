@@ -77,7 +77,10 @@ export function SidePanelApp({ bridge }: { bridge: Bridge }) {
           設定
         </button>
       </div>
-      <p className="foot">判定は根拠です。ページの遮断、公開、外部送信はしません。追跡 {session?.settings.followTab ?? DEFAULT_SETTINGS.followTab ? "オン" : "オフ"}</p>
+      <p className="foot">
+        ツールバーのアイコンは上段がサイト、下段が本文です。判定は根拠であり、遮断や送信はしません。追跡{" "}
+        {session?.settings.followTab ?? DEFAULT_SETTINGS.followTab ? "オン" : "オフ"}
+      </p>
     </main>
   );
 }

@@ -1,4 +1,5 @@
 import { TypeSafeError } from "@typesafe-ai/sdk";
+import { applyActionIcon } from "./action-icon.js";
 import { parseDefinition } from "./checkkit.js";
 import { isInspectableUrl, snapshotFingerprint, type PageSnapshot } from "./page-state.js";
 import { checkSnapshot, createLiveJev } from "./run-check.js";
@@ -78,9 +79,15 @@ async function activeTabId(): Promise<number | undefined> {
   return tab?.id;
 }
 
+async function showAction(definitionRaw: unknown, tabId: number | undefined): Promise<SessionPayload> {
+  const next = await payload(definitionRaw, tabId);
+  if (tabId !== undefined) await applyActionIcon(tabId, next.view);
+  return next;
+}
+
 async function broadcast(definitionRaw: unknown): Promise<void> {
   const tabId = await activeTabId();
-  const next = await payload(definitionRaw, tabId);
+  const next = await showAction(definitionRaw, tabId);
   try {
     await chrome.runtime.sendMessage({ type: "SESSION_UPDATED", session: next });
   } catch {
@@ -114,6 +121,7 @@ async function checkTab(definitionRaw: unknown, tabId: number, force: boolean): 
   const version = definitionVersion(definitionRaw);
   const gap = setupGap(settings, version);
   if (gap !== null) {
+    await showAction(definitionRaw, tabId);
     await broadcast(definitionRaw);
     return;
   }
@@ -121,6 +129,7 @@ async function checkTab(definitionRaw: unknown, tabId: number, force: boolean): 
   const url = tab.url ?? "";
   if (!isInspectableUrl(url)) {
     tabs.set(tabId, { status: "unsupported", url });
+    await showAction(definitionRaw, tabId);
     await broadcast(definitionRaw);
     return;
   }
@@ -129,6 +138,7 @@ async function checkTab(definitionRaw: unknown, tabId: number, force: boolean): 
     snapshot = await extractTab(tabId, settings);
   } catch (error) {
     tabs.set(tabId, { status: "error", message: errorMessage(error) });
+    await showAction(definitionRaw, tabId);
     await broadcast(definitionRaw);
     return;
   }
@@ -138,6 +148,7 @@ async function checkTab(definitionRaw: unknown, tabId: number, force: boolean): 
   if (inflight.get(tabId) === fingerprint) return;
   inflight.set(tabId, fingerprint);
   tabs.set(tabId, { status: "checking", snapshot, fingerprint });
+  await showAction(definitionRaw, tabId);
   await broadcast(definitionRaw);
   try {
     const report = await checkSnapshot(snapshot, definitionRaw, createLiveJev(settings.apiKey.trim()));
@@ -156,6 +167,7 @@ async function checkTab(definitionRaw: unknown, tabId: number, force: boolean): 
   } finally {
     if (inflight.get(tabId) === fingerprint) inflight.delete(tabId);
   }
+  await showAction(definitionRaw, tabId);
   await broadcast(definitionRaw);
 }
 
@@ -170,6 +182,7 @@ function schedule(definitionRaw: unknown, tabId: number, debounceMs: number): vo
 export function startBackground(definitionRaw: unknown): void {
   parseDefinition(definitionRaw);
   void chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
+  void activeTabId().then((tabId) => showAction(definitionRaw, tabId));
 
   chrome.runtime.onInstalled.addListener(() => {
     void chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
@@ -178,6 +191,7 @@ export function startBackground(definitionRaw: unknown): void {
   chrome.tabs.onActivated.addListener(({ tabId }) => {
     void (async () => {
       const settings = await readSettings();
+      await showAction(definitionRaw, tabId);
       if (settings.followTab) schedule(definitionRaw, tabId, settings.debounceMs);
       else await broadcast(definitionRaw);
     })();
