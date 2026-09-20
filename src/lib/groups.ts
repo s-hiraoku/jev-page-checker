@@ -22,11 +22,15 @@ const RANK: Record<Verdict, number> = {
   not_applicable: 0,
 };
 
+export function worseVerdict(left: Verdict, right: Verdict): Verdict {
+  return RANK[left] >= RANK[right] ? left : right;
+}
+
 export function worstVerdict(items: readonly { id: string; verdict: Verdict }[], ids: readonly string[]): Verdict {
   let worst: Verdict = "not_applicable";
   for (const item of items) {
     if (!ids.includes(item.id)) continue;
-    if (RANK[item.verdict] > RANK[worst]) worst = item.verdict;
+    worst = worseVerdict(worst, item.verdict);
   }
   return worst;
 }

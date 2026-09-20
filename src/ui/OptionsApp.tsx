@@ -1,49 +1,25 @@
-import { useEffect, useState } from "react";
 import type { Bridge } from "../lib/bridge.js";
-import type { SessionPayload } from "../lib/session.js";
+import { AppChrome } from "./AppChrome.js";
 import { SettingsForm } from "./SettingsForm.js";
+import { useBridgeSession } from "./useBridgeSession.js";
 
 export function OptionsApp({ bridge }: { bridge: Bridge }) {
-  const [session, setSession] = useState<SessionPayload | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    void bridge
-      .getSession()
-      .then(setSession)
-      .catch((caught: unknown) => setError(caught instanceof Error ? caught.message : String(caught)));
-    return bridge.subscribe(() => {
-      void bridge.getSession().then(setSession);
-    });
-  }, [bridge]);
+  const { session, error, accept } = useBridgeSession(bridge);
 
   if (session === null) {
-    return (
-      <>
-        <header className="app-header">
-          <div className="app-name">Jev 信憑性チェッカー</div>
-        </header>
-        <main className="shell wide">{error ?? "読み込み中…"}</main>
-      </>
-    );
+    return <AppChrome wide>{error ?? "読み込み中…"}</AppChrome>;
   }
 
   return (
-    <>
-      <header className="app-header">
-        <div className="app-name">Jev 信憑性チェッカー</div>
-        <div className="app-meta">設定 / 定義 v{session.definitionVersion}</div>
-      </header>
-      <main className="shell wide">
-        <SettingsForm
-          settings={session.settings}
-          questions={session.questions}
-          definitionVersion={session.definitionVersion}
-          onSave={async (settings) => {
-            setSession(await bridge.saveSettings(settings));
-          }}
-        />
-      </main>
-    </>
+    <AppChrome wide meta={`設定 / 定義 v${session.definitionVersion}`}>
+      <SettingsForm
+        settings={session.settings}
+        questions={session.questions}
+        definitionVersion={session.definitionVersion}
+        onSave={async (settings) => {
+          accept(await bridge.saveSettings(settings));
+        }}
+      />
+    </AppChrome>
   );
 }

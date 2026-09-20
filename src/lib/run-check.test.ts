@@ -1,25 +1,20 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { replayGateway } from "./checkkit.js";
+import { parseDefinition } from "./checkkit.js";
 import { PAGE_QUESTION_IDS, SITE_QUESTION_IDS, worstVerdict } from "./groups.js";
-import type { PageSnapshot } from "./page-state.js";
-import { checkSnapshot } from "./run-check.js";
+import { checkReplay, type ReplayFixture } from "./replay.js";
 
-const definition = JSON.parse(readFileSync(new URL("../../fixtures/page-credibility.checker.json", import.meta.url), "utf8"));
+const definition = parseDefinition(
+  JSON.parse(readFileSync(new URL("../../fixtures/page-credibility.checker.json", import.meta.url), "utf8")),
+);
 
-function loadReplay(name: string) {
-  return JSON.parse(readFileSync(new URL(`../../fixtures/replay/${name}`, import.meta.url), "utf8")) as {
-    state: Omit<PageSnapshot, "extractedAt">;
-    answers: Parameters<typeof replayGateway>[0];
-    usage: Parameters<typeof replayGateway>[1];
-  };
+function loadReplay(name: string): ReplayFixture {
+  return JSON.parse(readFileSync(new URL(`../../fixtures/replay/${name}`, import.meta.url), "utf8")) as ReplayFixture;
 }
 
-async function reportOf(name: string) {
-  const replay = loadReplay(name);
-  const snapshot: PageSnapshot = { ...replay.state, extractedAt: "2026-09-20T00:00:00.000Z" };
-  return checkSnapshot(snapshot, definition, replayGateway(replay.answers, replay.usage));
+function reportOf(name: string) {
+  return checkReplay(definition, loadReplay(name));
 }
 
 test("a sourced news article passes site safety and body scrutiny", async () => {

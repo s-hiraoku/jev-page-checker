@@ -1,4 +1,5 @@
 import type { ExtensionSettings } from "./settings.js";
+import type { ServerMessage } from "./messages.js";
 import type { SessionPayload, StoredRecord } from "./session.js";
 
 export interface Bridge {
@@ -27,7 +28,7 @@ export function liveBridge(): Bridge {
       await send({ type: "OPEN_OPTIONS" });
     },
     subscribe: (onChange) => {
-      const listener = (message: { type?: string }) => {
+      const listener = (message: ServerMessage | { type?: string }) => {
         if (message.type === "SESSION_UPDATED") onChange();
       };
       chrome.runtime.onMessage.addListener(listener);
