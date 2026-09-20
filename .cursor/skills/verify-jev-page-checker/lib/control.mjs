@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { spawn, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, openSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createConnection } from "node:net";
 import { dirname, isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -193,18 +193,12 @@ async function cmdLaunch(args) {
     }
   }
   const logPath = resolve(stateDir(), "preview.log");
+  const logFd = openSync(logPath, "w");
   const child = spawn("npm", ["run", "preview", "--", "--host", "127.0.0.1", "--port", String(port), "--strictPort"], {
     cwd: repo,
     detached: true,
-    stdio: ["ignore", "pipe", "pipe"],
+    stdio: ["ignore", logFd, logFd],
   });
-  const chunks = [];
-  const append = (buf) => {
-    chunks.push(buf);
-    writeFileSync(logPath, Buffer.concat(chunks));
-  };
-  child.stdout?.on("data", append);
-  child.stderr?.on("data", append);
   child.unref();
 
   const state = {
@@ -227,19 +221,13 @@ async function cmdLaunch(args) {
   }
 
   const daemonLog = resolve(stateDir(), "daemon.log");
+  const daemonFd = openSync(daemonLog, "w");
   const daemon = spawn(process.execPath, [resolve(HERE, "daemon.mjs")], {
     cwd: repo,
     detached: true,
     env: { ...process.env, JEV_VERIFY_STATE_DIR: stateDir(), JEV_VERIFY_ORIGIN: origin },
-    stdio: ["ignore", "pipe", "pipe"],
+    stdio: ["ignore", daemonFd, daemonFd],
   });
-  const dchunks = [];
-  const dappend = (buf) => {
-    dchunks.push(buf);
-    writeFileSync(daemonLog, Buffer.concat(dchunks));
-  };
-  daemon.stdout?.on("data", dappend);
-  daemon.stderr?.on("data", dappend);
   daemon.unref();
   state.daemonPid = daemon.pid;
   state.daemonLog = daemonLog;
