@@ -14,10 +14,10 @@ export function Lane({ title, verdict }: { title: string; verdict: Verdict }) {
   );
 }
 
-export function Needle({ value }: { value: number }) {
+export function Meter({ value }: { value: number }) {
   const left = `${Math.min(100, Math.max(0, value * 100))}%`;
   return (
-    <div className="needle" aria-hidden="true">
+    <div className="meter" aria-hidden="true">
       <i style={{ left }} />
     </div>
   );
@@ -28,18 +28,24 @@ export function AnswerView({ id, answer }: { id: string; answer?: JevAnswer }) {
   if (answer.type === "noul") {
     return (
       <>
-        <Needle value={answer.noul} />
-        <p>noul {answer.noul.toFixed(2)}</p>
+        <Meter value={answer.noul} />
+        <p className="numeric">値 {answer.noul.toFixed(2)}</p>
       </>
     );
   }
   if (answer.type === "choice") {
-    return <p>{choiceLabel(id, answer.choice)} · 確信度 {answer.confidence.toFixed(2)}</p>;
+    return (
+      <p className="numeric">
+        {choiceLabel(id, answer.choice)}　確信度 {answer.confidence.toFixed(2)}
+      </p>
+    );
   }
   return (
     <>
-      <Needle value={answer.score / 2} />
-      <p>score {answer.score.toFixed(2)} · 確信度 {answer.confidence.toFixed(2)}</p>
+      <Meter value={answer.score / 2} />
+      <p className="numeric">
+        値 {answer.score.toFixed(2)}　確信度 {answer.confidence.toFixed(2)}
+      </p>
     </>
   );
 }

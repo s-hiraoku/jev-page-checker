@@ -9,26 +9,40 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
   return (
     <div>
       <div className="lanes">
-        <Lane title="Site" verdict={site} />
-        <Lane title="Page" verdict={page} />
+        <Lane title="サイト" verdict={site} />
+        <Lane title="本文" verdict={page} />
       </div>
-      <p className="url" style={{ marginTop: 10 }}>
-        {record.snapshot.title || "(無題)"}
-        <br />
-        {record.snapshot.url}
-      </p>
-      {compact ? null : (
-        <p className="lede">
-          {record.snapshot.wordCount} 語 · 外部ホスト {record.snapshot.citationCount} · HTTPS {record.snapshot.isHttps ? "あり" : "なし"} · 著者
-          {record.snapshot.hasAuthor ? "あり" : "なし"}
-        </p>
-      )}
-      <ItemList items={record.report.items} />
-      {compact ? null : (
-        <p className="lede">
-          Jev {record.report.timing.jevMs} ms · 入力 {record.report.usage.input_tokens} / 出力 {record.report.usage.output_tokens}
-        </p>
-      )}
+      <table className="meta-table" style={{ marginTop: 8 }}>
+        <tbody>
+          <tr>
+            <th>標題</th>
+            <td>{record.snapshot.title || "（無題）"}</td>
+          </tr>
+          <tr>
+            <th>URL</th>
+            <td className="url">{record.snapshot.url}</td>
+          </tr>
+          {compact ? null : (
+            <>
+              <tr>
+                <th>抽出</th>
+                <td>
+                  {record.snapshot.wordCount} 語 / 外部ホスト {record.snapshot.citationCount} / HTTPS{" "}
+                  {record.snapshot.isHttps ? "あり" : "なし"} / 著者 {record.snapshot.hasAuthor ? "あり" : "なし"}
+                </td>
+              </tr>
+              <tr>
+                <th>処理</th>
+                <td>
+                  Jev {record.report.timing.jevMs} ms / 入力 {record.report.usage.input_tokens} / 出力{" "}
+                  {record.report.usage.output_tokens}
+                </td>
+              </tr>
+            </>
+          )}
+        </tbody>
+      </table>
+      <ItemList items={record.report.items} compact={compact} />
     </div>
   );
 }
