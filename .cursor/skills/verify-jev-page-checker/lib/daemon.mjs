@@ -92,28 +92,34 @@ async function handle(req) {
 const server = createServer((socket) => {
   let buf = "";
   socket.setEncoding("utf8");
+  socket.on("error", () => {
+    /* client went away */
+  });
   socket.on("data", (chunk) => {
     buf += chunk;
-  });
-  socket.on("end", () => {
+    if (!buf.includes("\n")) return;
+    const raw = buf.slice(0, buf.indexOf("\n"));
+    buf = "";
     void (async () => {
       let req;
       try {
-        req = JSON.parse(buf || "{}");
+        req = JSON.parse(raw || "{}");
       } catch (error) {
-        socket.end(`${JSON.stringify({ ok: false, error: String(error) })}\n`);
+        if (!socket.destroyed) socket.write(`${JSON.stringify({ ok: false, error: String(error) })}\n`);
         return;
       }
       try {
         const reply = await handle(req);
-        socket.end(`${JSON.stringify(reply)}\n`);
+        if (!socket.destroyed) socket.write(`${JSON.stringify(reply)}\n`);
         if (req.action === "quit") {
           await browser.close();
           server.close();
           process.exit(0);
         }
       } catch (error) {
-        socket.end(`${JSON.stringify({ ok: false, error: error instanceof Error ? error.message : String(error) })}\n`);
+        if (!socket.destroyed) {
+          socket.write(`${JSON.stringify({ ok: false, error: error instanceof Error ? error.message : String(error) })}\n`);
+        }
       }
     })();
   });

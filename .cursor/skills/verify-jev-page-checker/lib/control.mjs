@@ -95,7 +95,9 @@ function portOwnerPids(port) {
 function ourVite(state) {
   if (!pidAlive(state.pid)) return false;
   const cmd = cmdlineOf(state.pid);
-  return cmd.includes("vite") && cmd.includes("vite.preview.config.ts");
+  if (cmd.includes("vite.preview.config.ts")) return true;
+  if (cmd.includes("npm run preview") && cmd.includes(String(state.port))) return true;
+  return portOwnerPids(state.port).some((pid) => cmdlineOf(pid).includes("vite.preview.config.ts"));
 }
 
 async function waitForHttp(origin, timeoutMs = 20000) {
@@ -124,20 +126,24 @@ function askDaemon(payload, timeoutMs = 30000) {
       reject(new Error("browser daemon timed out"));
     }, timeoutMs);
     socket.setEncoding("utf8");
-    socket.on("connect", () => socket.end(`${JSON.stringify(payload)}\n`));
+    socket.on("connect", () => {
+      socket.write(`${JSON.stringify(payload)}\n`);
+    });
     socket.on("data", (chunk) => {
       buf += chunk;
-    });
-    socket.on("end", () => {
-      clearTimeout(timer);
-      try {
-        resolveAsk(JSON.parse(buf || "{}"));
-      } catch (error) {
-        reject(error);
+      if (buf.includes("\n")) {
+        clearTimeout(timer);
+        socket.destroy();
+        try {
+          resolveAsk(JSON.parse(buf.trim()));
+        } catch (error) {
+          reject(error);
+        }
       }
     });
     socket.on("error", (error) => {
       clearTimeout(timer);
+      if (buf.includes("\n")) return;
       reject(error);
     });
   });
@@ -180,6 +186,12 @@ async function cmdLaunch(args) {
   }
 
   mkdirSync(stateDir(), { recursive: true });
+  if (!existsSync(resolve(repo, ".wxt/tsconfig.json"))) {
+    const prepared = spawnSync("npx", ["wxt", "prepare"], { cwd: repo, encoding: "utf8" });
+    if (prepared.status !== 0) {
+      die(`wxt prepare failed:\n${prepared.stdout}\n${prepared.stderr}`);
+    }
+  }
   const logPath = resolve(stateDir(), "preview.log");
   const child = spawn("npm", ["run", "preview", "--", "--host", "127.0.0.1", "--port", String(port), "--strictPort"], {
     cwd: repo,

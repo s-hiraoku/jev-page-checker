@@ -27,6 +27,8 @@ export JEV_VERIFY_RUN_ID="${JEV_VERIFY_RUN_ID:-agent}"
 .cursor/skills/verify-jev-page-checker/bin/control-jev launch --port 4174
 ```
 
+Launch runs `npx wxt prepare` when `.wxt/tsconfig.json` is missing. That file is gitignored generated output; Vite cannot compile `src/preview/main.tsx` without it.
+
 Ready when stdout contains `ready` and `origin=http://127.0.0.1:4174`. Vite has answered GET `/` with HTML whose `<title>` is `Jev 信憑性チェッカー プレビュー`. The helper also starts a Playwright daemon (system Chrome, headless) bound to `/tmp/jev-verify-$JEV_VERIFY_RUN_ID/browser.sock`.
 
 If launch says the port is in use, pick another `--port`. Do not kill a foreign process by name. Do not reuse someone else's preview.
