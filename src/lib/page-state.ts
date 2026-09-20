@@ -1,5 +1,7 @@
 import type { EntryType } from "@typesafe-ai/sdk";
 
+export type PageKind = "article" | "portal";
+
 export interface PageSnapshot {
   url: string;
   hostname: string;
@@ -14,6 +16,9 @@ export interface PageSnapshot {
   hasAuthor: boolean;
   hasPublishedAt: boolean;
   hasBody: boolean;
+  hasArticle: boolean;
+  pageKind: PageKind;
+  linkCount: number;
   wordCount: number;
   citationCount: number;
   outboundHosts: string[];
@@ -40,6 +45,9 @@ export function snapshotToState(snapshot: PageSnapshot): EntryType {
     hasAuthor: snapshot.hasAuthor,
     hasPublishedAt: snapshot.hasPublishedAt,
     hasBody: snapshot.hasBody,
+    hasArticle: snapshot.hasArticle,
+    pageKind: snapshot.pageKind,
+    linkCount: snapshot.linkCount,
     wordCount: snapshot.wordCount,
     citationCount: snapshot.citationCount,
     outboundHosts: snapshot.outboundHosts,

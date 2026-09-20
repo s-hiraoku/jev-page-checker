@@ -19,9 +19,9 @@ def png(size: int, pixels: list[tuple[int, int, int]]) -> bytes:
 
 
 def icon(size: int) -> bytes:
-    paper = (231, 237, 242)
-    site = (52, 85, 120)
-    page = (90, 106, 120)
+    paper = (244, 247, 250)
+    site = (52, 92, 140)
+    page = (52, 92, 140)
     inset = max(1, round(size * 0.12))
     gap = max(1, round(size * 0.08))
     mid = size // 2

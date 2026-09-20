@@ -8,6 +8,7 @@ const item = (id: string, verdict: Verdict) => ({ id, verdict });
 test("worstVerdict prefers fail over review over pass and ignores the other lane", () => {
   const items = [
     item("identifiable_publisher", "pass"),
+    item("honest_identity", "pass"),
     item("site_purpose", "review"),
     item("disclosed_incentives", "pass"),
     item("evidence_for_claims", "fail"),

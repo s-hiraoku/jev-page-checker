@@ -1,0 +1,44 @@
+{
+  "definition": "../page-credibility.checker.json",
+  "state": {
+    "url": "https://www.yahoo.co.jp/",
+    "hostname": "www.yahoo.co.jp",
+    "protocol": "https:",
+    "title": "Yahoo! JAPAN",
+    "metaDescription": "Yahoo! JAPAN",
+    "author": "",
+    "publishedAt": "",
+    "siteName": "Yahoo! JAPAN",
+    "language": "ja",
+    "isHttps": true,
+    "hasAuthor": false,
+    "hasPublishedAt": false,
+    "hasBody": true,
+    "hasArticle": false,
+    "pageKind": "portal",
+    "linkCount": 180,
+    "wordCount": 420,
+    "citationCount": 12,
+    "outboundHosts": ["news.yahoo.co.jp"],
+    "text": "Yahoo! JAPAN ニュース 天気 スポーツ 見出しが並ぶトップページ。個別記事の本文はない。"
+  },
+  "answers": {
+    "identifiable_publisher": { "type": "noul", "noul": 0.9 },
+    "honest_identity": { "type": "noul", "noul": 0.92 },
+    "site_purpose": {
+      "type": "choice",
+      "choice": "portal",
+      "confidence": 0.84,
+      "probabilities": {
+        "news_reference": 0.1,
+        "opinion_analysis": 0.02,
+        "portal": 0.84,
+        "commercial": 0.02,
+        "satire_entertainment": 0.01,
+        "unclear": 0.01
+      }
+    },
+    "disclosed_incentives": { "type": "noul", "noul": 0.85 }
+  },
+  "usage": { "input_tokens": 240, "output_tokens": 12 }
+}

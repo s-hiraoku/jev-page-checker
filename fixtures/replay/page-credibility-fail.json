@@ -14,6 +14,9 @@
     "hasAuthor": false,
     "hasPublishedAt": false,
     "hasBody": true,
+    "hasArticle": true,
+    "pageKind": "article",
+    "linkCount": 2,
     "wordCount": 160,
     "citationCount": 0,
     "outboundHosts": ["checkout.example"],
@@ -21,13 +24,15 @@
   },
   "answers": {
     "identifiable_publisher": { "type": "noul", "noul": 0.08 },
+    "honest_identity": { "type": "noul", "noul": 0.72 },
     "site_purpose": {
       "type": "choice",
       "choice": "commercial",
       "confidence": 0.93,
       "probabilities": {
         "news_reference": 0.02,
-        "opinion_analysis": 0.03,
+        "opinion_analysis": 0.02,
+        "portal": 0.01,
         "commercial": 0.93,
         "satire_entertainment": 0.01,
         "unclear": 0.01
@@ -41,7 +46,7 @@
       "legend": {
         "0": "Factual claims are made with little or no supporting evidence, data, or sources on the page.",
         "1": "Some claims have sources or data, but important claims are left unsupported.",
-        "2": "The main factual claims are backed by named sources, data, or documents the reader can inspect."
+        "2": "The main factual claims are backed by named sources, data, documents, or the author's inspectable work."
       },
       "probabilities": { "0": 0.88, "1": 0.1, "2": 0.02 }
     },
@@ -55,5 +60,5 @@
     "self_consistent": { "type": "noul", "noul": 0.14 },
     "certainty_matches_evidence": { "type": "noul", "noul": 0.06 }
   },
-  "usage": { "input_tokens": 760, "output_tokens": 24 }
+  "usage": { "input_tokens": 760, "output_tokens": 27 }
 }

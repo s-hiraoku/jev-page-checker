@@ -13,19 +13,19 @@ export interface ActionIconModel {
   badgeColor: string;
 }
 
-const RGB: Record<LaneTone, [number, number, number]> = {
-  pass: [44, 106, 85],
-  fail: [142, 47, 44],
-  review: [181, 106, 18],
-  error: [92, 74, 122],
-  not_applicable: [90, 106, 120],
-  idle: [197, 208, 218],
-  checking: [52, 85, 120],
-  setup: [181, 106, 18],
-  unsupported: [197, 208, 218],
+export const RGB: Record<LaneTone, [number, number, number]> = {
+  pass: [36, 148, 92],
+  fail: [196, 48, 44],
+  review: [214, 132, 16],
+  error: [108, 64, 160],
+  not_applicable: [96, 116, 132],
+  idle: [52, 92, 140],
+  checking: [36, 108, 176],
+  setup: [214, 132, 16],
+  unsupported: [168, 178, 188],
 };
 
-const PAPER: [number, number, number] = [231, 237, 242];
+const PAPER: [number, number, number] = [244, 247, 250];
 
 export function actionIconModel(view: SessionView): ActionIconModel {
   switch (view.status) {
@@ -35,7 +35,7 @@ export function actionIconModel(view: SessionView): ActionIconModel {
         page: "setup",
         title: view.reason === "approval" ? "チェックリストの承認が必要です" : "API キーが必要です",
         badge: "!",
-        badgeColor: "#b56a12",
+        badgeColor: "#d68410",
       };
     case "idle":
       return {
@@ -43,7 +43,7 @@ export function actionIconModel(view: SessionView): ActionIconModel {
         page: "idle",
         title: view.followTab ? "タブを開くと検査します" : "まだ検査していません",
         badge: "",
-        badgeColor: "#5a6a78",
+        badgeColor: "#345c8c",
       };
     case "checking":
       return {
@@ -51,7 +51,7 @@ export function actionIconModel(view: SessionView): ActionIconModel {
         page: "checking",
         title: "検査中…",
         badge: "…",
-        badgeColor: "#345578",
+        badgeColor: "#246cb0",
       };
     case "unsupported":
       return {
@@ -67,7 +67,7 @@ export function actionIconModel(view: SessionView): ActionIconModel {
         page: "error",
         title: view.message,
         badge: "?",
-        badgeColor: "#5c4a7a",
+        badgeColor: "#6c40a0",
       };
     case "ready": {
       const site = worstVerdict(view.record.report.items, SITE_QUESTION_IDS);
@@ -98,9 +98,8 @@ function badgeFor(site: Verdict, page: Verdict): string {
     case "fail":
       return "!";
     case "error":
-      return "?";
     case "review":
-      return "·";
+      return "?";
     default:
       return "";
   }
@@ -114,8 +113,8 @@ function badgeColorFor(site: Verdict, page: Verdict): string {
 
 export function paintStamp(size: number, site: LaneTone, page: LaneTone): Uint8ClampedArray {
   const pixels = new Uint8ClampedArray(size * size * 4);
-  const inset = Math.max(1, Math.round(size * 0.12));
-  const gap = Math.max(1, Math.round(size * 0.08));
+  const inset = Math.max(1, Math.round(size * 0.08));
+  const gap = Math.max(1, Math.round(size * 0.06));
   const mid = Math.floor(size / 2);
   for (let y = 0; y < size; y += 1) {
     for (let x = 0; x < size; x += 1) {
@@ -135,16 +134,40 @@ export function paintStamp(size: number, site: LaneTone, page: LaneTone): Uint8C
   return pixels;
 }
 
+export function createIconImageData(size: number, site: LaneTone, page: LaneTone): ImageData {
+  const pixels = paintStamp(size, site, page);
+  if (typeof OffscreenCanvas === "function") {
+    const canvas = new OffscreenCanvas(size, size);
+    const context = canvas.getContext("2d");
+    if (context !== null) {
+      const image = context.createImageData(size, size);
+      image.data.set(pixels);
+      return image;
+    }
+  }
+  const image = new ImageData(size, size);
+  image.data.set(pixels);
+  return image;
+}
+
 export async function applyActionIcon(tabId: number, view: SessionView): Promise<void> {
   const model = actionIconModel(view);
   const imageData: Record<number, ImageData> = {};
   for (const size of [16, 32]) {
-    const image = new ImageData(size, size);
-    image.data.set(paintStamp(size, model.site, model.page));
-    imageData[size] = image;
+    imageData[size] = createIconImageData(size, model.site, model.page);
   }
-  await chrome.action.setIcon({ tabId, imageData });
-  await chrome.action.setTitle({ tabId, title: model.title });
-  await chrome.action.setBadgeText({ tabId, text: model.badge });
-  await chrome.action.setBadgeBackgroundColor({ tabId, color: model.badgeColor });
+  // The toolbar button is the resident icon. Set it globally so Chrome actually
+  // replaces the packed default, then pin the same stamp to the tab.
+  await chrome.action.setIcon({ imageData });
+  await chrome.action.setTitle({ title: model.title });
+  await chrome.action.setBadgeText({ text: model.badge });
+  await chrome.action.setBadgeBackgroundColor({ color: model.badgeColor });
+  try {
+    await chrome.action.setIcon({ tabId, imageData });
+    await chrome.action.setTitle({ tabId, title: model.title });
+    await chrome.action.setBadgeText({ tabId, text: model.badge });
+    await chrome.action.setBadgeBackgroundColor({ tabId, color: model.badgeColor });
+  } catch {
+    return;
+  }
 }

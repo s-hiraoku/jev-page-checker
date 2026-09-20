@@ -32,7 +32,7 @@ export function SidePanelApp({ bridge }: { bridge: Bridge }) {
       <div>
         <p className="kicker">Jev checker</p>
         <h1>信憑性検査</h1>
-        <p className="lede">表示中のタブを追跡し、発行元と本文を分けて見ます。一つの点数にはしません。</p>
+        <p className="lede">サイトの安全性と、記事本文があるときだけの精査を分けて見ます。一つの点数にはしません。</p>
       </div>
 
       {error ? <p className="notice fail">{error}</p> : null}
@@ -78,7 +78,7 @@ export function SidePanelApp({ bridge }: { bridge: Bridge }) {
         </button>
       </div>
       <p className="foot">
-        ツールバーのアイコンは上段がサイト、下段が本文です。判定は根拠であり、遮断や送信はしません。追跡{" "}
+        常駐アイコンの上段がサイト、下段が本文です。判定は根拠であり、遮断や送信はしません。追跡{" "}
         {session?.settings.followTab ?? DEFAULT_SETTINGS.followTab ? "オン" : "オフ"}
       </p>
     </main>

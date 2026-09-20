@@ -1,113 +1,126 @@
 {
   "id": "page-credibility",
-  "version": 1,
-  "subject": "The currently displayed web page: publisher signals plus the visible text's credibility",
+  "version": 2,
+  "subject": "The currently displayed web page: site safety (who is behind it, whether it impersonates another party, what it is for, whether a pitch is disclosed) plus scrutiny of the article body when there is one",
   "approval": { "status": "approved", "at": "2026-09-20T00:00:00Z", "by": "fixture" },
   "questions": [
     {
       "id": "identifiable_publisher",
       "type": "noul",
-      "instructions": "From the URL, title, site name, author, and visible text, can a real publisher, organization, or named person responsible for the page be identified?",
+      "instructions": "From the URL hostname, title, site name, author, and visible text, can a real publisher, organization, platform, or named person responsible for the page be identified? A known publishing platform plus a named author or public handle (for example zenn.dev/mizchi or a newspaper masthead) counts as identifiable. An anonymous shop, a disposable domain, or only a generic label does not.",
       "criteria": {
-        "true": "A specific organization, publication, or named author is identifiable and presented as responsible for the content.",
+        "true": "A specific organization, publication, platform-plus-author, or named person is identifiable as responsible.",
         "false": "The responsible party is missing, anonymous, or only a generic label with no identifiable publisher."
       },
-      "passAt": 0.8,
+      "passAt": 0.65,
       "failAt": 0.2
+    },
+    {
+      "id": "honest_identity",
+      "type": "noul",
+      "instructions": "Does the visible branding, title, and claimed publisher match the actual hostname, or does the page impersonate another organization? Judge site safety, not writing quality. A portal or blog on its own domain is honest. A page that copies another organization's name, logo, or login while living on a different host is not.",
+      "criteria": {
+        "true": "The branding matches the hostname, or a known platform is hosting a named author's page.",
+        "false": "The page claims to be a different organization than the hostname suggests (typosquat, fake login, copied masthead, spoofed institution)."
+      },
+      "passAt": 0.7,
+      "failAt": 0.25
     },
     {
       "id": "site_purpose",
       "type": "choice",
-      "instructions": "What is the primary purpose of this page, given the URL, title, and visible text?",
+      "instructions": "What is the primary purpose of this page, given the URL, pageKind, title, and visible text? Homepages and index listings are portal. Technical essays, developer blogs, and opinion columns are opinion_analysis. That is a purpose label, not a safety failure.",
       "criteria": {
         "news_reference": "Reports or explains events or facts in a journalistic or encyclopedic way.",
-        "opinion_analysis": "Argues a position or interprets events; the author's view is the point.",
+        "opinion_analysis": "Argues a position, teaches, or interprets; the author's view or experience is the point. Includes technical blogs.",
+        "portal": "A homepage, index, or headline listing rather than a single article.",
         "commercial": "Exists mainly to sell a product, service, or lead.",
         "satire_entertainment": "Humor, fiction, or entertainment that is not claiming to be a news report.",
         "unclear": "Purpose cannot be determined, or incompatible purposes are mixed without labeling them."
       },
       "options": {
         "news_reference": "pass",
-        "opinion_analysis": "review",
+        "opinion_analysis": "pass",
+        "portal": "pass",
         "commercial": "review",
         "satire_entertainment": "review",
         "unclear": "fail"
       },
-      "confidenceFloor": 0.6
+      "confidenceFloor": 0.5
     },
     {
       "id": "disclosed_incentives",
       "type": "noul",
-      "instructions": "If the page is trying to sell something, raise money, or advocate for a party that would benefit, does it disclose that relationship?",
+      "instructions": "If the page is trying to sell something, raise money, or advocate for a party that would benefit, does it disclose that relationship? A store that is obviously a store, or an essay with no pitch, passes. A hidden checkout, undisclosed sponsor, or medical/financial pitch that hides who is paid fails.",
       "criteria": {
         "true": "There is no sales or advocacy pitch, or a pitch is present and the beneficiary or sponsor is named.",
         "false": "The page pushes a product, donation, or political outcome while hiding who benefits."
       },
-      "passAt": 0.8,
+      "passAt": 0.65,
       "failAt": 0.2
     },
     {
       "id": "evidence_for_claims",
       "type": "score",
-      "instructions": "How well does the visible text support the factual claims it makes?",
+      "instructions": "How well does the visible article text support the factual claims it makes? First-person technical reports may use the author's own measurements, repositories, named libraries, and linked documents as evidence. Do not demand a newsroom citation style on a developer essay. Judge empty marketing claims and miracle numbers harshly.",
       "criteria": [
         "Factual claims are made with little or no supporting evidence, data, or sources on the page.",
         "Some claims have sources or data, but important claims are left unsupported.",
-        "The main factual claims are backed by named sources, data, or documents the reader can inspect."
+        "The main factual claims are backed by named sources, data, documents, or the author's inspectable work."
       ],
-      "passAt": 1.5,
-      "failAt": 0.5,
-      "confidenceFloor": 0.6,
-      "applyWhen": { "path": "hasBody", "op": "equals", "value": true }
+      "passAt": 1.2,
+      "failAt": 0.4,
+      "confidenceFloor": 0.35,
+      "applyWhen": { "path": "hasArticle", "op": "equals", "value": true }
     },
     {
       "id": "separates_fact_and_opinion",
       "type": "noul",
-      "instructions": "Does the page keep factual statements and the author's opinions distinct enough that a reader can tell them apart?",
+      "instructions": "Does the article keep factual statements and the author's opinions distinct enough that a reader can tell them apart? A technical essay may mix them; pass if the author's judgments are readable as judgments and reported facts are not invented. Fail if opinions are written as settled fact, or if facts are framed as mere opinion to dodge responsibility.",
       "criteria": {
-        "true": "Facts and judgments are labeled or clearly separated, or the page is clearly labeled as opinion throughout.",
+        "true": "Facts and judgments are labeled or clearly separated, or the page is clearly an essay/opinion throughout.",
         "false": "Opinions are written as if they were established facts, or facts are framed as mere opinion to dodge responsibility."
       },
-      "passAt": 0.8,
+      "passAt": 0.6,
       "failAt": 0.2,
-      "applyWhen": { "path": "hasBody", "op": "equals", "value": true }
+      "applyWhen": { "path": "hasArticle", "op": "equals", "value": true }
     },
     {
       "id": "unsourced_specifics",
       "type": "choice",
-      "instructions": "Does the page present specific numbers, dates, quotes, or named events without a source the reader can check?",
+      "instructions": "Does the article present specific numbers, dates, quotes, or named events without a source the reader can check? The author's own experiment, a linked repository, a named library, or a document on the page counts as a source. Do not mark a first-person benchmark as unsourced only because it lacks a third-party paper.",
       "criteria": {
-        "none": "Specific facts are sourced, or the page stays at a level of generality that does not invent particulars.",
+        "none": "Specific facts are sourced, are the author's own stated work, or the page stays at a level of generality that does not invent particulars.",
         "some": "A few specifics lack a source, but they are not the main load-bearing claims.",
-        "many": "Load-bearing numbers, dates, quotes, or events are given as fact with no checkable source."
+        "many": "Load-bearing numbers, dates, quotes, or events are given as fact with no checkable source and are not the author's own stated measurements."
       },
       "options": { "none": "pass", "some": "review", "many": "fail" },
-      "confidenceFloor": 0.6,
-      "applyWhen": { "path": "hasBody", "op": "equals", "value": true }
+      "confidenceFloor": 0.5,
+      "applyWhen": { "path": "hasArticle", "op": "equals", "value": true }
     },
     {
       "id": "self_consistent",
       "type": "noul",
-      "instructions": "Is the visible text free of internal contradictions?",
+      "instructions": "Is the article free of internal contradictions on the same fact? Different sections making the same claim with the same numbers pass. Two incompatible values for the same quantity, or a promise later denied as if it were never made, fail.",
       "criteria": {
         "true": "No two statements conflict on the same fact.",
         "false": "The page states one thing and later the opposite, for example two different values for the same quantity."
       },
-      "passAt": 0.8,
+      "passAt": 0.65,
       "failAt": 0.2,
-      "applyWhen": { "path": "hasBody", "op": "equals", "value": true }
+      "applyWhen": { "path": "hasArticle", "op": "equals", "value": true }
     },
     {
       "id": "certainty_matches_evidence",
       "type": "noul",
-      "instructions": "Does the page match how certain it sounds to the evidence it actually shows?",
+      "instructions": "Does the article match how certain it sounds to the evidence it actually shows? Strong claims need strong evidence. An essay that hedges on uncertain points, or that presents a personal result as a personal result, passes. A page that states contested or thinly supported claims as settled fact, especially medical, financial, or legal claims, fails.",
       "criteria": {
-        "true": "Strong claims come with strong evidence; uncertain points are hedged or marked as unknown.",
+        "true": "Strong claims come with strong evidence; uncertain points are hedged or marked as the author's view or as unknown.",
         "false": "The page states contested or thinly supported claims as settled fact, or hides strong evidence behind false uncertainty."
       },
-      "passAt": 0.8,
+      "passAt": 0.65,
       "failAt": 0.2,
-      "applyWhen": { "path": "hasBody", "op": "equals", "value": true }
+      "applyWhen": { "path": "hasArticle", "op": "equals", "value": true }
     }
   ]
 }

@@ -14,6 +14,9 @@
     "hasAuthor": true,
     "hasPublishedAt": true,
     "hasBody": true,
+    "hasArticle": true,
+    "pageKind": "article",
+    "linkCount": 4,
     "wordCount": 210,
     "citationCount": 3,
     "outboundHosts": ["transport.example.gov", "doi.example.org"],
@@ -21,13 +24,15 @@
   },
   "answers": {
     "identifiable_publisher": { "type": "noul", "noul": 0.94 },
+    "honest_identity": { "type": "noul", "noul": 0.93 },
     "site_purpose": {
       "type": "choice",
       "choice": "news_reference",
       "confidence": 0.91,
       "probabilities": {
         "news_reference": 0.91,
-        "opinion_analysis": 0.05,
+        "opinion_analysis": 0.04,
+        "portal": 0.01,
         "commercial": 0.02,
         "satire_entertainment": 0.01,
         "unclear": 0.01
@@ -41,7 +46,7 @@
       "legend": {
         "0": "Factual claims are made with little or no supporting evidence, data, or sources on the page.",
         "1": "Some claims have sources or data, but important claims are left unsupported.",
-        "2": "The main factual claims are backed by named sources, data, or documents the reader can inspect."
+        "2": "The main factual claims are backed by named sources, data, documents, or the author's inspectable work."
       },
       "probabilities": { "0": 0.02, "1": 0.11, "2": 0.87 }
     },
@@ -55,5 +60,5 @@
     "self_consistent": { "type": "noul", "noul": 0.95 },
     "certainty_matches_evidence": { "type": "noul", "noul": 0.87 }
   },
-  "usage": { "input_tokens": 980, "output_tokens": 24 }
+  "usage": { "input_tokens": 980, "output_tokens": 27 }
 }

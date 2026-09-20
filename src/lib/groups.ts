@@ -1,6 +1,11 @@
 import type { Verdict } from "./checkkit.js";
 
-export const SITE_QUESTION_IDS = ["identifiable_publisher", "site_purpose", "disclosed_incentives"] as const;
+export const SITE_QUESTION_IDS = [
+  "identifiable_publisher",
+  "honest_identity",
+  "site_purpose",
+  "disclosed_incentives",
+] as const;
 export const PAGE_QUESTION_IDS = [
   "evidence_for_claims",
   "separates_fact_and_opinion",

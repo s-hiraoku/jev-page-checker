@@ -1,0 +1,64 @@
+{
+  "definition": "../page-credibility.checker.json",
+  "state": {
+    "url": "https://zenn.dev/mizchi/articles/jev-is-gpu-for-llms",
+    "hostname": "zenn.dev",
+    "protocol": "https:",
+    "title": "既存のLLMがGPUなら、JevはそのGPU版みたいなやつ",
+    "metaDescription": "Jev の紹介",
+    "author": "mizchi",
+    "publishedAt": "2026-09-18",
+    "siteName": "Zenn",
+    "language": "ja",
+    "isHttps": true,
+    "hasAuthor": true,
+    "hasPublishedAt": true,
+    "hasBody": true,
+    "hasArticle": true,
+    "pageKind": "article",
+    "linkCount": 18,
+    "wordCount": 1800,
+    "citationCount": 4,
+    "outboundHosts": ["github.com", "docs.typesafe.ai"],
+    "text": "zenn.dev 上の mizchi による技術エッセイ。既存 LLM と Jev の対比、実験結果、公開リポジトリへのリンクがある。著者自身の計測と意見が混ざる。"
+  },
+  "answers": {
+    "identifiable_publisher": { "type": "noul", "noul": 0.67 },
+    "honest_identity": { "type": "noul", "noul": 0.88 },
+    "site_purpose": {
+      "type": "choice",
+      "choice": "opinion_analysis",
+      "confidence": 0.6,
+      "probabilities": {
+        "news_reference": 0.18,
+        "opinion_analysis": 0.6,
+        "portal": 0.02,
+        "commercial": 0.1,
+        "satire_entertainment": 0.05,
+        "unclear": 0.05
+      }
+    },
+    "disclosed_incentives": { "type": "noul", "noul": 0.8 },
+    "evidence_for_claims": {
+      "type": "score",
+      "score": 1.41,
+      "confidence": 0.37,
+      "legend": {
+        "0": "Factual claims are made with little or no supporting evidence, data, or sources on the page.",
+        "1": "Some claims have sources or data, but important claims are left unsupported.",
+        "2": "The main factual claims are backed by named sources, data, documents, or the author's inspectable work."
+      },
+      "probabilities": { "0": 0.12, "1": 0.35, "2": 0.53 }
+    },
+    "separates_fact_and_opinion": { "type": "noul", "noul": 0.6 },
+    "unsourced_specifics": {
+      "type": "choice",
+      "choice": "many",
+      "confidence": 0.33,
+      "probabilities": { "none": 0.28, "some": 0.39, "many": 0.33 }
+    },
+    "self_consistent": { "type": "noul", "noul": 0.67 },
+    "certainty_matches_evidence": { "type": "noul", "noul": 0.69 }
+  },
+  "usage": { "input_tokens": 1400, "output_tokens": 27 }
+}
