@@ -21,7 +21,7 @@ Chrome で `chrome://extensions` を開き、デベロッパーモードをオ�
 3. 「表示中のタブを追跡して検査する」をオンのままにしておくと、タブ切替と読み込み完了のたびに再検査します。
 4. 側面パネルはサイトと本文を別レーンで出し、詳細画面で質問ごとと送った本文を見ます。Chrome ツールバーの常駐アイコンも同じ分け方で、上段がサイト、下段が本文です。判定が変わると色とバッジが差し替わります。
 
-画面だけ見る場合は `npm run preview` です。ストア提出用の zip は `npm run zip` で `.output/` に出ます。掲載文と審査用の記入例は [`store/listing.md`](store/listing.md)、プライバシーポリシーは [`docs/privacy.html`](docs/privacy.html) です。
+画面だけ見る場合は `npm run preview` です。手元のストア提出用 zip は `npm run zip` で `.output/` に出ます。`v*` タグを push すると CI が同じ zip を GitHub Release に付けます。main と pull request ではテスト・型検査・ビルドのあと、同じ zip を Actions の成果物にも残します。掲載文と審査用の記入例は [`store/listing.md`](store/listing.md)、プライバシーポリシーは [`docs/privacy.html`](docs/privacy.html) です。
 
 ## 検査項目
 
@@ -47,7 +47,7 @@ Chrome で `chrome://extensions` を開き、デベロッパーモードをオ�
 
 | 提出物 | 場所 |
 | --- | --- |
-| 拡張 zip | `npm run zip` → `.output/*.zip` |
+| 拡張 zip | `npm run zip` → `.output/*.zip`。タグ `v*` では Release の添付になる |
 | 掲載文・権限の理由 | `store/listing.md` |
 | アイコン / プロモ画像 | `store/images/` |
 | スクリーンショット | `store/images/screenshot-*.png` |
