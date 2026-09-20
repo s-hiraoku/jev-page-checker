@@ -41,7 +41,8 @@ Jev 信憑性チェッカーは、いま見ているページの発行元と本�
 
 - **Single purpose:** 表示中のウェブページの発行元と本文の信憑性を、利用者が承認した Jev チェックリストで検査する。
 - **Remote code:** No, I am not using remote code.
-- **Privacy policy URL:** https://s-hiraoku.github.io/jev-page-checker/privacy.html
+- **Privacy policy URL:** https://s-hiraoku.github.io/jev-page-checker/privacy.html  
+  リポジトリの Settings → Pages で Source を `main` / `docs` にしてから使う。公開前は `docs/privacy.html` の内容がソースです。
 
 ### Permission justifications
 
