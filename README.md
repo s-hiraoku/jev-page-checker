@@ -6,7 +6,7 @@ jev-checkkit とは別リポジトリです。この拡張だけで完結しま�
 
 ## 動かし方
 
-Node 20 以上が必要です。
+Node 26 以上が必要です。
 
 ```bash
 npm install
