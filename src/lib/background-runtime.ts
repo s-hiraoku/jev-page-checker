@@ -81,7 +81,13 @@ async function activeTabId(): Promise<number | undefined> {
 
 async function showAction(definitionRaw: unknown, tabId: number | undefined): Promise<SessionPayload> {
   const next = await payload(definitionRaw, tabId);
-  if (tabId !== undefined) await applyActionIcon(tabId, next.view);
+  if (tabId !== undefined) {
+    try {
+      await applyActionIcon(tabId, next.view);
+    } catch {
+      // The check must still finish even if the toolbar paint fails.
+    }
+  }
   return next;
 }
 
@@ -215,7 +221,7 @@ export function startBackground(definitionRaw: unknown): void {
     void (async () => {
       try {
         if (message.type === "GET_SESSION") {
-          sendResponse(await payload(definitionRaw, (await activeTabId()) ?? tabId));
+          sendResponse(await showAction(definitionRaw, (await activeTabId()) ?? tabId));
           return;
         }
         if (message.type === "SAVE_SETTINGS") {

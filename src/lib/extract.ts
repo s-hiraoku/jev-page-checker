@@ -2,9 +2,26 @@ import type { PageSnapshot } from "./page-state.js";
 
 const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "NAV", "FOOTER", "ASIDE", "SVG", "IFRAME", "CANVAS"]);
 
+const CJK = /[\u3040-\u30ff\u3400-\u9fff\uf900-\ufaff]/g;
+
+/** A headline is shorter than a short sentence. Listings are mostly headlines. */
+const LISTING_MAX_WORDS_PER_LINK = 12;
+/** One or two links do not make a directory. */
+const LISTING_MIN_LINKS = 8;
+
 export function wordCount(text: string): number {
   const trimmed = text.trim();
-  return trimmed === "" ? 0 : trimmed.split(/\s+/).length;
+  if (trimmed === "") return 0;
+  const spaced = trimmed.split(/\s+/).filter(Boolean).length;
+  const cjk = (trimmed.match(CJK) ?? []).length;
+  return spaced + Math.floor(cjk / 2);
+}
+
+/** Listing vs one text. Do not special-case a host or path. */
+export function classifyPageKind(articleCount: number, linkCount: number, words: number): "article" | "portal" {
+  if (articleCount >= 1) return "article";
+  if (linkCount >= LISTING_MIN_LINKS && words / Math.max(linkCount, 1) < LISTING_MAX_WORDS_PER_LINK) return "portal";
+  return "article";
 }
 
 export function collectOutbound(hrefs: readonly string[], pageHost: string): { hosts: string[]; citationCount: number } {
@@ -64,6 +81,7 @@ export function extractSnapshot(
   const publishedAt = metaContent(doc, ["article:published_time", "date", "pubdate", "dc.date"]);
   const siteName = metaContent(doc, ["og:site_name", "application-name"]);
   const metaDescription = metaContent(doc, ["description", "og:description"]);
+  const articleCount = doc.querySelectorAll("article").length;
   const root = doc.querySelector("article, [role=main], main") ?? doc.body;
   const hrefs = [...(root ?? doc).querySelectorAll("a[href]")].map((anchor) => {
     const href = anchor.getAttribute("href") ?? "";
@@ -76,6 +94,7 @@ export function extractSnapshot(
   const { hosts, citationCount } = collectOutbound(hrefs, loc.hostname);
   const text = collectText(root ?? doc.body, maxChars);
   const words = wordCount(text);
+  const pageKind = classifyPageKind(articleCount, hrefs.length, words);
   return {
     url: loc.href,
     hostname: loc.hostname,
@@ -90,6 +109,9 @@ export function extractSnapshot(
     hasAuthor: author.length > 0,
     hasPublishedAt: publishedAt.length > 0,
     hasBody: words >= minWords,
+    hasArticle: pageKind === "article" && words >= minWords,
+    pageKind,
+    linkCount: hrefs.length,
     wordCount: words,
     citationCount,
     outboundHosts: hosts,

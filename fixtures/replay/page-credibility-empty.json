@@ -14,6 +14,9 @@
     "hasAuthor": false,
     "hasPublishedAt": false,
     "hasBody": false,
+    "hasArticle": false,
+    "pageKind": "article",
+    "linkCount": 1,
     "wordCount": 4,
     "citationCount": 0,
     "outboundHosts": [],
@@ -21,13 +24,15 @@
   },
   "answers": {
     "identifiable_publisher": { "type": "noul", "noul": 0.35 },
+    "honest_identity": { "type": "noul", "noul": 0.78 },
     "site_purpose": {
       "type": "choice",
       "choice": "unclear",
       "confidence": 0.72,
       "probabilities": {
-        "news_reference": 0.05,
-        "opinion_analysis": 0.08,
+        "news_reference": 0.04,
+        "opinion_analysis": 0.07,
+        "portal": 0.07,
         "commercial": 0.1,
         "satire_entertainment": 0.05,
         "unclear": 0.72
@@ -35,5 +40,5 @@
     },
     "disclosed_incentives": { "type": "noul", "noul": 0.81 }
   },
-  "usage": { "input_tokens": 180, "output_tokens": 9 }
+  "usage": { "input_tokens": 180, "output_tokens": 12 }
 }

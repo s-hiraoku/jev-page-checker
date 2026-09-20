@@ -5,7 +5,7 @@ export default defineConfig({
   modules: ["@wxt-dev/module-react"],
   manifest: {
     name: "Jev 信憑性チェッカー",
-    version: "1.1.0",
+    version: "1.2.0",
     description: "表示中のページの発行元と本文を、承認済みの Jev チェックリストで検査する",
     homepage_url: "https://github.com/s-hiraoku/jev-page-checker",
     permissions: ["sidePanel", "storage", "tabs"],
@@ -15,6 +15,12 @@ export default defineConfig({
     },
     action: {
       default_title: "このタブの信憑性を検査",
+      default_icon: {
+        16: "icon-16.png",
+        32: "icon-32.png",
+        48: "icon-48.png",
+        128: "icon-128.png",
+      },
     },
     icons: {
       16: "icon-16.png",

@@ -1,11 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { JSDOM } from "jsdom";
-import { collectOutbound, extractSnapshot, wordCount } from "./extract.js";
+import { classifyPageKind, collectOutbound, extractSnapshot, wordCount } from "./extract.js";
 
 test("wordCount ignores surrounding space", () => {
   assert.equal(wordCount("  one two  three "), 3);
   assert.equal(wordCount("   "), 0);
+});
+
+test("wordCount counts unspaced CJK so Japanese prose is not one token", () => {
+  assert.ok(wordCount("発行元の特定と本文の精査は別の問題である") > 8);
 });
 
 test("collectOutbound keeps foreign http hosts and drops the page host", () => {
@@ -38,4 +42,33 @@ test("extractSnapshot prefers article text, records author, and flags a short bo
   assert.match(snapshot.text, /bureau delayed/);
   assert.equal(snapshot.text.includes("Home Sports"), false);
   assert.deepEqual(snapshot.outboundHosts, ["transport.example.gov"]);
+  assert.equal(snapshot.pageKind, "article");
+  assert.equal(snapshot.hasArticle, false);
+});
+
+test("classifyPageKind uses structure, not the URL path", () => {
+  assert.equal(classifyPageKind(1, 3, 80), "article");
+  assert.equal(classifyPageKind(0, 40, 80), "portal");
+  assert.equal(classifyPageKind(0, 4, 200), "article");
+  assert.equal(classifyPageKind(1, 80, 90), "article");
+});
+
+test("extractSnapshot treats a link listing as a portal on any host", () => {
+  const links = Array.from({ length: 50 }, (_, index) => `<a href="/n/${index}">headline ${index}</a>`).join("");
+  const dom = new JSDOM(`<!doctype html><html><head><title>Headlines</title></head><body>${links}</body></html>`, {
+    url: "https://news.example.org/",
+  });
+  const snapshot = extractSnapshot(dom.window.document, dom.window.location, 1000, 40, () => "2026-09-20T00:00:00.000Z");
+  assert.equal(snapshot.pageKind, "portal");
+  assert.equal(snapshot.hasArticle, false);
+});
+
+test("extractSnapshot treats a long single text at the site root as an article", () => {
+  const prose = Array.from({ length: 50 }, () => "The inspection memo is posted beside the pier photograph.").join(" ");
+  const dom = new JSDOM(`<!doctype html><html><head><title>Memo</title></head><body><article>${prose}</article></body></html>`, {
+    url: "https://writer.example.org/",
+  });
+  const snapshot = extractSnapshot(dom.window.document, dom.window.location, 4000, 40, () => "2026-09-20T00:00:00.000Z");
+  assert.equal(snapshot.pageKind, "article");
+  assert.equal(snapshot.hasArticle, true);
 });

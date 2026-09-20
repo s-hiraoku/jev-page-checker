@@ -11,7 +11,7 @@ const ready = (site: "pass" | "fail" | "review", page: "pass" | "fail" | "review
     createdAt: "2026-09-20T00:00:00.000Z",
     snapshot: { url: "https://example.com", hostname: "example.com" } as StoredRecord["snapshot"],
     report: {
-      definition: { id: "page-credibility" as StoredRecord["report"]["definition"]["id"], version: 1 },
+      definition: { id: "page-credibility" as StoredRecord["report"]["definition"]["id"], version: 3 },
       usage: { input_tokens: 0, output_tokens: 0 },
       timing: { wallMs: 1, jevMs: 1 },
       items: [
@@ -30,6 +30,14 @@ test("a ready report puts site on the title first and page second", () => {
   assert.equal(model.badge, "!");
 });
 
+test("a review-only result paints a visible question badge on the resident icon", () => {
+  const model = actionIconModel(ready("pass", "review"));
+  assert.equal(model.site, "pass");
+  assert.equal(model.page, "review");
+  assert.equal(model.badge, "?");
+  assert.equal(model.badgeColor, "#d68410");
+});
+
 test("setup and checking keep both lanes on the same tone", () => {
   const setup = actionIconModel({ status: "needs-setup", reason: "approval", definitionVersion: 1 });
   assert.equal(setup.site, "setup");
@@ -43,6 +51,6 @@ test("paintStamp colors the top half as site and the bottom half as page", () =>
   const pixels = paintStamp(16, "pass", "fail");
   const top = (4 * 16 + 8) * 4;
   const bottom = (12 * 16 + 8) * 4;
-  assert.deepEqual([pixels[top], pixels[top + 1], pixels[top + 2]], [44, 106, 85]);
-  assert.deepEqual([pixels[bottom], pixels[bottom + 1], pixels[bottom + 2]], [142, 47, 44]);
+  assert.deepEqual([pixels[top], pixels[top + 1], pixels[top + 2]], [36, 148, 92]);
+  assert.deepEqual([pixels[bottom], pixels[bottom + 1], pixels[bottom + 2]], [196, 48, 44]);
 });

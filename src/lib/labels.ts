@@ -2,6 +2,7 @@ import type { Check, Verdict } from "./checkkit.js";
 
 export const QUESTION_LABELS: Record<string, string> = {
   identifiable_publisher: "発行元が特定できる",
+  honest_identity: "表示と実体の一致",
   site_purpose: "ページの主な目的",
   disclosed_incentives: "利害の開示",
   evidence_for_claims: "主張の根拠",
@@ -22,6 +23,7 @@ export const VERDICT_LABELS: Record<Verdict, string> = {
 export const PURPOSE_LABELS: Record<string, string> = {
   news_reference: "報道・解説",
   opinion_analysis: "意見・分析",
+  portal: "ポータル・一覧",
   commercial: "販売・集客",
   satire_entertainment: "風刺・娯楽",
   unclear: "判別できない",
