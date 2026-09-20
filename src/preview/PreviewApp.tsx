@@ -55,15 +55,13 @@ export function PreviewApp() {
 
   if (store && page === "side") {
     return (
-      <div style={{ display: "flex", minHeight: "100vh", background: "#d9e1e8" }}>
-        <section style={{ flex: 1, padding: 48, color: "#172033" }}>
-          <p style={{ fontFamily: "Libre Baskerville, serif", letterSpacing: "0.14em", textTransform: "uppercase", fontSize: 12 }}>
-            {scene === "fail" ? "example page" : "example news"}
-          </p>
-          <h1 style={{ fontSize: 36, margin: "8px 0 16px" }}>
+      <div style={{ display: "flex", minHeight: "100vh", background: "#eceff3" }}>
+        <section style={{ flex: 1, padding: 32, color: "#111827" }}>
+          <p style={{ margin: 0, fontSize: 12, color: "#4b5563" }}>{scene === "fail" ? "販売ページの例" : "報道ページの例"}</p>
+          <h1 style={{ fontSize: 22, margin: "8px 0 16px" }}>
             {scene === "fail" ? "Doctors hate this: one pill reverses aging in 11 days" : "City delays river bridge opening after inspection"}
           </h1>
-          <p style={{ maxWidth: 560, color: "#5a6a78" }}>
+          <p style={{ maxWidth: 560, color: "#4b5563" }}>
             {scene === "fail"
               ? "販売ページの例です。発行元も出典も無く、数字が本文の中で食い違っています。側面パネルはサイトと本文を分けて見ます。"
               : "報道ページの例です。発行元、著者、検査メモへのリンクがあります。側面パネルは一つの点数にせず、質問ごとに判定します。"}
@@ -78,7 +76,7 @@ export function PreviewApp() {
 
   return (
     <div>
-      <nav className="row" style={{ padding: 12, borderBottom: "1px solid var(--line)", background: "var(--card)" }}>
+      <nav className="preview-nav">
         {SCENES.map(([id, label]) => (
           <button key={id} className={scene === id ? "btn" : "btn secondary"} type="button" onClick={() => setScene(id)}>
             {label}

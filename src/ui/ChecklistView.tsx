@@ -29,15 +29,14 @@ function extras(check: Check): string {
 export function ChecklistView({ questions }: { questions: readonly Check[] }) {
   return (
     <section>
-      <p className="kicker">Whole list</p>
-      <h2>検査項目 {questions.length} 件</h2>
-      <p className="lede">差分承認はしません。変えたらこのリスト全体をもう一度承認します。</p>
+      <h2 className="page-title">検査項目 {questions.length} 件</h2>
+      <p className="help">差分承認はしません。変えたらこのリスト全体をもう一度承認します。</p>
       {questions.map((check) => (
         <article className="checklist-item" key={check.id}>
           <h3>
             {questionLabel(check.id)} <span className="url">({check.id})</span>
           </h3>
-          <p>{instructionText(check)}</p>
+          <p className="help">{instructionText(check)}</p>
           <pre>
             {extras(check)}
             {"\n"}

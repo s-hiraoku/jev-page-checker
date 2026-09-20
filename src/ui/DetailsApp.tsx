@@ -23,34 +23,50 @@ export function DetailsApp({ bridge }: { bridge: Bridge }) {
     });
   }, [bridge]);
 
-  if (session === null) return <main className="shell wide">{error ?? "読み込み中…"}</main>;
+  if (session === null) {
+    return (
+      <>
+        <header className="app-header">
+          <div className="app-name">Jev 信憑性チェッカー</div>
+        </header>
+        <main className="shell wide">{error ?? "読み込み中…"}</main>
+      </>
+    );
+  }
   const record = recordById(session.history, id);
 
   return (
-    <main className="shell wide">
-      <div>
-        <p className="kicker">Details</p>
-        <h1>検査の詳細</h1>
-        <p className="lede">保存したレポートは判断材料です。ここから公開や送信はできません。</p>
-      </div>
-      {record ? <ReportView record={record} /> : <p className="notice">まだ検査結果がありません。側面パネルから今のタブを検査してください。</p>}
-      {record ? (
-        <section className="card">
-          <h2>送った本文</h2>
-          <p className="lede">{record.snapshot.text}</p>
-        </section>
-      ) : null}
-      <section>
-        <h2>履歴</h2>
-        <div className="history">
-          {session.history.map((item) => (
-            <a key={item.id} href={`?id=${encodeURIComponent(item.id)}`}>
-              <strong>{item.snapshot.title || item.snapshot.hostname}</strong>
-              <div className="url">{item.snapshot.url}</div>
-            </a>
-          ))}
+    <>
+      <header className="app-header">
+        <div className="app-name">Jev 信憑性チェッカー</div>
+        <div className="app-meta">詳細 / 定義 v{session.definitionVersion}</div>
+      </header>
+      <main className="shell wide">
+        <div>
+          <h1 className="page-title">検査の詳細</h1>
+          <p className="help">保存したレポートは判断材料です。ここから公開や送信はできません。</p>
         </div>
-      </section>
-    </main>
+        {record ? <ReportView record={record} /> : <p className="notice">まだ検査結果がありません。側面パネルから今のタブを検査してください。</p>}
+        {record ? (
+          <section className="panel">
+            <div className="panel-head">送った本文</div>
+            <div className="panel-body">
+              <p className="help">{record.snapshot.text}</p>
+            </div>
+          </section>
+        ) : null}
+        <section>
+          <h2 className="page-title">履歴</h2>
+          <div className="history">
+            {session.history.map((item) => (
+              <a key={item.id} href={`?id=${encodeURIComponent(item.id)}`}>
+                <strong>{item.snapshot.title || item.snapshot.hostname}</strong>
+                <div className="url">{item.snapshot.url}</div>
+              </a>
+            ))}
+          </div>
+        </section>
+      </main>
+    </>
   );
 }

@@ -17,18 +17,33 @@ export function OptionsApp({ bridge }: { bridge: Bridge }) {
     });
   }, [bridge]);
 
-  if (session === null) return <main className="shell wide">{error ?? "読み込み中…"}</main>;
+  if (session === null) {
+    return (
+      <>
+        <header className="app-header">
+          <div className="app-name">Jev 信憑性チェッカー</div>
+        </header>
+        <main className="shell wide">{error ?? "読み込み中…"}</main>
+      </>
+    );
+  }
 
   return (
-    <main className="shell wide">
-      <SettingsForm
-        settings={session.settings}
-        questions={session.questions}
-        definitionVersion={session.definitionVersion}
-        onSave={async (settings) => {
-          setSession(await bridge.saveSettings(settings));
-        }}
-      />
-    </main>
+    <>
+      <header className="app-header">
+        <div className="app-name">Jev 信憑性チェッカー</div>
+        <div className="app-meta">設定 / 定義 v{session.definitionVersion}</div>
+      </header>
+      <main className="shell wide">
+        <SettingsForm
+          settings={session.settings}
+          questions={session.questions}
+          definitionVersion={session.definitionVersion}
+          onSave={async (settings) => {
+            setSession(await bridge.saveSettings(settings));
+          }}
+        />
+      </main>
+    </>
   );
 }
