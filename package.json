@@ -28,7 +28,7 @@
     "@wxt-dev/module-react": "1.2.2",
     "tsx": "4.23.13",
     "typescript": "5.9.3",
-    "vite": "7.3.1",
+    "vite": "7.3.6",
     "wxt": "0.20.18"
   }
 }
