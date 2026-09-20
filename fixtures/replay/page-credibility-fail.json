@@ -24,7 +24,7 @@
   },
   "answers": {
     "identifiable_publisher": { "type": "noul", "noul": 0.08 },
-    "honest_identity": { "type": "noul", "noul": 0.72 },
+    "honest_identity": { "type": "noul", "noul": 0.86 },
     "site_purpose": {
       "type": "choice",
       "choice": "commercial",

@@ -2,16 +2,24 @@ import type { PageSnapshot } from "./page-state.js";
 
 const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "NAV", "FOOTER", "ASIDE", "SVG", "IFRAME", "CANVAS"]);
 
+const CJK = /[\u3040-\u30ff\u3400-\u9fff\uf900-\ufaff]/g;
+
+/** A headline is shorter than a short sentence. Listings are mostly headlines. */
+const LISTING_MAX_WORDS_PER_LINK = 12;
+/** One or two links do not make a directory. */
+const LISTING_MIN_LINKS = 8;
+
 export function wordCount(text: string): number {
   const trimmed = text.trim();
-  return trimmed === "" ? 0 : trimmed.split(/\s+/).length;
+  if (trimmed === "") return 0;
+  const spaced = trimmed.split(/\s+/).filter(Boolean).length;
+  const cjk = (trimmed.match(CJK) ?? []).length;
+  return spaced + Math.floor(cjk / 2);
 }
 
-export function classifyPageKind(path: string, articleCount: number, linkCount: number): "article" | "portal" {
-  const normalized = path.replace(/\/+$/, "") || "/";
-  if (normalized === "/" || /\/index(\.html?)?$/i.test(normalized)) return "portal";
+export function classifyPageKind(articleCount: number, linkCount: number, words: number): "article" | "portal" {
   if (articleCount >= 1) return "article";
-  if (linkCount >= 40) return "portal";
+  if (linkCount >= LISTING_MIN_LINKS && words / Math.max(linkCount, 1) < LISTING_MAX_WORDS_PER_LINK) return "portal";
   return "article";
 }
 
@@ -85,7 +93,7 @@ export function extractSnapshot(
   const { hosts, citationCount } = collectOutbound(hrefs, loc.hostname);
   const text = collectText(root ?? doc.body, maxChars);
   const words = wordCount(text);
-  const pageKind = classifyPageKind(new URL(loc.href).pathname, articleCount, hrefs.length);
+  const pageKind = classifyPageKind(articleCount, hrefs.length, words);
   return {
     url: loc.href,
     hostname: loc.hostname,

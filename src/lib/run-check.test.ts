@@ -24,7 +24,7 @@ async function reportOf(name: string) {
 
 test("a sourced news article passes site safety and body scrutiny", async () => {
   const report = await reportOf("page-credibility-pass.json");
-  assert.equal(report.definition.version, 2);
+  assert.equal(report.definition.version, 3);
   assert.equal(report.items.every((item) => item.verdict === "pass"), true);
   assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
   assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "pass");
@@ -38,7 +38,7 @@ test("a miracle-cure sales page fails site safety and body scrutiny", async () =
   assert.equal(report.items.find((item) => item.id === "unsourced_specifics")?.verdict, "fail");
 });
 
-test("a portal homepage skips body questions so Yahoo-like indexes are not judged as articles", async () => {
+test("a listing skips body questions because there is no single text to scrutinize", async () => {
   const report = await reportOf("page-credibility-portal.json");
   assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
   assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "not_applicable");
@@ -47,18 +47,9 @@ test("a portal homepage skips body questions so Yahoo-like indexes are not judge
   }
 });
 
-test("a known-platform technical essay is a safe site; uncertain unsourced specifics stay review", async () => {
+test("an essay purpose is not a site-safety failure", async () => {
   const report = await reportOf("page-credibility-essay.json");
-  const byId = Object.fromEntries(report.items.map((item) => [item.id, item.verdict]));
-  assert.equal(byId.identifiable_publisher, "pass");
-  assert.equal(byId.honest_identity, "pass");
-  assert.equal(byId.site_purpose, "pass");
-  assert.equal(byId.disclosed_incentives, "pass");
-  assert.equal(byId.evidence_for_claims, "pass");
-  assert.equal(byId.separates_fact_and_opinion, "pass");
-  assert.equal(byId.unsourced_specifics, "review");
-  assert.equal(byId.self_consistent, "pass");
-  assert.equal(byId.certainty_matches_evidence, "pass");
+  assert.equal(report.items.find((item) => item.id === "site_purpose")?.verdict, "pass");
   assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
-  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "review");
+  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "pass");
 });

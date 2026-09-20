@@ -1,44 +1,44 @@
 {
   "definition": "../page-credibility.checker.json",
   "state": {
-    "url": "https://www.yahoo.co.jp/",
-    "hostname": "www.yahoo.co.jp",
+    "url": "https://news.example.org/",
+    "hostname": "news.example.org",
     "protocol": "https:",
-    "title": "Yahoo! JAPAN",
-    "metaDescription": "Yahoo! JAPAN",
+    "title": "Example News",
+    "metaDescription": "Headlines",
     "author": "",
     "publishedAt": "",
-    "siteName": "Yahoo! JAPAN",
-    "language": "ja",
+    "siteName": "Example News",
+    "language": "en",
     "isHttps": true,
     "hasAuthor": false,
     "hasPublishedAt": false,
     "hasBody": true,
     "hasArticle": false,
     "pageKind": "portal",
-    "linkCount": 180,
-    "wordCount": 420,
-    "citationCount": 12,
-    "outboundHosts": ["news.yahoo.co.jp"],
-    "text": "Yahoo! JAPAN ニュース 天気 スポーツ 見出しが並ぶトップページ。個別記事の本文はない。"
+    "linkCount": 80,
+    "wordCount": 180,
+    "citationCount": 4,
+    "outboundHosts": ["sports.example.org"],
+    "text": "Example News. Morning briefing. Sports. Weather. A board of headlines linking to other pages, not one article."
   },
   "answers": {
-    "identifiable_publisher": { "type": "noul", "noul": 0.9 },
+    "identifiable_publisher": { "type": "noul", "noul": 0.91 },
     "honest_identity": { "type": "noul", "noul": 0.92 },
     "site_purpose": {
       "type": "choice",
       "choice": "portal",
-      "confidence": 0.84,
+      "confidence": 0.88,
       "probabilities": {
-        "news_reference": 0.1,
+        "news_reference": 0.07,
         "opinion_analysis": 0.02,
-        "portal": 0.84,
+        "portal": 0.88,
         "commercial": 0.02,
-        "satire_entertainment": 0.01,
-        "unclear": 0.01
+        "satire_entertainment": 0.005,
+        "unclear": 0.005
       }
     },
-    "disclosed_incentives": { "type": "noul", "noul": 0.85 }
+    "disclosed_incentives": { "type": "noul", "noul": 0.86 }
   },
   "usage": { "input_tokens": 240, "output_tokens": 12 }
 }

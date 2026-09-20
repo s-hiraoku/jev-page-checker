@@ -8,6 +8,10 @@ test("wordCount ignores surrounding space", () => {
   assert.equal(wordCount("   "), 0);
 });
 
+test("wordCount counts unspaced CJK so Japanese prose is not one token", () => {
+  assert.ok(wordCount("発行元の特定と本文の精査は別の問題である") > 8);
+});
+
 test("collectOutbound keeps foreign http hosts and drops the page host", () => {
   const { hosts, citationCount } = collectOutbound(
     ["https://doi.example.org/10.1", "/local", "https://news.example.org/same", "mailto:x@y"],
@@ -42,19 +46,29 @@ test("extractSnapshot prefers article text, records author, and flags a short bo
   assert.equal(snapshot.hasArticle, false);
 });
 
-test("classifyPageKind treats the site root and index as a portal", () => {
-  assert.equal(classifyPageKind("/", 8, 200), "portal");
-  assert.equal(classifyPageKind("/index.html", 0, 10), "portal");
-  assert.equal(classifyPageKind("/mizchi/articles/jev", 1, 18), "article");
-  assert.equal(classifyPageKind("/topics", 0, 80), "portal");
+test("classifyPageKind uses structure, not the URL path", () => {
+  assert.equal(classifyPageKind(1, 3, 80), "article");
+  assert.equal(classifyPageKind(0, 40, 80), "portal");
+  assert.equal(classifyPageKind(0, 4, 200), "article");
+  assert.equal(classifyPageKind(1, 80, 90), "article");
 });
 
-test("extractSnapshot marks a homepage listing as a portal without an article body", () => {
+test("extractSnapshot treats a link listing as a portal on any host", () => {
   const links = Array.from({ length: 50 }, (_, index) => `<a href="/n/${index}">headline ${index}</a>`).join("");
-  const dom = new JSDOM(`<!doctype html><html><head><title>Yahoo! JAPAN</title></head><body>${links}</body></html>`, {
-    url: "https://www.yahoo.co.jp/",
+  const dom = new JSDOM(`<!doctype html><html><head><title>Headlines</title></head><body>${links}</body></html>`, {
+    url: "https://news.example.org/",
   });
   const snapshot = extractSnapshot(dom.window.document, dom.window.location, 1000, 40, () => "2026-09-20T00:00:00.000Z");
   assert.equal(snapshot.pageKind, "portal");
   assert.equal(snapshot.hasArticle, false);
+});
+
+test("extractSnapshot treats a long single text at the site root as an article", () => {
+  const prose = Array.from({ length: 50 }, () => "The inspection memo is posted beside the pier photograph.").join(" ");
+  const dom = new JSDOM(`<!doctype html><html><head><title>Memo</title></head><body><article>${prose}</article></body></html>`, {
+    url: "https://writer.example.org/",
+  });
+  const snapshot = extractSnapshot(dom.window.document, dom.window.location, 4000, 40, () => "2026-09-20T00:00:00.000Z");
+  assert.equal(snapshot.pageKind, "article");
+  assert.equal(snapshot.hasArticle, true);
 });

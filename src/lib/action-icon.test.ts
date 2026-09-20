@@ -11,7 +11,7 @@ const ready = (site: "pass" | "fail" | "review", page: "pass" | "fail" | "review
     createdAt: "2026-09-20T00:00:00.000Z",
     snapshot: { url: "https://example.com", hostname: "example.com" } as StoredRecord["snapshot"],
     report: {
-      definition: { id: "page-credibility" as StoredRecord["report"]["definition"]["id"], version: 2 },
+      definition: { id: "page-credibility" as StoredRecord["report"]["definition"]["id"], version: 3 },
       usage: { input_tokens: 0, output_tokens: 0 },
       timing: { wallMs: 1, jevMs: 1 },
       items: [

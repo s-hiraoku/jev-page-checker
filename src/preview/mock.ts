@@ -31,7 +31,7 @@ export async function createPreviewBridge(scene: string): Promise<Bridge> {
     ...DEFAULT_SETTINGS,
     apiKey: scene === "setup" ? "" : "sk-preview",
     approver: scene === "setup" ? "" : "preview",
-    ackedVersion: scene === "setup" ? null : 2,
+    ackedVersion: scene === "setup" ? null : 3,
     followTab: true,
   };
   const listeners = new Set<() => void>();
@@ -42,17 +42,17 @@ export async function createPreviewBridge(scene: string): Promise<Bridge> {
   const payload = (): SessionPayload => {
     const parsed = parseSettings(settings);
     const questions = [...parseDefinition(definitionRaw).questions];
-    if (scene === "setup" && (parsed.ackedVersion !== 2 || parsed.apiKey.trim() === "")) {
+    if (scene === "setup" && (parsed.ackedVersion !== 3 || parsed.apiKey.trim() === "")) {
       return {
         view: {
           status: "needs-setup",
-          reason: parsed.ackedVersion !== 2 ? "approval" : "api-key",
-          definitionVersion: 2,
+          reason: parsed.ackedVersion !== 3 ? "approval" : "api-key",
+          definitionVersion: 3,
         },
         questions,
         history: [pass, fail],
         settings: parsed,
-        definitionVersion: 2,
+        definitionVersion: 3,
       };
     }
     return {
@@ -60,7 +60,7 @@ export async function createPreviewBridge(scene: string): Promise<Bridge> {
       questions,
       history: [pass, fail],
       settings: parsed,
-      definitionVersion: 2,
+      definitionVersion: 3,
     };
   };
 
