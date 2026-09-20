@@ -1,7 +1,7 @@
 {
   "name": "jev-page-checker",
   "private": true,
-  "version": "1.2.0",
+  "version": "0.0.1",
   "description": "表示中のタブを追跡し、TypeSafe の Jev でサイトと本文の信憑性を検査する Chrome 拡張",
   "homepage": "https://github.com/s-hiraoku/jev-page-checker",
   "type": "module",
