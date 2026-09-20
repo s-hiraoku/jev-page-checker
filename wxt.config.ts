@@ -23,4 +23,9 @@ export default defineConfig({
       128: "icon-128.png",
     },
   },
+  hooks: {
+    "build:manifestGenerated": (_wxt, manifest) => {
+      if (manifest.options_ui) manifest.options_ui.open_in_tab = true;
+    },
+  },
 });
