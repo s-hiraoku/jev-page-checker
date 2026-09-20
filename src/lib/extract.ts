@@ -17,6 +17,7 @@ export function wordCount(text: string): number {
   return spaced + Math.floor(cjk / 2);
 }
 
+/** Listing vs one text. Do not special-case a host or path. */
 export function classifyPageKind(articleCount: number, linkCount: number, words: number): "article" | "portal" {
   if (articleCount >= 1) return "article";
   if (linkCount >= LISTING_MIN_LINKS && words / Math.max(linkCount, 1) < LISTING_MAX_WORDS_PER_LINK) return "portal";

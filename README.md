@@ -25,7 +25,7 @@ Chrome で `chrome://extensions` を開き、デベロッパーモードをオ�
 
 ## 検査項目
 
-定義は `fixtures/page-credibility.checker.json` です。Jev には意味だけを聞き、同じページへの質問は 1 回の呼び出しにまとめます。
+定義は `fixtures/page-credibility.checker.json` です。Jev には意味だけを聞き、同じページへの質問は 1 回の呼び出しにまとめます。特定サイト向けに合格線を動かさないこと。詳細は [`docs/judgement.md`](docs/judgement.md) です。
 
 | id | レーン | 型 | 聞くこと |
 | --- | --- | --- | --- |
