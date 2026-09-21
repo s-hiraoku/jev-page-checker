@@ -22,12 +22,12 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
         <Lane title={copy.body} verdict={page} />
       </div>
       {sendKind === "unread" ? (
-        <p className="notice" style={{ marginTop: 8 }}>
+        <p className="notice">
           {copy.truncatedNotice}
         </p>
       ) : null}
       {sendKind === "chunked" ? (
-        <p className="help" style={{ marginTop: 8 }}>
+        <p className="help chunked-note">
           {copy.chunkedNotice} ({copy.windows(inspection?.windowCount ?? 0)})
         </p>
       ) : null}
