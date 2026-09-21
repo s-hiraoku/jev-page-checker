@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { recordById, type Bridge } from "../lib/bridge.js";
 import { bodySendKind } from "../lib/groups.js";
+import type { StoredRecord } from "../lib/session.js";
 import { AppChrome } from "./AppChrome.js";
 import { ReportView } from "./ReportView.js";
 import { useBridgeSession } from "./useBridgeSession.js";
@@ -46,7 +47,7 @@ function DetailsBody({
 }: {
   record: ReturnType<typeof recordById>;
   kind: ReturnType<typeof bodySendKind>;
-  history: NonNullable<ReturnType<typeof useBridgeSession>["session"]>["history"];
+  history: StoredRecord[];
 }) {
   const copy = useCopy();
   const sentLabel = kind === "unread" ? copy.sentUnread : kind === "chunked" ? copy.sentChunked : copy.sentBody;

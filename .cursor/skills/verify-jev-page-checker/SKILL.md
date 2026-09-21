@@ -9,7 +9,7 @@ This skill drives the **preview surface**, not a loaded Chrome extension. Users 
 
 Read `features/README.md` and the matching feature file before driving. A proof that hits one convenient URL is incomplete when the map lists other entry points.
 
-Copy in this skill must match `src/lib/labels.ts` and the live preview chrome. Do not restore older Japanese button labels.
+Copy in this skill must match `src/lib/copy.ts` / `src/lib/labels.ts` and the live preview chrome. The preview daemon uses `ja-JP`, so default `言語` `システム` is Japanese. Do not restore older Japanese button labels.
 
 ## What this is not
 
@@ -90,6 +90,7 @@ Stable handles (accessible names / labels from the real UI, not test ids):
 - Setup gate: `チェックリスト全体の承認が先。`
 - Settings labels: `TypeSafe API キー`, `テーマ`, `言語`, `Follow tab`, `本文が変わったらやり直す`, `やり直しまでの待ち（ミリ秒）`, `本文とみなす最小語数`, `上のチェックリスト全体を承認する。判定は根拠であり、公開・送信・遮断の許可ではない。` There is no 承認者の名前 field.
 - Theme options: `システム` (default), `ライト`, `ダーク`
+- Locale options: `システム` (default), `日本語`, `English`. Preview daemon locale is `ja-JP`, so system copy is Japanese.
 - Language options: `システム` (default), `日本語`, `English`
 - Settings actions: button `Save`, status `Saved.`, heading `質問 9`
 - Details: meta `Report · v3`, panel head `送った文`, history links whose names start with the snapshot title
