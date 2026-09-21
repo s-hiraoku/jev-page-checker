@@ -281,12 +281,6 @@ a:hover {
   height: 8px;
 }
 
-.lane-pass { background: var(--pass-soft); }
-.lane-fail { background: var(--fail-soft); }
-.lane-review { background: var(--review-soft); }
-.lane-error { background: var(--error-soft); }
-.lane-not_applicable { background: var(--na-soft); }
-
 .lane-pass::before { background: var(--pass); }
 .lane-fail::before { background: var(--fail); }
 .lane-review::before { background: var(--review); }
@@ -402,26 +396,6 @@ a:hover {
   background: transparent;
   white-space: normal;
   line-height: 1.5;
-}
-
-.result-table tbody tr:has(.chip-pass) {
-  background: color-mix(in srgb, var(--pass) 12%, var(--surface));
-}
-
-.result-table tbody tr:has(.chip-fail) {
-  background: color-mix(in srgb, var(--fail) 12%, var(--surface));
-}
-
-.result-table tbody tr:has(.chip-review) {
-  background: color-mix(in srgb, var(--review) 12%, var(--surface));
-}
-
-.result-table tbody tr:has(.chip-error) {
-  background: color-mix(in srgb, var(--error) 12%, var(--surface));
-}
-
-.result-table tbody tr:has(.chip-not_applicable) {
-  background: color-mix(in srgb, var(--na) 12%, var(--surface));
 }
 
 .meta-table th {
