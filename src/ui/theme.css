@@ -1,4 +1,14 @@
 :root {
+  color: var(--ink);
+  background: var(--bg);
+  font-family: ui-sans-serif, "Hiragino Sans", "Segoe UI", Meiryo, sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+:root,
+html[data-theme="dark"] {
+  color-scheme: dark;
   --bg: #141414;
   --surface: #1a1a1a;
   --header: #0f0f0f;
@@ -20,11 +30,67 @@
   --error-soft: #261810;
   --na: #8a8a8a;
   --na-soft: #222222;
-  color: var(--ink);
-  background: var(--bg);
-  font-family: ui-sans-serif, "Hiragino Sans", "Segoe UI", Meiryo, sans-serif;
-  font-size: 12px;
-  line-height: 1.4;
+  --link: #d0d0d0;
+  --input: #111111;
+  --hover: #222222;
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f3f3f3;
+  --surface: #ffffff;
+  --header: #ececec;
+  --header-ink: #141414;
+  --ink: #141414;
+  --muted: #6a6a6a;
+  --line: #d8d8d8;
+  --line-strong: #c0c0c0;
+  --focus: #f54e00;
+  --btn: #141414;
+  --btn-ink: #f3f3f3;
+  --pass: #1a8f5c;
+  --pass-soft: #e6f6ee;
+  --review: #b7791f;
+  --review-soft: #f7eedc;
+  --fail: #c44741;
+  --fail-soft: #f7e6e5;
+  --error: #b56a3a;
+  --error-soft: #f4ebe4;
+  --na: #6a6a6a;
+  --na-soft: #ececec;
+  --link: #3a3a3a;
+  --input: #ffffff;
+  --hover: #e6e6e6;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    color-scheme: light;
+    --bg: #f3f3f3;
+    --surface: #ffffff;
+    --header: #ececec;
+    --header-ink: #141414;
+    --ink: #141414;
+    --muted: #6a6a6a;
+    --line: #d8d8d8;
+    --line-strong: #c0c0c0;
+    --focus: #f54e00;
+    --btn: #141414;
+    --btn-ink: #f3f3f3;
+    --pass: #1a8f5c;
+    --pass-soft: #e6f6ee;
+    --review: #b7791f;
+    --review-soft: #f7eedc;
+    --fail: #c44741;
+    --fail-soft: #f7e6e5;
+    --error: #b56a3a;
+    --error-soft: #f4ebe4;
+    --na: #6a6a6a;
+    --na-soft: #ececec;
+    --link: #3a3a3a;
+    --input: #ffffff;
+    --hover: #e6e6e6;
+  }
 }
 
 * {
@@ -51,7 +117,7 @@ button {
 }
 
 a {
-  color: #d0d0d0;
+  color: var(--link);
 }
 
 .app-header {
@@ -267,7 +333,7 @@ a {
 }
 
 .btn.secondary:hover {
-  background: #222;
+  background: var(--hover);
   filter: none;
 }
 
@@ -295,16 +361,18 @@ a {
 }
 
 .field input,
-.field textarea {
+.field textarea,
+.field select {
   border: 1px solid var(--line-strong);
-  background: #111;
+  background: var(--input);
   padding: 4px 7px;
   color: var(--ink);
   border-radius: 0;
 }
 
 .field input:focus,
-.field textarea:focus {
+.field textarea:focus,
+.field select:focus {
   outline: 1px solid var(--focus);
   border-color: var(--focus);
 }
@@ -501,7 +569,7 @@ a {
 }
 
 .history a:hover {
-  background: #222;
+  background: var(--hover);
 }
 
 .preview-nav {

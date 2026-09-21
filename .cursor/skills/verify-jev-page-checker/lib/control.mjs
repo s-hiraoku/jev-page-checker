@@ -280,13 +280,14 @@ async function cmdDoctor() {
 
 async function cmdBrowser(args) {
   const action = args._[1];
-  if (!action) die("control-jev browser <goto|click|fill|check|uncheck|text|wait|url|screenshot|snapshot>");
+  if (!action) die("control-jev browser <goto|click|fill|select|check|uncheck|text|wait|url|screenshot|snapshot|attr>");
   const state = readState();
   if (!ourVite(state)) die("Doctor failed: preview process is not ours. Run control-jev doctor.");
   const payload = {
     action,
     path: args.path === true ? undefined : args.path,
     name: args.name === true ? undefined : args.name,
+    selector: args.selector === true ? undefined : args.selector,
     label: args.label === true ? undefined : args.label,
     value: args.value === true ? undefined : args.value,
     contains: args.contains === true ? undefined : args.contains,
@@ -360,8 +361,9 @@ function usage() {
   process.stdout.write(`control-jev launch [--port ${DEFAULT_PORT}]
 control-jev doctor
 control-jev browser goto --path "/?scene=pass#side"
-control-jev browser click --name "設定"
-control-jev browser fill --label "承認者の名前" --value "verifier"
+control-jev browser click --name "Settings"
+control-jev browser select --label "テーマ" --value "light"
+control-jev browser attr --selector "html" --name "data-theme"
 control-jev browser check --label "上のチェックリスト全体を承認する"
 control-jev browser uncheck --label "Follow tab"
 control-jev browser text --contains "Pass"

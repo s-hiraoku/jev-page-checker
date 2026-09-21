@@ -1,22 +1,25 @@
 import type { ItemResult } from "../lib/checkkit.js";
 import { questionLabel } from "../lib/labels.js";
 import { AnswerView, VerdictChip } from "./bits.js";
+import { useCopy, useLocale } from "./useLocale.js";
 
 export function ItemList({ items, compact = false }: { items: readonly ItemResult[]; compact?: boolean }) {
+  const copy = useCopy();
+  const locale = useLocale();
   return (
     <table className="result-table">
       <thead>
         <tr>
-          <th>項目</th>
-          <th>判定</th>
-          <th>値</th>
+          <th>{copy.item}</th>
+          <th>{copy.verdict}</th>
+          <th>{copy.value}</th>
         </tr>
       </thead>
       <tbody>
         {items.map((item) => (
           <tr key={item.id}>
             <th scope="row">
-              {questionLabel(item.id)}
+              {questionLabel(item.id, locale)}
               {compact ? null : <p className="reason">{item.reason}</p>}
             </th>
             <td>

@@ -44,7 +44,7 @@ export function PreviewApp() {
 
   const panel = (
     <>
-      {bridge === null ? <p className="shell">プレビューを組み立てています…</p> : null}
+      {bridge === null ? <p className="shell">Building preview…</p> : null}
       {bridge !== null && page === "side" ? (
         <div style={{ maxWidth: 380, minHeight: "100vh", borderLeft: store ? "1px solid var(--line)" : undefined }}>
           <SidePanelApp bridge={bridge} />
