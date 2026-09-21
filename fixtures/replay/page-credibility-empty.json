@@ -20,7 +20,8 @@
     "wordCount": 4,
     "citationCount": 0,
     "outboundHosts": [],
-    "text": "Loading workspace"
+    "text": "Loading workspace",
+    "textTruncated": false
   },
   "answers": {
     "identifiable_publisher": { "type": "noul", "noul": 0.35 },

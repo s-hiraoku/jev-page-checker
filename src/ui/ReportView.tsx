@@ -1,4 +1,5 @@
 import { PAGE_QUESTION_IDS, SITE_QUESTION_IDS, worstVerdict } from "../lib/groups.js";
+import { TEXT_TRUNCATED_NOTICE } from "../lib/labels.js";
 import type { StoredRecord } from "../lib/session.js";
 import { ItemList } from "./ItemList.js";
 import { Lane } from "./bits.js";
@@ -12,6 +13,11 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
         <Lane title="サイト" verdict={site} />
         <Lane title="本文" verdict={page} />
       </div>
+      {record.snapshot.textTruncated ? (
+        <p className="notice" style={{ marginTop: 8 }}>
+          {TEXT_TRUNCATED_NOTICE}
+        </p>
+      ) : null}
       <table className="meta-table" style={{ marginTop: 8 }}>
         <tbody>
           <tr>
@@ -29,6 +35,7 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
                 <td>
                   {record.snapshot.wordCount} 語 / 外部ホスト {record.snapshot.citationCount} / HTTPS{" "}
                   {record.snapshot.isHttps ? "あり" : "なし"} / 著者 {record.snapshot.hasAuthor ? "あり" : "なし"}
+                  {record.snapshot.textTruncated ? " / 本文は先頭のみ" : ""}
                 </td>
               </tr>
               <tr>

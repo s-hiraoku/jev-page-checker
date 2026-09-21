@@ -1,4 +1,4 @@
-import type { Verdict } from "./checkkit.js";
+import type { ItemResult, Verdict } from "./checkkit.js";
 
 export const SITE_QUESTION_IDS = [
   "identifiable_publisher",
@@ -29,4 +29,19 @@ export function worstVerdict(items: readonly { id: string; verdict: Verdict }[],
     if (RANK[item.verdict] > RANK[worst]) worst = item.verdict;
   }
   return worst;
+}
+
+const PAGE_QUESTION_ID_SET: ReadonlySet<string> = new Set(PAGE_QUESTION_IDS);
+
+/** Prefix truncation is unread remainder. Body pass is not a completed inspection. */
+export function withholdBodyPassOnTruncation(items: readonly ItemResult[], truncated: boolean): ItemResult[] {
+  if (!truncated) return [...items];
+  return items.map((item) => {
+    if (item.verdict !== "pass" || !PAGE_QUESTION_ID_SET.has(item.id)) return item;
+    return {
+      ...item,
+      verdict: "review",
+      reason: `extracted text was cut at the character limit; unread remainder cannot support pass (${item.reason})`,
+    };
+  });
 }

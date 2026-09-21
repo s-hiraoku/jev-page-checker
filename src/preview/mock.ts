@@ -15,7 +15,7 @@ interface ReplayFile {
 }
 
 function toSnapshot(state: Omit<PageSnapshot, "extractedAt">): PageSnapshot {
-  return { ...state, extractedAt: "2026-09-20T00:00:00.000Z" };
+  return { ...state, extractedAt: "2026-09-20T00:00:00.000Z", textTruncated: state.textTruncated ?? false };
 }
 
 async function recordFrom(replay: ReplayFile, id: string): Promise<StoredRecord> {
@@ -25,8 +25,10 @@ async function recordFrom(replay: ReplayFile, id: string): Promise<StoredRecord>
 }
 
 export async function createPreviewBridge(scene: string): Promise<Bridge> {
-  const pass = await recordFrom(passReplay as ReplayFile, "preview-pass");
+  const passFile = passReplay as ReplayFile;
+  const pass = await recordFrom(passFile, "preview-pass");
   const fail = await recordFrom(failReplay as ReplayFile, "preview-fail");
+  const truncated = await recordFrom({ ...passFile, state: { ...passFile.state, textTruncated: true } }, "preview-truncated");
   let settings: ExtensionSettings = {
     ...DEFAULT_SETTINGS,
     apiKey: scene === "setup" ? "" : "sk-preview",
@@ -50,15 +52,15 @@ export async function createPreviewBridge(scene: string): Promise<Bridge> {
           definitionVersion: 3,
         },
         questions,
-        history: [pass, fail],
+        history: [pass, fail, truncated],
         settings: parsed,
         definitionVersion: 3,
       };
     }
     return {
-      view: { status: "ready", record: scene === "fail" ? fail : pass },
+      view: { status: "ready", record: scene === "fail" ? fail : scene === "truncated" ? truncated : pass },
       questions,
-      history: [pass, fail],
+      history: [pass, fail, truncated],
       settings: parsed,
       definitionVersion: 3,
     };

@@ -49,7 +49,7 @@ export function DetailsApp({ bridge }: { bridge: Bridge }) {
         {record ? <ReportView record={record} /> : <p className="notice">まだ検査結果がありません。側面パネルから今のタブを検査してください。</p>}
         {record ? (
           <section className="panel">
-            <div className="panel-head">送った本文</div>
+            <div className="panel-head">{record.snapshot.textTruncated ? "送った本文（先頭のみ）" : "送った本文"}</div>
             <div className="panel-body">
               <p className="help">{record.snapshot.text}</p>
             </div>

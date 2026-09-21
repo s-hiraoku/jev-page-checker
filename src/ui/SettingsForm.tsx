@@ -74,6 +74,7 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
           <span>Jev に送る本文の上限（文字）</span>
           <input type="number" value={draft.maxChars} onChange={(event) => update("maxChars", Number(event.target.value))} />
         </label>
+        <p className="help">上限を超えた続きは送らない。そのとき本文レーンは通過にしない。URL ごとに上限を変えない。</p>
         <label className="field">
           <span>本文とみなす最小語数</span>
           <input type="number" value={draft.minWords} onChange={(event) => update("minWords", Number(event.target.value))} />

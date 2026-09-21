@@ -8,6 +8,7 @@ import { createPreviewBridge } from "./mock.js";
 const SCENES = [
   ["pass", "通過例"],
   ["fail", "要警戒例"],
+  ["truncated", "先頭切断"],
   ["setup", "初期設定"],
 ] as const;
 

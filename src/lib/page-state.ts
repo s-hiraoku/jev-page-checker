@@ -23,6 +23,7 @@ export interface PageSnapshot {
   citationCount: number;
   outboundHosts: string[];
   text: string;
+  textTruncated: boolean;
   extractedAt: string;
 }
 

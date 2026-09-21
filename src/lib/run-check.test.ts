@@ -16,9 +16,14 @@ function loadReplay(name: string) {
   };
 }
 
-async function reportOf(name: string) {
+async function reportOf(name: string, patch: Partial<PageSnapshot> = {}) {
   const replay = loadReplay(name);
-  const snapshot: PageSnapshot = { ...replay.state, extractedAt: "2026-09-20T00:00:00.000Z" };
+  const snapshot: PageSnapshot = {
+    ...replay.state,
+    ...patch,
+    extractedAt: "2026-09-20T00:00:00.000Z",
+    textTruncated: patch.textTruncated ?? replay.state.textTruncated ?? false,
+  };
   return checkSnapshot(snapshot, definition, replayGateway(replay.answers, replay.usage));
 }
 
@@ -52,4 +57,24 @@ test("an essay purpose is not a site-safety failure", async () => {
   assert.equal(report.items.find((item) => item.id === "site_purpose")?.verdict, "pass");
   assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
   assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "pass");
+});
+
+test("a truncated extract cannot pass body scrutiny even when Jev would pass the prefix", async () => {
+  const report = await reportOf("page-credibility-pass.json", { textTruncated: true });
+  assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
+  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "review");
+  for (const id of PAGE_QUESTION_IDS) {
+    assert.equal(report.items.find((item) => item.id === id)?.verdict, "review");
+  }
+});
+
+test("a truncated extract still reports a body fail found in the prefix", async () => {
+  const report = await reportOf("page-credibility-fail.json", { textTruncated: true });
+  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "fail");
+  assert.equal(report.items.find((item) => item.id === "unsourced_specifics")?.verdict, "fail");
+});
+
+test("a truncated listing still skips body questions", async () => {
+  const report = await reportOf("page-credibility-portal.json", { textTruncated: true });
+  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "not_applicable");
 });

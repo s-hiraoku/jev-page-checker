@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { JSDOM } from "jsdom";
-import { classifyPageKind, collectOutbound, extractSnapshot, wordCount } from "./extract.js";
+import { classifyPageKind, collectOutbound, collectText, extractSnapshot, wordCount } from "./extract.js";
 
 test("wordCount ignores surrounding space", () => {
   assert.equal(wordCount("  one two  three "), 3);
@@ -44,6 +44,7 @@ test("extractSnapshot prefers article text, records author, and flags a short bo
   assert.deepEqual(snapshot.outboundHosts, ["transport.example.gov"]);
   assert.equal(snapshot.pageKind, "article");
   assert.equal(snapshot.hasArticle, false);
+  assert.equal(snapshot.textTruncated, false);
 });
 
 test("classifyPageKind uses structure, not the URL path", () => {
@@ -61,6 +62,7 @@ test("extractSnapshot treats a link listing as a portal on any host", () => {
   const snapshot = extractSnapshot(dom.window.document, dom.window.location, 1000, 40, () => "2026-09-20T00:00:00.000Z");
   assert.equal(snapshot.pageKind, "portal");
   assert.equal(snapshot.hasArticle, false);
+  assert.equal(snapshot.textTruncated, false);
 });
 
 test("extractSnapshot treats a long single text at the site root as an article", () => {
@@ -71,4 +73,40 @@ test("extractSnapshot treats a long single text at the site root as an article",
   const snapshot = extractSnapshot(dom.window.document, dom.window.location, 4000, 40, () => "2026-09-20T00:00:00.000Z");
   assert.equal(snapshot.pageKind, "article");
   assert.equal(snapshot.hasArticle, true);
+  assert.equal(snapshot.textTruncated, false);
+});
+
+test("collectText records leftover prose after the character limit", () => {
+  const dom = new JSDOM(`<!doctype html><p>abcdefghij leftover claim</p>`);
+  const collected = collectText(dom.window.document.body, 10);
+  assert.equal(collected.text, "abcdefghij");
+  assert.equal(collected.truncated, true);
+});
+
+test("collectText is not truncated when the main text fits", () => {
+  const dom = new JSDOM(`<!doctype html><p>abcdefghij</p>`);
+  const collected = collectText(dom.window.document.body, 10);
+  assert.equal(collected.text, "abcdefghij");
+  assert.equal(collected.truncated, false);
+});
+
+test("collectText flags leftover text in a later node after an exact fit", () => {
+  const dom = new JSDOM(`<!doctype html><p>abcdefghij</p><p>more</p>`);
+  const collected = collectText(dom.window.document.body, 10);
+  assert.equal(collected.text, "abcdefghij");
+  assert.equal(collected.truncated, true);
+});
+
+test("extractSnapshot flags truncation from leftover main text, not from skipped chrome", () => {
+  const prose = "abcdefghij leftover";
+  const dom = new JSDOM(
+    `<!doctype html><html><head><title>Memo</title></head><body>
+      <nav>${"nav ".repeat(80)}</nav>
+      <article>${prose}</article>
+    </body></html>`,
+    { url: "https://writer.example.org/memo" },
+  );
+  const snapshot = extractSnapshot(dom.window.document, dom.window.location, 10, 1, () => "2026-09-20T00:00:00.000Z");
+  assert.equal(snapshot.text, "abcdefghij");
+  assert.equal(snapshot.textTruncated, true);
 });

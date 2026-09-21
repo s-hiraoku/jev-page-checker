@@ -1,5 +1,6 @@
 import { TypeSafeClient } from "@typesafe-ai/sdk";
 import { evaluate, liveGateway, parseDefinition, type CheckReport, type JevGateway } from "./checkkit.js";
+import { withholdBodyPassOnTruncation } from "./groups.js";
 import { snapshotToState, type PageSnapshot } from "./page-state.js";
 
 export function loadDefinition(raw: unknown) {
@@ -19,5 +20,6 @@ export function createLiveJev(apiKey: string): JevGateway {
 }
 
 export async function checkSnapshot(snapshot: PageSnapshot, definitionRaw: unknown, jev: JevGateway): Promise<CheckReport> {
-  return evaluate(loadDefinition(definitionRaw), snapshotToState(snapshot), jev);
+  const report = await evaluate(loadDefinition(definitionRaw), snapshotToState(snapshot), jev);
+  return { ...report, items: withholdBodyPassOnTruncation(report.items, snapshot.textTruncated === true) };
 }
