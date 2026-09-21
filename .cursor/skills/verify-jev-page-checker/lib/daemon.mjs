@@ -54,6 +54,16 @@ async function handle(req) {
     await page.getByLabel(req.label, { exact: true }).fill(String(req.value));
     return { ok: true, out: `filled ${req.label}` };
   }
+  if (action === "select") {
+    if (!req.label || req.value === undefined) return { ok: false, error: "browser select --label <label> --value <option>" };
+    await page.getByLabel(req.label, { exact: true }).selectOption(String(req.value));
+    return { ok: true, out: `selected ${req.value} for ${req.label}` };
+  }
+  if (action === "attr") {
+    if (!req.selector || !req.name) return { ok: false, error: "browser attr --selector <css> --name <attr>" };
+    const value = await page.locator(req.selector).first().getAttribute(req.name);
+    return { ok: true, out: value ?? "" };
+  }
   if (action === "check" || action === "uncheck") {
     if (!req.label) return { ok: false, error: `browser ${action} --label <label>` };
     const box = page.getByLabel(req.label, { exact: false });

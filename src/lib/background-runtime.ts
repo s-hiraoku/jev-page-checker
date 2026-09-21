@@ -1,7 +1,9 @@
 import { TypeSafeError } from "@typesafe-ai/sdk";
 import { applyActionIcon, applyDefaultActionIcon } from "./action-icon.js";
 import { parseDefinition, type ApprovedDefinition } from "./checkkit.js";
+import { copyFor } from "./copy.js";
 import { unknownErrorMessage } from "./errors.js";
+import { resolveLocale, type ResolvedLocale } from "./locale.js";
 import { isInspectableUrl, snapshotFingerprint, type PageSnapshot } from "./page-state.js";
 import { checkSnapshot, createLiveJev } from "./run-check.js";
 import { DEFAULT_SETTINGS, parseSettings, setupGap, type ExtensionSettings } from "./settings.js";
@@ -68,11 +70,19 @@ async function targetTabId(windowId: number | undefined, senderTabId: number | u
   return tabIdInWindow();
 }
 
+function browserLanguage(): string {
+  return chrome.i18n?.getUILanguage?.() ?? "ja";
+}
+
+function uiLocale(settings: ExtensionSettings): ResolvedLocale {
+  return resolveLocale(settings.locale, browserLanguage());
+}
+
 async function paint(definition: ApprovedDefinition, tabId: number | undefined): Promise<SessionPayload> {
   const next = await payload(definition, tabId);
   if (tabId !== undefined) {
     try {
-      await applyActionIcon(tabId, next.view);
+      await applyActionIcon(tabId, next.view, uiLocale(next.settings));
     } catch {
       // The check must still finish even if the toolbar paint fails.
     }
@@ -118,11 +128,12 @@ async function extractTab(tabId: number, settings: ExtensionSettings): Promise<P
   return snapshot as PageSnapshot;
 }
 
-function errorMessage(error: unknown): string {
-  if (error instanceof TypeSafeError) return "Jev への送信に失敗しました。キーとネットワークを確認してください。";
+function errorMessage(error: unknown, locale: ResolvedLocale): string {
+  const copy = copyFor(locale);
+  if (error instanceof TypeSafeError) return copy.jevSendFailed;
   if (error instanceof Error) {
     if (error.message.includes("Could not establish connection")) {
-      return "このページからは本文を取れません。再読み込みしてからもう一度。";
+      return copy.extractFailed;
     }
     return error.message;
   }
@@ -146,7 +157,7 @@ async function checkTab(definition: ApprovedDefinition, tabId: number, force: bo
   try {
     snapshot = await extractTab(tabId, settings);
   } catch (error) {
-    tabs.set(tabId, { status: "error", message: errorMessage(error) });
+    tabs.set(tabId, { status: "error", message: errorMessage(error, uiLocale(settings)) });
     await publishForTab(definition, tabId);
     return;
   }
@@ -169,7 +180,7 @@ async function checkTab(definition: ApprovedDefinition, tabId: number, force: bo
     tabs.set(tabId, { status: "ready", record, fingerprint });
     await appendHistory(record);
   } catch (error) {
-    tabs.set(tabId, { status: "error", message: errorMessage(error), snapshot, fingerprint });
+    tabs.set(tabId, { status: "error", message: errorMessage(error, uiLocale(settings)), snapshot, fingerprint });
   } finally {
     if (inflight.get(tabId) === fingerprint) inflight.delete(tabId);
   }
@@ -228,14 +239,14 @@ export function startBackground(definitionRaw: unknown): void {
         if (message.type === "SAVE_SETTINGS") {
           const next = parseSettings(message.settings);
           const previous = await readSettings();
-          await writeSettings({ ...DEFAULT_SETTINGS, ...previous, ...next, apiKey: next.apiKey, approver: next.approver });
+          await writeSettings({ ...DEFAULT_SETTINGS, ...previous, ...next, apiKey: next.apiKey });
           sendResponse(await payload(definition, await targetTabId(windowId, senderTabId)));
           await notifyUi(undefined);
           return;
         }
         if (message.type === "CHECK_NOW") {
           const id = await targetTabId(windowId, senderTabId);
-          if (id === undefined) throw new Error("対象のタブがありません。");
+          if (id === undefined) throw new Error(copyFor(uiLocale(await readSettings())).noTargetTab);
           await checkTab(definition, id, true);
           sendResponse(await payload(definition, id));
           return;
@@ -262,7 +273,7 @@ export function startBackground(definitionRaw: unknown): void {
         }
         sendResponse({ error: `unknown message ${message.type}` });
       } catch (error) {
-        sendResponse({ error: errorMessage(error) });
+        sendResponse({ error: errorMessage(error, uiLocale(await readSettings())) });
       }
     })();
     return true;

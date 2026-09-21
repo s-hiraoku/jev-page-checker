@@ -59,7 +59,7 @@ Jev Audit は、いま見ているページの発行元と本文を、承認済�
 
 - Website content（URL、タイトル、メタ、本文）
 - User activity（Audit の開始、承認の保存）
-- Personally identifiable information には当たらないが、利用者が任意で入れる API キーと承認者名
+- Personally identifiable information には当たらないが、利用者が任意で入れる API キー
 
 使わないデータ
 
@@ -79,7 +79,7 @@ Jev Audit は、いま見ているページの発行元と本文を、承認済�
 
 ## Test instructions
 
-1. 設定でチェックリスト全文を承認し、承認者名を入れる。
+1. 設定でチェックリスト全文を承認する。
 2. TypeSafe API キーを入れる。審査用キーが必要な場合は GitHub Issues で連絡する。
 3. https の記事ページを開き、ツールバーアイコンで Inspector を出す。
 4. Site / Page の 2 レーンと、質問ごとの判定が出ることを確認する。

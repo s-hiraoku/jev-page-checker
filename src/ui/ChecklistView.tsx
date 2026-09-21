@@ -1,5 +1,6 @@
 import type { Check } from "../lib/checkkit.js";
 import { instructionText, questionLabel } from "../lib/labels.js";
+import { useCopy, useLocale } from "./useLocale.js";
 
 function criteriaText(check: Check): string {
   if (check.type === "noul") {
@@ -27,14 +28,16 @@ function extras(check: Check): string {
 }
 
 export function ChecklistView({ questions }: { questions: readonly Check[] }) {
+  const copy = useCopy();
+  const locale = useLocale();
   return (
     <section>
-      <h2 className="page-title">質問 {questions.length}</h2>
-      <p className="help">差分承認はしない。変えたらこのリスト全体をもう一度。</p>
+      <h2 className="page-title">{copy.questions(questions.length)}</h2>
+      <p className="help">{copy.wholeListAgain}</p>
       {questions.map((check) => (
         <article className="checklist-item" key={check.id}>
           <h3>
-            {questionLabel(check.id)} <span className="url">({check.id})</span>
+            {questionLabel(check.id, locale)} <span className="url">({check.id})</span>
           </h3>
           <p className="help">{instructionText(check)}</p>
           <pre>

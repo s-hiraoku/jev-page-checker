@@ -62,7 +62,6 @@ All browser actions go through `control-jev browser`. The daemon keeps one page,
 ```bash
 .cursor/skills/verify-jev-page-checker/bin/control-jev browser goto --path "/?scene=pass#side"
 .cursor/skills/verify-jev-page-checker/bin/control-jev browser click --name "Settings"
-.cursor/skills/verify-jev-page-checker/bin/control-jev browser fill --label "承認者の名前" --value "verifier"
 .cursor/skills/verify-jev-page-checker/bin/control-jev browser check --label "上のチェックリスト全体を承認する"
 .cursor/skills/verify-jev-page-checker/bin/control-jev browser text --contains "Pass"
 .cursor/skills/verify-jev-page-checker/bin/control-jev browser screenshot --path .cursor/skills/verify-jev-page-checker/artifacts/side.png
@@ -89,7 +88,9 @@ Stable handles (accessible names / labels from the real UI, not test ids):
 - Pass title: `City delays river bridge opening after inspection, officials say`
 - Fail title: `Doctors hate this: one pill reverses aging in 11 days`
 - Setup gate: `チェックリスト全体の承認が先。`
-- Settings labels: `TypeSafe API キー`, `Follow tab`, `本文が変わったらやり直す`, `やり直しまでの待ち（ミリ秒）`, `本文とみなす最小語数`, `承認者の名前`, `上のチェックリスト全体を承認する。判定は根拠であり、公開・送信・遮断の許可ではない。`
+- Settings labels: `TypeSafe API キー`, `テーマ`, `言語`, `Follow tab`, `本文が変わったらやり直す`, `やり直しまでの待ち（ミリ秒）`, `本文とみなす最小語数`, `上のチェックリスト全体を承認する。判定は根拠であり、公開・送信・遮断の許可ではない。` There is no 承認者の名前 field.
+- Theme options: `システム` (default), `ライト`, `ダーク`
+- Language options: `システム` (default), `日本語`, `English`
 - Settings actions: button `Save`, status `Saved.`, heading `質問 9`
 - Details: meta `Report · v3`, panel head `送った文`, history links whose names start with the snapshot title
 

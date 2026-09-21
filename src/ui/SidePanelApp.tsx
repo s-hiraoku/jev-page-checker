@@ -1,65 +1,104 @@
 import type { Bridge } from "../lib/bridge.js";
 import { DEFAULT_SETTINGS } from "../lib/settings.js";
+import type { SessionView, StoredRecord } from "../lib/session.js";
 import { AppChrome } from "./AppChrome.js";
 import { ReportView } from "./ReportView.js";
 import { useBridgeSession } from "./useBridgeSession.js";
+import { useCopy } from "./useLocale.js";
 
 export function SidePanelApp({ bridge }: { bridge: Bridge }) {
   const { session, error, accept, fail } = useBridgeSession(bridge);
+  const theme = session?.settings.theme;
+  const locale = session?.settings.locale;
 
   if (session === null && error === null) {
-    return <AppChrome>読み込み中…</AppChrome>;
+    return (
+      <AppChrome theme={theme} locale={locale}>
+        <LoadingCopy />
+      </AppChrome>
+    );
   }
-  const view = session?.view;
 
   return (
-    <AppChrome meta={`v${session?.definitionVersion ?? "—"}`}>
-      <p className="help">サイトと本文を分ける。一つの点数にはしない。</p>
+    <AppChrome meta={`v${session?.definitionVersion ?? "—"}`} theme={theme} locale={locale}>
+      <PanelBody
+        view={session?.view}
+        error={error}
+        followTab={session?.settings.followTab ?? DEFAULT_SETTINGS.followTab}
+        onAudit={() => void bridge.checkNow().then(accept).catch(fail)}
+        onDetails={() => void bridge.openDetails()}
+        onSettings={() => void bridge.openOptions()}
+      />
+    </AppChrome>
+  );
+}
+
+function LoadingCopy() {
+  return useCopy().loading;
+}
+
+function PanelBody({
+  view,
+  error,
+  followTab,
+  onAudit,
+  onDetails,
+  onSettings,
+}: {
+  view: SessionView | undefined;
+  error: string | null;
+  followTab: boolean;
+  onAudit: () => void;
+  onDetails: () => void;
+  onSettings: () => void;
+}) {
+  const copy = useCopy();
+  const record: StoredRecord | null = view?.status === "ready" ? view.record : null;
+  return (
+    <>
+      <p className="help">{copy.splitLanes}</p>
 
       {error ? <p className="notice fail">{error}</p> : null}
 
       {view?.status === "needs-setup" ? (
         <div className="notice">
-          {view.reason === "approval" ? "チェックリスト全体の承認が先。" : "TypeSafe の API キーがまだない。"}
+          {view.reason === "approval" ? copy.needApproval : copy.needApiKey}
           <div className="row" style={{ marginTop: 8 }}>
-            <button className="btn" type="button" onClick={() => void bridge.openOptions()}>
+            <button className="btn" type="button" onClick={onSettings}>
               Settings
             </button>
           </div>
         </div>
       ) : null}
 
-      {view?.status === "unsupported" ? (
-        <p className="notice">http(s) だけ。いまの URL は {view.url || "（不明）"}。</p>
-      ) : null}
+      {view?.status === "unsupported" ? <p className="notice">{copy.unsupported(view.url)}</p> : null}
 
-      {view?.status === "idle" ? (
-        <p className="help">{view.followTab ? "タブを開くと自動で Audit する。" : "Follow tab オフ。必要なときだけ。"}</p>
-      ) : null}
+      {view?.status === "idle" ? <p className="help">{view.followTab ? copy.idleFollow : copy.idleManual}</p> : null}
 
       {view?.status === "checking" ? (
-        <p className="help">Auditing… {view.snapshot.title || view.snapshot.hostname}</p>
+        <p className="help">
+          {copy.auditing} {view.snapshot.title || view.snapshot.hostname}
+        </p>
       ) : null}
 
       {view?.status === "error" ? <p className="notice fail">{view.message}</p> : null}
 
-      {view?.status === "ready" ? <ReportView record={view.record} compact /> : null}
+      {record ? <ReportView record={record} compact /> : null}
 
       <div className="toolbar">
-        <button className="btn" type="button" onClick={() => void bridge.checkNow().then(accept).catch(fail)}>
+        <button className="btn" type="button" onClick={onAudit}>
           Audit
         </button>
-        <button className="btn secondary" type="button" onClick={() => void bridge.openDetails()}>
+        <button className="btn secondary" type="button" onClick={onDetails}>
           Report
         </button>
-        <button className="btn secondary" type="button" onClick={() => void bridge.openOptions()}>
+        <button className="btn secondary" type="button" onClick={onSettings}>
           Settings
         </button>
       </div>
       <p className="foot">
-        アイコン上段がサイト、下段が本文。根拠であり遮断しない。Follow tab{" "}
-        {session?.settings.followTab ?? DEFAULT_SETTINGS.followTab ? "on" : "off"}
+        {copy.footer} {followTab ? "on" : "off"}
       </p>
-    </AppChrome>
+    </>
   );
 }

@@ -43,7 +43,6 @@ export async function createPreviewBridge(scene: string): Promise<Bridge> {
   let settings: ExtensionSettings = {
     ...DEFAULT_SETTINGS,
     apiKey: scene === "setup" ? "" : "sk-preview",
-    approver: scene === "setup" ? "" : "preview",
     ackedVersion: scene === "setup" ? null : definition.version,
     followTab: true,
   };

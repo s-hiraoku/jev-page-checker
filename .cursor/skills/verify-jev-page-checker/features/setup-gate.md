@@ -1,6 +1,6 @@
 # Setup gate
 
-Until the checklist is approved (and then an API key is saved), the side panel refuses to inspect and sends the user to settings. Preview scene `setup` starts with an empty approver and empty key.
+Until the checklist is approved (and then an API key is saved), the side panel refuses to inspect and sends the user to settings. Preview scene `setup` starts with no whole-list acknowledgement and an empty key.
 
 ## Sub-features
 

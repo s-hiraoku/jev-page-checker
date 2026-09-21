@@ -1,6 +1,8 @@
 import type { Verdict } from "./checkkit.js";
+import { copyFor } from "./copy.js";
 import { worseVerdict, worstVerdict } from "./groups.js";
 import { VERDICT_LABELS } from "./labels.js";
+import type { ResolvedLocale } from "./locale.js";
 import type { SessionView } from "./session.js";
 
 export type LaneTone = Verdict | "idle" | "checking" | "setup" | "unsupported";
@@ -27,13 +29,14 @@ export const RGB: Record<LaneTone, [number, number, number]> = {
 
 const PAPER: [number, number, number] = [244, 247, 250];
 
-export function actionIconModel(view: SessionView): ActionIconModel {
+export function actionIconModel(view: SessionView, locale: ResolvedLocale = "ja"): ActionIconModel {
+  const copy = copyFor(locale);
   switch (view.status) {
     case "needs-setup":
       return {
         site: "setup",
         page: "setup",
-        title: view.reason === "approval" ? "チェックリストの承認が必要です" : "API キーが必要です",
+        title: view.reason === "approval" ? copy.iconNeedApproval : copy.iconNeedApiKey,
         badge: "!",
         badgeColor: "#d68410",
       };
@@ -57,7 +60,7 @@ export function actionIconModel(view: SessionView): ActionIconModel {
       return {
         site: "unsupported",
         page: "unsupported",
-        title: "http(s) のページだけ",
+        title: copy.iconUnsupported,
         badge: "",
         badgeColor: "#5a6a78",
       };
@@ -75,7 +78,7 @@ export function actionIconModel(view: SessionView): ActionIconModel {
       return {
         site,
         page,
-        title: `サイト: ${VERDICT_LABELS[site]} / 本文: ${VERDICT_LABELS[page]}`,
+        title: copy.iconReady(VERDICT_LABELS[site], VERDICT_LABELS[page]),
         badge: badgeFor(site, page),
         badgeColor: badgeColorFor(site, page),
       };
@@ -140,8 +143,8 @@ export function createIconImageData(size: number, site: LaneTone, page: LaneTone
   return image;
 }
 
-function iconImageData(view: SessionView): Record<number, ImageData> {
-  const model = actionIconModel(view);
+function iconImageData(view: SessionView, locale: ResolvedLocale): Record<number, ImageData> {
+  const model = actionIconModel(view, locale);
   const imageData: Record<number, ImageData> = {};
   for (const size of [16, 32]) {
     imageData[size] = createIconImageData(size, model.site, model.page);
@@ -149,9 +152,9 @@ function iconImageData(view: SessionView): Record<number, ImageData> {
   return imageData;
 }
 
-async function paintAction(details: { tabId?: number }, view: SessionView): Promise<void> {
-  const model = actionIconModel(view);
-  const imageData = iconImageData(view);
+async function paintAction(details: { tabId?: number }, view: SessionView, locale: ResolvedLocale): Promise<void> {
+  const model = actionIconModel(view, locale);
+  const imageData = iconImageData(view, locale);
   const tabId = details.tabId;
   await chrome.action.setIcon(tabId === undefined ? { imageData } : { tabId, imageData });
   await chrome.action.setTitle(tabId === undefined ? { title: model.title } : { tabId, title: model.title });
@@ -161,13 +164,13 @@ async function paintAction(details: { tabId?: number }, view: SessionView): Prom
   );
 }
 
-export async function applyDefaultActionIcon(view: SessionView): Promise<void> {
-  await paintAction({}, view);
+export async function applyDefaultActionIcon(view: SessionView, locale: ResolvedLocale = "ja"): Promise<void> {
+  await paintAction({}, view, locale);
 }
 
-export async function applyActionIcon(tabId: number, view: SessionView): Promise<void> {
+export async function applyActionIcon(tabId: number, view: SessionView, locale: ResolvedLocale = "ja"): Promise<void> {
   try {
-    await paintAction({ tabId }, view);
+    await paintAction({ tabId }, view, locale);
   } catch {
     return;
   }

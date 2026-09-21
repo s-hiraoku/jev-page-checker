@@ -3,6 +3,7 @@ import { worstVerdict } from "../lib/groups.js";
 import { questionAxisLabel, questionLabel, VERDICT_LABELS } from "../lib/labels.js";
 import { polarPoint, radarAxes, type RadarAxis } from "../lib/radar-values.js";
 import type { ItemResult, Verdict } from "../lib/checkkit.js";
+import { useCopy, useLocale } from "./useLocale.js";
 
 const RINGS = [1 / 3, 2 / 3, 1];
 const GROW_MS = 1100;
@@ -69,13 +70,13 @@ function labelLayout(index: number, total: number, radius: number): { x: number;
   return { x: point.x, y: point.y + (unit.y > 0.35 ? 4 : unit.y < -0.35 ? -2 : 3), anchor };
 }
 
-function describeAxes(title: string, axes: readonly RadarAxis[]): string {
+function describeAxes(title: string, axes: readonly RadarAxis[], label: (title: string, parts: string) => string): string {
   const parts = axes.map((axis) => {
     const verdict = axis.verdict === null ? "—" : VERDICT_LABELS[axis.verdict];
     const value = axis.value === null ? "N/A" : axis.value.toFixed(2);
     return `${axis.fullLabel} ${verdict} ${value}`;
   });
-  return `${title}のレーダー。${parts.join("。")}`;
+  return label(title, parts.join(". "));
 }
 
 export function RadarChart({
@@ -89,6 +90,7 @@ export function RadarChart({
   compact?: boolean;
   verdict: Verdict;
 }) {
+  const copy = useCopy();
   const measured = axes.some((axis) => axis.value !== null);
   const radius = compact ? 52 : 78;
   const size = compact ? 200 : 260;
@@ -116,7 +118,7 @@ export function RadarChart({
         viewBox={`${-size / 2} ${-size / 2} ${size} ${size}`}
         width="100%"
         role="img"
-        aria-label={describeAxes(title, axes)}
+        aria-label={describeAxes(title, axes, copy.radarLabel)}
       >
         <g className="radar-grid" aria-hidden="true">
           {grid.map((points) => (
@@ -174,12 +176,24 @@ export function ResultRadars({
   siteQuestionIds: readonly string[];
   bodyQuestionIds: readonly string[];
 }) {
-  const site = radarAxes(items, siteQuestionIds, questionLabel, questionAxisLabel);
-  const page = radarAxes(items, bodyQuestionIds, questionLabel, questionAxisLabel);
+  const locale = useLocale();
+  const copy = useCopy();
+  const site = radarAxes(
+    items,
+    siteQuestionIds,
+    (id) => questionLabel(id, locale),
+    (id) => questionAxisLabel(id, locale),
+  );
+  const page = radarAxes(
+    items,
+    bodyQuestionIds,
+    (id) => questionLabel(id, locale),
+    (id) => questionAxisLabel(id, locale),
+  );
   return (
     <div className={`radar-pair${compact ? " compact" : ""}`}>
-      <RadarChart title="サイト" axes={site} compact={compact} verdict={worstVerdict(items, siteQuestionIds)} />
-      <RadarChart title="本文" axes={page} compact={compact} verdict={worstVerdict(items, bodyQuestionIds)} />
+      <RadarChart title={copy.site} axes={site} compact={compact} verdict={worstVerdict(items, siteQuestionIds)} />
+      <RadarChart title={copy.body} axes={page} compact={compact} verdict={worstVerdict(items, bodyQuestionIds)} />
     </div>
   );
 }

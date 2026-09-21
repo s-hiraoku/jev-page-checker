@@ -1,8 +1,10 @@
 import { useState } from "react";
 import type { Check } from "../lib/checkkit.js";
 import { unknownErrorMessage } from "../lib/errors.js";
-import type { ExtensionSettings } from "../lib/settings.js";
+import { parseLocale, parseTheme, type ExtensionSettings } from "../lib/settings.js";
 import { ChecklistView } from "./ChecklistView.js";
+import { LocaleProvider, useCopy, useResolvedLocale } from "./useLocale.js";
+import { useTheme } from "./useTheme.js";
 
 interface Props {
   settings: ExtensionSettings;
@@ -15,30 +17,70 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
   const [draft, setDraft] = useState(settings);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const approved = draft.approver.trim() !== "" && draft.ackedVersion === definitionVersion;
+  const approved = draft.ackedVersion === definitionVersion;
+  useTheme(draft.theme);
+  const locale = useResolvedLocale(draft.locale);
 
   const update = <K extends keyof ExtensionSettings>(key: K, value: ExtensionSettings[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
   };
 
   return (
+    <LocaleProvider locale={locale}>
+      <SettingsFields
+        draft={draft}
+        approved={approved}
+        busy={busy}
+        message={message}
+        questions={questions}
+        definitionVersion={definitionVersion}
+        update={update}
+        onSubmit={() => {
+          setBusy(true);
+          setMessage(null);
+          void onSave(draft)
+            .then(() => setMessage("Saved."))
+            .catch((error: unknown) => setMessage(unknownErrorMessage(error)))
+            .finally(() => setBusy(false));
+        }}
+      />
+    </LocaleProvider>
+  );
+}
+
+function SettingsFields({
+  draft,
+  approved,
+  busy,
+  message,
+  questions,
+  definitionVersion,
+  update,
+  onSubmit,
+}: {
+  draft: ExtensionSettings;
+  approved: boolean;
+  busy: boolean;
+  message: string | null;
+  questions: readonly Check[];
+  definitionVersion: number;
+  update: <K extends keyof ExtensionSettings>(key: K, value: ExtensionSettings[K]) => void;
+  onSubmit: () => void;
+}) {
+  const copy = useCopy();
+  return (
     <form
       onSubmit={(event) => {
         event.preventDefault();
-        setBusy(true);
-        setMessage(null);
-        void onSave(draft)
-          .then(() => setMessage("Saved."))
-          .catch((error: unknown) => setMessage(unknownErrorMessage(error)))
-          .finally(() => setBusy(false));
+        onSubmit();
       }}
     >
-      <p className="help">キーは端末内だけ。Jev への問い合わせ以外には使わない。ログにも出さない。</p>
+      <p className="help">{copy.keyHelp}</p>
 
       <fieldset className="fieldset">
-        <legend>接続</legend>
+        <legend>{copy.connection}</legend>
         <label className="field">
-          <span>TypeSafe API キー</span>
+          <span>{copy.apiKey}</span>
           <input
             type="password"
             autoComplete="off"
@@ -49,7 +91,29 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
       </fieldset>
 
       <fieldset className="fieldset">
-        <legend>動作</legend>
+        <legend>{copy.appearance}</legend>
+        <label className="field">
+          <span>{copy.theme}</span>
+          <select value={draft.theme} onChange={(event) => update("theme", parseTheme(event.target.value))}>
+            <option value="system">{copy.themeSystem}</option>
+            <option value="light">{copy.themeLight}</option>
+            <option value="dark">{copy.themeDark}</option>
+          </select>
+        </label>
+        <p className="help">{copy.themeHelp}</p>
+        <label className="field">
+          <span>{copy.locale}</span>
+          <select value={draft.locale} onChange={(event) => update("locale", parseLocale(event.target.value))}>
+            <option value="system">{copy.localeSystem}</option>
+            <option value="ja">日本語</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <p className="help">{copy.localeHelp}</p>
+      </fieldset>
+
+      <fieldset className="fieldset">
+        <legend>{copy.behavior}</legend>
         <label className="toggle">
           <input type="checkbox" checked={draft.followTab} onChange={(event) => update("followTab", event.target.checked)} />
           Follow tab
@@ -60,42 +124,33 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
             checked={draft.recheckOnChange}
             onChange={(event) => update("recheckOnChange", event.target.checked)}
           />
-          本文が変わったらやり直す
+          {copy.recheckOnChange}
         </label>
         <label className="field">
-          <span>やり直しまでの待ち（ミリ秒）</span>
+          <span>{copy.debounceMs}</span>
           <input
             type="number"
             value={draft.debounceMs}
             onChange={(event) => update("debounceMs", Number(event.target.value))}
           />
         </label>
-        <p className="help">
-          Jev の入力枠は state と最長の質問で 32k トークン、1 リクエスト 64k（公式 Models）。収まる主本文は 1 回で送り、超えたら重ねて分割する。URL ごとに変えない。
-        </p>
+        <p className="help">{copy.jevBudgetHelp}</p>
         <label className="field">
-          <span>本文とみなす最小語数</span>
+          <span>{copy.minWords}</span>
           <input type="number" value={draft.minWords} onChange={(event) => update("minWords", Number(event.target.value))} />
         </label>
       </fieldset>
 
       <ChecklistView questions={questions} />
 
-      <fieldset className="fieldset">
-        <legend>承認</legend>
-        <label className="field">
-          <span>承認者の名前</span>
-          <input value={draft.approver} onChange={(event) => update("approver", event.target.value)} />
-        </label>
-        <label className="toggle">
-          <input
-            type="checkbox"
-            checked={approved}
-            onChange={(event) => update("ackedVersion", event.target.checked ? definitionVersion : null)}
-          />
-          上のチェックリスト全体を承認する。判定は根拠であり、公開・送信・遮断の許可ではない。
-        </label>
-      </fieldset>
+      <label className="toggle">
+        <input
+          type="checkbox"
+          checked={approved}
+          onChange={(event) => update("ackedVersion", event.target.checked ? definitionVersion : null)}
+        />
+        {copy.ackLabel}
+      </label>
 
       <div className="toolbar">
         <button className="btn" type="submit" disabled={busy}>

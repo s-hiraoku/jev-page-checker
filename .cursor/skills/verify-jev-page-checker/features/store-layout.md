@@ -28,5 +28,6 @@ Preconditions:
 ## Gotchas
 
 - This is a marketing layout, not a second product. If `store=1` breaks, the side panel on `#side` without `store` is still the user path.
+- The fake article column stays a light page. Inspector chrome follows Settings `テーマ`; do not restyle the article to match.
 - There is no preview nav on the side store layout. Scene changes require a new `goto`, not button clicks.
 - Do not use this layout as the only proof of lane verdicts; also drive `side-panel-report` without `store=1`.

@@ -18,7 +18,7 @@ test("sessionView asks for the whole-list approval before it shows a tab", () =>
 });
 
 test("sessionView asks for a key after the list is approved", () => {
-  const settings = { ...DEFAULT_SETTINGS, approver: "ada", ackedVersion: 3 };
+  const settings = { ...DEFAULT_SETTINGS, ackedVersion: 3 };
   assert.deepEqual(sessionView(settings, 3, ready), {
     status: "needs-setup",
     reason: "api-key",
@@ -27,7 +27,7 @@ test("sessionView asks for a key after the list is approved", () => {
 });
 
 test("sessionView keeps idle, unsupported, checking, ready, and error distinct", () => {
-  const settings = { ...DEFAULT_SETTINGS, approver: "ada", ackedVersion: 3, apiKey: "sk", followTab: false };
+  const settings = { ...DEFAULT_SETTINGS, ackedVersion: 3, apiKey: "sk", followTab: false };
   assert.deepEqual(sessionView(settings, 3, undefined), { status: "idle", followTab: false });
   assert.deepEqual(sessionView(settings, 3, { status: "unsupported", url: "chrome://extensions" }), {
     status: "unsupported",
@@ -42,7 +42,7 @@ test("sessionView keeps idle, unsupported, checking, ready, and error distinct",
 });
 
 test("buildSessionPayload copies questions and does not hide settings", () => {
-  const settings = { ...DEFAULT_SETTINGS, approver: "ada", ackedVersion: 1, apiKey: "sk" };
+  const settings = { ...DEFAULT_SETTINGS, ackedVersion: 1, apiKey: "sk" };
   const questions = [{ id: "identifiable_publisher" }] as unknown as Parameters<typeof buildSessionPayload>[0]["questions"];
   const payload = buildSessionPayload({ version: 1, questions }, settings, [ready.record], ready);
   assert.equal(payload.definitionVersion, 1);
