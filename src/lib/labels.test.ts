@@ -1,14 +1,22 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { parseDefinition } from "./checkkit.js";
+import { parseDefinition, type JevAnswer } from "./checkkit.js";
 import { basisKey, basisLabel } from "./labels.js";
+
+function choiceAnswer(choice: string, confidence = 1): JevAnswer {
+  return { type: "choice", choice, confidence, probabilities: { [choice]: confidence } };
+}
+
+function scoreAnswer(score: number, confidence = 1): JevAnswer {
+  return { type: "score", score, confidence, legend: {}, probabilities: {} };
+}
 
 test("basisKey follows the same noul, choice, and score branches as answerBasis", () => {
   assert.equal(basisKey({ type: "noul", noul: 0.91 }), "true");
   assert.equal(basisKey({ type: "noul", noul: 0.4 }), "false");
-  assert.equal(basisKey({ type: "choice", choice: "opinion_analysis", confidence: 1 }), "opinion_analysis");
-  assert.equal(basisKey({ type: "score", score: 0.92, confidence: 0.83 }), "1");
+  assert.equal(basisKey(choiceAnswer("opinion_analysis")), "opinion_analysis");
+  assert.equal(basisKey(scoreAnswer(0.92, 0.83)), "1");
   assert.equal(basisKey(undefined), undefined);
 });
 
@@ -31,12 +39,12 @@ test("English basis labels stay the checker criteria, not a rewritten rubric", (
     }
     if (check.type === "choice") {
       for (const key of Object.keys(check.criteria)) {
-        assert.equal(basisLabel(check.id, { type: "choice", choice: key, confidence: 1 }, "en"), check.criteria[key]);
+        assert.equal(basisLabel(check.id, choiceAnswer(key), "en"), check.criteria[key]);
       }
     }
     if (check.type === "score") {
       check.criteria.forEach((text, index) => {
-        assert.equal(basisLabel(check.id, { type: "score", score: index, confidence: 1 }, "en"), text);
+        assert.equal(basisLabel(check.id, scoreAnswer(index), "en"), text);
       });
     }
   }
