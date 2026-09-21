@@ -8,6 +8,8 @@ import { createPreviewBridge } from "./mock.js";
 const SCENES = [
   ["pass", "Pass"],
   ["fail", "Fail"],
+  ["truncated", "Truncated"],
+  ["chunked", "Chunked"],
   ["setup", "Setup"],
 ] as const;
 

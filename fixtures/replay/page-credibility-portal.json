@@ -20,7 +20,8 @@
     "wordCount": 180,
     "citationCount": 4,
     "outboundHosts": ["sports.example.org"],
-    "text": "Example News. Morning briefing. Sports. Weather. A board of headlines linking to other pages, not one article."
+    "text": "Example News. Morning briefing. Sports. Weather. A board of headlines linking to other pages, not one article.",
+    "textTruncated": false
   },
   "answers": {
     "identifiable_publisher": { "type": "noul", "noul": 0.91 },

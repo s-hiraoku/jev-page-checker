@@ -51,6 +51,11 @@ export const SPECIFIC_LABELS: Record<string, string> = {
   many: "中核の数字や引用に出典がない",
 };
 
+export const TEXT_TRUNCATED_NOTICE =
+  "主本文が文字数上限で切れているため、続きは精査していません。本文レーンは通過にしません。";
+
+export const TEXT_CHUNKED_NOTICE = "主本文が長いため重ねて分割し、厳しめに合成して精査しました。";
+
 export function questionLabel(id: string): string {
   return QUESTION_LABELS[id] ?? id;
 }

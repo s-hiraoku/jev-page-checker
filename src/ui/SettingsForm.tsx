@@ -32,7 +32,7 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
           .finally(() => setBusy(false));
       }}
     >
-      <p className="help">キーは端末内だけ。Jev への 1 回以外には使わない。ログにも出さない。</p>
+      <p className="help">キーは端末内だけ。Jev への問い合わせ以外には使わない。ログにも出さない。</p>
 
       <fieldset className="fieldset">
         <legend>接続</legend>
@@ -73,6 +73,7 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
           <span>Jev に送る本文の上限（文字）</span>
           <input type="number" value={draft.maxChars} onChange={(event) => update("maxChars", Number(event.target.value))} />
         </label>
+        <p className="help">1 回に送る上限。長い主本文は重ねて分割し、切れ残りがあるとき本文レーンは通過にしない。URL ごとに変えない。</p>
         <label className="field">
           <span>本文とみなす最小語数</span>
           <input type="number" value={draft.minWords} onChange={(event) => update("minWords", Number(event.target.value))} />

@@ -20,7 +20,8 @@
     "wordCount": 210,
     "citationCount": 3,
     "outboundHosts": ["transport.example.gov", "doi.example.org"],
-    "text": "The city transportation bureau said Thursday it will delay the river bridge opening after inspectors found hairline cracks in two piers. Bureau director Ken Sato told reporters the cracks were documented in an inspection memo dated 12 September. The bureau posted that memo and a photograph of the south pier. Sato said no opening date has been set. The story cites the posted memo and does not add costs or causes beyond what the bureau released."
+    "text": "The city transportation bureau said Thursday it will delay the river bridge opening after inspectors found hairline cracks in two piers. Bureau director Ken Sato told reporters the cracks were documented in an inspection memo dated 12 September. The bureau posted that memo and a photograph of the south pier. Sato said no opening date has been set. The story cites the posted memo and does not add costs or causes beyond what the bureau released.",
+    "textTruncated": false
   },
   "answers": {
     "identifiable_publisher": { "type": "noul", "noul": 0.94 },

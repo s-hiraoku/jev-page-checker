@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { splitOverlappingChunks } from "../lib/body-windows.js";
 import { recordById, type Bridge } from "../lib/bridge.js";
+import { DEFAULT_SETTINGS } from "../lib/settings.js";
 import type { SessionPayload } from "../lib/session.js";
 import { AppHeader } from "./bits.js";
 import { ReportView } from "./ReportView.js";
@@ -33,6 +35,14 @@ export function DetailsApp({ bridge }: { bridge: Bridge }) {
     );
   }
   const record = recordById(session.history, id);
+  const windows = record
+    ? splitOverlappingChunks(record.snapshot.text, record.snapshot.textLimit ?? DEFAULT_SETTINGS.maxChars).windows
+    : [];
+  const sentLabel = record?.snapshot.textTruncated
+    ? "抽出した主本文（切れ残りあり）"
+    : record?.snapshot.hasArticle && windows.length > 1
+      ? "抽出した主本文（分割して送信）"
+      : "送った文";
 
   return (
     <>
@@ -42,7 +52,7 @@ export function DetailsApp({ bridge }: { bridge: Bridge }) {
         {record ? <ReportView record={record} /> : <p className="notice">まだ結果がありません。Inspector から Audit してください。</p>}
         {record ? (
           <section className="panel">
-            <div className="panel-head">送った文</div>
+            <div className="panel-head">{sentLabel}</div>
             <div className="panel-body">
               <p className="help">{record.snapshot.text}</p>
             </div>
