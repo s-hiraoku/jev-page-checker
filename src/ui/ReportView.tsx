@@ -22,12 +22,12 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
         <Lane title={copy.body} verdict={page} />
       </div>
       {sendKind === "unread" ? (
-        <p className="notice" style={{ marginTop: 8 }}>
+        <p className="notice">
           {copy.truncatedNotice}
         </p>
       ) : null}
       {sendKind === "chunked" ? (
-        <p className="help" style={{ marginTop: 8 }}>
+        <p className="help chunked-note">
           {copy.chunkedNotice} ({copy.windows(inspection?.windowCount ?? 0)})
         </p>
       ) : null}
@@ -40,11 +40,11 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
       />
       <table className="meta-table">
         <tbody>
-          <tr>
+          <tr className="identity-title">
             <th>{copy.title}</th>
             <td>{record.snapshot.title || copy.untitled}</td>
           </tr>
-          <tr>
+          <tr className="identity-url">
             <th>URL</th>
             <td className="url">{record.snapshot.url}</td>
           </tr>
@@ -70,7 +70,7 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
           )}
         </tbody>
       </table>
-      <ItemList items={record.report.items} compact={compact} />
+      <ItemList items={record.report.items} compact={compact} siteIds={siteIds} bodyIds={bodyIds} />
     </div>
   );
 }

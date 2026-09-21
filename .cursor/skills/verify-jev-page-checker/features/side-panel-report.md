@@ -6,8 +6,8 @@ The side panel is the inspection view. After setup, it shows site and body lanes
 
 - `side-pass` shows both lanes as Pass for the sourced-news replay.
 - `side-fail` shows both lanes as Alert for the sales-page replay.
-- `side-questions` lists the nine question labels with a verdict chip each.
-- `side-toolbar` keeps Audit, Report, and Settings on the ready panel.
+- `side-questions` lists the nine question labels in site then body groups, with a verdict chip each.
+- `side-toolbar` keeps Audit, Report, History, and Settings on the ready panel.
 - `side-nav` reaches the same pass and fail views from the preview scene buttons.
 
 ## How to get to it (user POV)
@@ -23,11 +23,11 @@ Preconditions:
 - Preview is healthy at `http://127.0.0.1:4174`.
 - `control-jev doctor` reports `ok: true` for this run.
 
-- **Pass URL.** Open the sourced-news panel. Run `control-jev browser goto --path "/?scene=pass#side"`. The header reads `Audit` (with mark `Jev`) and `v4`. Lanes `サイト` and `本文` both show `Pass`. The table title is `City delays river bridge opening after inspection, officials say`.
-- **Pass questions.** Assert question labels. Run `control-jev browser text --contains "発行元が特定できる"` and `control-jev browser text --contains "なりすましではない"` and `control-jev browser text --contains "主張の根拠"`. All appear in the result table.
+- **Pass URL.** Open the sourced-news panel. Run `control-jev browser goto --path "/?scene=pass#side"`. The header reads `Audit` (with mark `Jev`) and `v4`. Lanes `サイト` and `本文` both show `Pass`. The table title is `City delays river bridge opening after inspection, officials say`. Group heads `サイト` and `本文` split the question lists.
+- **Pass questions.** Assert question labels. Run `control-jev browser text --contains "発行元が特定できる"` and `control-jev browser text --contains "なりすましではない"` and `control-jev browser text --contains "主張の根拠"`. All appear in the grouped result tables.
 - **Fail URL.** Open the sales-page panel. Run `control-jev browser goto --path "/?scene=fail#side"`. Both lanes show `Alert`. The title is `Doctors hate this: one pill reverses aging in 11 days`. The URL cell contains `http://deal-today.example/miracle-cure`.
 - **Scene buttons.** From the fail panel, choose `Pass`. Run `control-jev browser click --name "Pass"`. The title returns to the city-bridge story and both lanes read `Pass`.
-- **Toolbar.** On the ready panel, the buttons `Audit`, `Report`, and `Settings` are present. Run `control-jev browser text --contains "Audit"`. There is no lede about splitting lanes and no Follow tab footer.
+- **Toolbar.** On the ready panel, the buttons `Audit`, `Report`, `History`, and `Settings` are present. Run `control-jev browser text --contains "Audit"`. There is no lede about splitting lanes and no Follow tab footer.
 - **Proof.** Stay on the pass panel. Run `control-jev browser goto --path "/?scene=pass#side"`, `control-jev browser screenshot --path .cursor/skills/verify-jev-page-checker/artifacts/side-panel-report/pass-side.png`, and `control-jev browser snapshot --path .cursor/skills/verify-jev-page-checker/artifacts/side-panel-report/pass-side.aria.txt`. Both artifacts show the app name, both Pass lanes, and the bridge title.
 
 ## Gotchas

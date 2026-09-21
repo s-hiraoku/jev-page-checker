@@ -260,6 +260,12 @@ export function startBackground(definitionRaw: unknown): void {
           sendResponse({ ok: true });
           return;
         }
+        if (message.type === "OPEN_HISTORY") {
+          const url = chrome.runtime.getURL("/history.html");
+          await chrome.tabs.create(windowId === undefined ? { url } : { url, windowId });
+          sendResponse({ ok: true });
+          return;
+        }
         if (message.type === "OPEN_OPTIONS") {
           await chrome.runtime.openOptionsPage();
           sendResponse({ ok: true });

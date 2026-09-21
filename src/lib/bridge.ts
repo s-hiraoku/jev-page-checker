@@ -8,6 +8,7 @@ export interface Bridge {
   saveSettings(settings: ExtensionSettings): Promise<SessionPayload>;
   checkNow(): Promise<SessionPayload>;
   openDetails(id?: string): Promise<void>;
+  openHistory(): Promise<void>;
   openOptions(): Promise<void>;
   subscribe(onChange: (session?: SessionPayload) => void): () => void;
 }
@@ -37,6 +38,9 @@ export function liveBridge(options?: { isolateWindow?: boolean }): Bridge {
     checkNow: () => send<SessionPayload>({ type: "CHECK_NOW" }),
     openDetails: async (id) => {
       await send({ type: "OPEN_DETAILS", id });
+    },
+    openHistory: async () => {
+      await send({ type: "OPEN_HISTORY" });
     },
     openOptions: async () => {
       await send({ type: "OPEN_OPTIONS" });
