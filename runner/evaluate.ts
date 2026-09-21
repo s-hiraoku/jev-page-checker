@@ -51,6 +51,31 @@ function unreachable(value: never): never {
   throw new Error(`unreachable: ${JSON.stringify(value)}`);
 }
 
+function entryText(value: EntryType | undefined | null): string {
+  return typeof value === "string" && value.length > 0 ? value : "";
+}
+
+function answerBasis(check: Check, answer: JevAnswer): string {
+  switch (check.type) {
+    case "noul": {
+      if (answer.type !== "noul") return "";
+      const side = answer.noul >= 0.5 ? "true" : "false";
+      return entryText(check.criteria?.[side]);
+    }
+    case "choice": {
+      if (answer.type !== "choice") return "";
+      return entryText(check.criteria[answer.choice]);
+    }
+    case "score": {
+      if (answer.type !== "score") return "";
+      const fromRubric = check.criteria[Math.round(answer.score)];
+      return entryText(fromRubric);
+    }
+    default:
+      return unreachable(check);
+  }
+}
+
 function judge(check: Check, answer: JevAnswer): Judgement {
   switch (check.type) {
     case "noul":
@@ -90,7 +115,12 @@ export async function evaluate(definition: ApprovedDefinition, state: EntryType,
     if (skip !== undefined) return { id: check.id, verdict: "not_applicable", reason: skip };
     const answer = reply.answers[check.id];
     if (answer === undefined) return { id: check.id, verdict: "error", reason: `no answer for "${check.id}"` };
-    return { id: check.id, ...judge(check, answer), answer };
+    return {
+      id: check.id,
+      ...judge(check, answer),
+      answer,
+      basis: answerBasis(check, answer) || undefined,
+    };
   });
   return {
     definition: { id: definition.id, version: definition.version },

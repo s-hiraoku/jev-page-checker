@@ -111,3 +111,72 @@ test("extractSnapshot collects beyond one window and flags leftover after the co
   assert.equal(snapshot.textTruncated, true);
   assert.equal(snapshot.text.length, 10);
 });
+
+test("extractSnapshot keeps a visible byline outside the main text", () => {
+  const prose = Array.from({ length: 20 }, () => "The typed check is a hypothesis and still needs an experiment.").join(" ");
+  const dom = new JSDOM(
+    `<!doctype html><html><head><title>Types vs guesswork</title></head><body>
+      <header><a href="/users/ada">Ada Example</a></header>
+      <article>${prose}</article>
+    </body></html>`,
+    { url: "https://notes.example.org/users/ada/posts/types" },
+  );
+  const snapshot = extractSnapshot(dom.window.document, dom.window.location, 40, () => "2026-09-20T00:00:00.000Z");
+  assert.equal(snapshot.author, "Ada Example");
+  assert.equal(snapshot.hasAuthor, true);
+  assert.equal(snapshot.text.includes("Ada Example"), false);
+});
+
+test("extractSnapshot reads JSON-LD author when meta is a profile URL", () => {
+  const prose = Array.from({ length: 20 }, () => "Inspect the posted memo before you publish the claim.").join(" ");
+  const ld = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    author: { "@type": "Person", name: "Ken Sato" },
+    publisher: { "@type": "Organization", name: "Example Notes" },
+  });
+  const dom = new JSDOM(
+    `<!doctype html><html><head>
+      <title>Memo</title>
+      <meta property="article:author" content="https://notes.example.org/users/ken" />
+      <script type="application/ld+json">${ld}</script>
+    </head><body><article>${prose}</article></body></html>`,
+    { url: "https://notes.example.org/users/ken/memo" },
+  );
+  const snapshot = extractSnapshot(dom.window.document, dom.window.location, 40, () => "2026-09-20T00:00:00.000Z");
+  assert.equal(snapshot.author, "Ken Sato");
+  assert.equal(snapshot.siteName, "Example Notes");
+});
+
+test("extractSnapshot reads rel=author in aside and still skips that chrome from the body text", () => {
+  const prose = Array.from({ length: 20 }, () => "Mark unverified design claims as a hypothesis.").join(" ");
+  const dom = new JSDOM(
+    `<!doctype html><html><head><title>Hypothesis</title><meta property="og:site_name" content="Example Notes" /></head>
+    <body>
+      <aside><a rel="author" href="/u/ada">Ada Example</a></aside>
+      <nav>Home Login</nav>
+      <article>${prose}</article>
+    </body></html>`,
+    { url: "https://notes.example.org/u/ada/hypothesis" },
+  );
+  const snapshot = extractSnapshot(dom.window.document, dom.window.location, 40, () => "2026-09-20T00:00:00.000Z");
+  assert.equal(snapshot.author, "Ada Example");
+  assert.equal(snapshot.siteName, "Example Notes");
+  assert.equal(snapshot.text.includes("Ada Example"), false);
+  assert.equal(snapshot.text.includes("Home Login"), false);
+});
+
+test("extractSnapshot does not treat nav labels as the author", () => {
+  const prose = Array.from({ length: 20 }, () => "The bureau delayed the opening after the inspection memo.").join(" ");
+  const dom = new JSDOM(
+    `<!doctype html><html><head><title>Memo</title></head><body>
+      <nav><a href="/">Home</a><a href="/login">Login</a></nav>
+      <article>${prose}</article>
+    </body></html>`,
+    { url: "https://writer.example.org/memo" },
+  );
+  const snapshot = extractSnapshot(dom.window.document, dom.window.location, 40, () => "2026-09-20T00:00:00.000Z");
+  assert.equal(snapshot.author, "");
+  assert.equal(snapshot.hasAuthor, false);
+});
+

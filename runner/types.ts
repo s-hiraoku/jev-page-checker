@@ -70,6 +70,7 @@ export interface ItemResult {
   id: QuestionId;
   verdict: Verdict;
   reason: string;
+  basis?: string;
   answer?: JevAnswer;
 }
 
