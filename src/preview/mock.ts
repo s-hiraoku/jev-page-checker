@@ -74,8 +74,13 @@ export async function createPreviewBridge(scene: string): Promise<Bridge> {
       return payload();
     },
     checkNow: async () => payload(),
-    openDetails: async () => {
-      window.location.hash = "#details";
+    openDetails: async (id) => {
+      const current = payload();
+      const resolved = id ?? (current.view.status === "ready" ? current.view.record.id : undefined);
+      const next = new URL(window.location.href);
+      if (resolved) next.searchParams.set("id", resolved);
+      next.hash = "#details";
+      window.location.assign(`${next.pathname}${next.search}${next.hash}`);
     },
     openOptions: async () => {
       window.location.hash = "#options";
