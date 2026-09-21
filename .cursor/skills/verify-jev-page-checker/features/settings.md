@@ -1,0 +1,41 @@
+# Settings
+
+Settings is where a user stores the TypeSafe key, tracking toggles, and a whole-list approval. The page shows all nine checklist items. Save is in-memory in preview; the visible proof is `保存しました。`
+
+## Sub-features
+
+- `settings-open` opens the form from the panel toolbar, the preview `設定` button, or `#options`.
+- `settings-checklist` shows `検査項目 9 件` with ids such as `identifiable_publisher`.
+- `settings-approve` requires a non-empty 承認者の名前 plus the whole-list checkbox.
+- `settings-save` writes the draft and shows `保存しました。`
+- `settings-follow` exposes `表示中のタブを追跡して検査する`.
+
+## How to get to it (user POV)
+
+- Open `/?scene=pass#options` or `/?scene=setup#options`.
+- From the side panel, choose `設定` or, when gated, `設定を開く`.
+- From the preview nav, choose `設定`.
+- In the real extension, open the options page from the gear in Chrome. Do not use a shared profile as a stand-in.
+
+## Driving it with control-jev
+
+Preconditions:
+
+- Preview is healthy at `http://127.0.0.1:4174`.
+- `control-jev doctor` reports `ok: true`.
+- Start from `/?scene=setup#options` so approval starts empty.
+
+- **URL entry.** Open settings on the setup scene. Run `control-jev browser goto --path "/?scene=setup#options"`. Heading `設定` and `検査項目 9 件` are visible. A checklist article contains `発行元が特定できる` and `(identifiable_publisher)`.
+- **Toolbar entry.** Go to the setup panel and choose `設定`. Run `control-jev browser goto --path "/?scene=setup#side"` and `control-jev browser click --name "設定"`. The form appears again.
+- **Approve and key.** Fill the approver, tick the whole list, and enter a key. Run `control-jev browser fill --label "承認者の名前" --value "verifier"`, `control-jev browser check --label "上のチェックリスト全体を承認する"`, and `control-jev browser fill --label "TypeSafe API キー" --value "sk-preview"`.
+- **Follow tab.** Leave tracking on. Run `control-jev browser text --contains "表示中のタブを追跡して検査する"`. The checkbox is checked by default.
+- **Save.** Choose `設定を保存`. Run `control-jev browser click --name "設定を保存"`. Status `保存しました。` appears.
+- **Proof.** Capture the saved form. Run `control-jev browser screenshot --path .cursor/skills/verify-jev-page-checker/artifacts/settings/saved.png` and `control-jev browser snapshot --path .cursor/skills/verify-jev-page-checker/artifacts/settings/saved.aria.txt`. Both show `設定`, the nine-item heading, and `保存しました。`
+
+## Gotchas
+
+- Preview save does not write `chrome.storage` and does not call Jev. Assert the status text, not disk or network.
+- The approval checkbox label is the full sentence `上のチェックリスト全体を承認する。判定は根拠であり、公開・送信・遮断の許可ではない。` `check --label` may use the leading clause.
+- `fill --label "TypeSafe API キー"` targets a password input. The typed value is not echoed as visible text; do not screenshot-assert the key.
+- Changing `scene` remounts the bridge and drops unsaved and saved preview settings. Finish the recipe before a scene `goto`.
+- Definition edits require approving the **whole** list again. Do not look for a per-question ack control.

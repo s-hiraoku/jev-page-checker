@@ -1,3 +1,4 @@
+import { bodyCollectLimit } from "./body-windows.js";
 import type { PageSnapshot } from "./page-state.js";
 
 const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "NAV", "FOOTER", "ASIDE", "SVG", "IFRAME", "CANVAS"]);
@@ -48,16 +49,23 @@ export function metaContent(doc: ParentNode, names: readonly string[]): string {
   return "";
 }
 
-export function collectText(root: ParentNode, maxChars: number): string {
+export function collectText(root: ParentNode, maxChars: number): { text: string; truncated: boolean } {
   const parts: string[] = [];
-  let used = 0;
+  let length = 0;
+  let truncated = false;
   const walk = (node: Node): void => {
-    if (used >= maxChars) return;
+    if (truncated) return;
     if (node.nodeType === 3) {
       const text = node.textContent?.replace(/\s+/g, " ").trim();
       if (!text) return;
+      if (length >= maxChars) {
+        truncated = true;
+        return;
+      }
+      if (length > 0) length += 1;
+      length += text.length;
       parts.push(text);
-      used += text.length + 1;
+      if (length > maxChars) truncated = true;
       return;
     }
     if (node.nodeType !== 1) return;
@@ -67,15 +75,15 @@ export function collectText(root: ParentNode, maxChars: number): string {
     for (const child of element.childNodes) walk(child);
   };
   walk(root as unknown as Node);
-  return parts.join(" ").slice(0, maxChars);
+  return { text: parts.join(" ").slice(0, maxChars), truncated };
 }
 
 export function extractSnapshot(
   doc: Document,
   loc: Pick<Location, "href" | "hostname" | "protocol">,
-  maxChars: number,
   minWords: number,
   now = (): string => new Date().toISOString(),
+  collectLimit = bodyCollectLimit(),
 ): PageSnapshot {
   const author = metaContent(doc, ["author", "article:author", "byl", "citation_author"]);
   const publishedAt = metaContent(doc, ["article:published_time", "date", "pubdate", "dc.date"]);
@@ -92,7 +100,7 @@ export function extractSnapshot(
     }
   });
   const { hosts, citationCount } = collectOutbound(hrefs, loc.hostname);
-  const text = collectText(root ?? doc.body, maxChars);
+  const { text, truncated } = collectText(root ?? doc.body, collectLimit);
   const words = wordCount(text);
   const pageKind = classifyPageKind(articleCount, hrefs.length, words);
   return {
@@ -116,6 +124,7 @@ export function extractSnapshot(
     citationCount,
     outboundHosts: hosts,
     text,
+    textTruncated: truncated,
     extractedAt: now(),
   };
 }

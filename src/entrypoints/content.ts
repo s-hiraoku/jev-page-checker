@@ -8,13 +8,15 @@ export default defineContentScript({
     let lastFingerprint = "";
     let timer: ReturnType<typeof setTimeout> | undefined;
 
-    const snapshotNow = (maxChars: number, minWords: number) =>
-      extractSnapshot(document, location, maxChars, minWords);
+    let lastMinWords = 40;
+
+    const snapshotNow = (minWords: number) => extractSnapshot(document, location, minWords);
 
     chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       if (message?.type !== "EXTRACT") return;
       try {
-        const snapshot = snapshotNow(message.maxChars, message.minWords);
+        lastMinWords = message.minWords;
+        const snapshot = snapshotNow(lastMinWords);
         lastFingerprint = snapshotFingerprint(snapshot);
         sendResponse(snapshot);
       } catch (error) {
@@ -26,13 +28,13 @@ export default defineContentScript({
     const observer = new MutationObserver(() => {
       clearTimeout(timer);
       timer = setTimeout(() => {
-        const snapshot = snapshotNow(10000, 40);
+        const snapshot = snapshotNow(lastMinWords);
         const fingerprint = snapshotFingerprint(snapshot);
         if (fingerprint === lastFingerprint) return;
         lastFingerprint = fingerprint;
         void chrome.runtime.sendMessage({ type: "PAGE_CHANGED", fingerprint });
       }, 1200);
     });
-    observer.observe(document.documentElement, { subtree: true, childList: true, characterData: true });
+    observer.observe(document.documentElement, { subtree: true, characterData: true, childList: true });
   },
 });

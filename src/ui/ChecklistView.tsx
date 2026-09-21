@@ -29,8 +29,8 @@ function extras(check: Check): string {
 export function ChecklistView({ questions }: { questions: readonly Check[] }) {
   return (
     <section>
-      <h2 className="page-title">検査項目 {questions.length} 件</h2>
-      <p className="help">差分承認はしません。変えたらこのリスト全体をもう一度承認します。</p>
+      <h2 className="page-title">質問 {questions.length}</h2>
+      <p className="help">差分承認はしない。変えたらこのリスト全体をもう一度。</p>
       {questions.map((check) => (
         <article className="checklist-item" key={check.id}>
           <h3>

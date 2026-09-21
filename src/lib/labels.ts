@@ -1,5 +1,9 @@
 import type { Check, Verdict } from "./checkkit.js";
 
+export const APP_NAME = "Audit";
+export const APP_NAME_FULL = "Jev Audit";
+export const APP_MARK = "Jev";
+
 export const QUESTION_LABELS: Record<string, string> = {
   identifiable_publisher: "発行元が特定できる",
   honest_identity: "表示と実体の一致",
@@ -12,12 +16,24 @@ export const QUESTION_LABELS: Record<string, string> = {
   certainty_matches_evidence: "断定と根拠の釣り合い",
 };
 
+export const QUESTION_AXIS_LABELS: Record<string, string> = {
+  identifiable_publisher: "発行元",
+  honest_identity: "実体",
+  site_purpose: "目的",
+  disclosed_incentives: "利害",
+  evidence_for_claims: "根拠",
+  separates_fact_and_opinion: "事実/意見",
+  unsourced_specifics: "出典",
+  self_consistent: "一貫",
+  certainty_matches_evidence: "断定",
+};
+
 export const VERDICT_LABELS: Record<Verdict, string> = {
-  pass: "通過",
-  fail: "要警戒",
-  review: "要確認",
-  not_applicable: "対象外",
-  error: "エラー",
+  pass: "Pass",
+  fail: "Alert",
+  review: "Review",
+  not_applicable: "N/A",
+  error: "Error",
 };
 
 export const PURPOSE_LABELS: Record<string, string> = {
@@ -35,8 +51,17 @@ export const SPECIFIC_LABELS: Record<string, string> = {
   many: "中核の数字や引用に出典がない",
 };
 
+export const TEXT_TRUNCATED_NOTICE =
+  "主本文が Jev の入力枠でカバーできる量を超えて切れているため、続きは精査していません。本文レーンは通過にしません。";
+
+export const TEXT_CHUNKED_NOTICE = "主本文が長いため重ねて分割し、厳しめに合成して精査しました。";
+
 export function questionLabel(id: string): string {
   return QUESTION_LABELS[id] ?? id;
+}
+
+export function questionAxisLabel(id: string): string {
+  return QUESTION_AXIS_LABELS[id] ?? questionLabel(id);
 }
 
 export function choiceLabel(questionId: string, choice: string): string {

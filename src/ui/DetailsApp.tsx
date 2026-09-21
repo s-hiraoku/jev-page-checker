@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { splitOverlappingChunks } from "../lib/body-windows.js";
 import { recordById, type Bridge } from "../lib/bridge.js";
 import type { SessionPayload } from "../lib/session.js";
+import { AppHeader } from "./bits.js";
 import { ReportView } from "./ReportView.js";
 
 function requestedId(): string | null {
@@ -26,30 +28,30 @@ export function DetailsApp({ bridge }: { bridge: Bridge }) {
   if (session === null) {
     return (
       <>
-        <header className="app-header">
-          <div className="app-name">Jev 信憑性チェッカー</div>
-        </header>
+        <AppHeader />
         <main className="shell wide">{error ?? "読み込み中…"}</main>
       </>
     );
   }
   const record = recordById(session.history, id);
+  const windows = record
+    ? splitOverlappingChunks(record.snapshot.text).windows
+    : [];
+  const sentLabel = record?.snapshot.textTruncated
+    ? "抽出した主本文（切れ残りあり）"
+    : record?.snapshot.hasArticle && windows.length > 1
+      ? "抽出した主本文（分割して送信）"
+      : "送った文";
 
   return (
     <>
-      <header className="app-header">
-        <div className="app-name">Jev 信憑性チェッカー</div>
-        <div className="app-meta">詳細 / 定義 v{session.definitionVersion}</div>
-      </header>
+      <AppHeader meta={`Report · v${session.definitionVersion}`} />
       <main className="shell wide">
-        <div>
-          <h1 className="page-title">検査の詳細</h1>
-          <p className="help">保存したレポートは判断材料です。ここから公開や送信はできません。</p>
-        </div>
-        {record ? <ReportView record={record} /> : <p className="notice">まだ検査結果がありません。側面パネルから今のタブを検査してください。</p>}
+        <p className="help">判断材料。ここから公開も送信もしない。</p>
+        {record ? <ReportView record={record} /> : <p className="notice">まだ結果がありません。Inspector から Audit してください。</p>}
         {record ? (
           <section className="panel">
-            <div className="panel-head">送った本文</div>
+            <div className="panel-head">{sentLabel}</div>
             <div className="panel-body">
               <p className="help">{record.snapshot.text}</p>
             </div>

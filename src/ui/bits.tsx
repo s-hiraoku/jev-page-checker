@@ -1,5 +1,17 @@
 import type { JevAnswer, Verdict } from "../lib/checkkit.js";
-import { choiceLabel, VERDICT_LABELS } from "../lib/labels.js";
+import { APP_MARK, APP_NAME, choiceLabel, VERDICT_LABELS } from "../lib/labels.js";
+
+export function AppHeader({ meta }: { meta?: string }) {
+  return (
+    <header className="app-header">
+      <div className="app-name">
+        <span className="app-mark">{APP_MARK}</span>
+        {APP_NAME}
+      </div>
+      {meta ? <div className="app-meta">{meta}</div> : null}
+    </header>
+  );
+}
 
 export function VerdictChip({ verdict }: { verdict: Verdict }) {
   return <span className={`chip chip-${verdict}`}>{VERDICT_LABELS[verdict]}</span>;
@@ -14,38 +26,21 @@ export function Lane({ title, verdict }: { title: string; verdict: Verdict }) {
   );
 }
 
-export function Meter({ value }: { value: number }) {
-  const left = `${Math.min(100, Math.max(0, value * 100))}%`;
-  return (
-    <div className="meter" aria-hidden="true">
-      <i style={{ left }} />
-    </div>
-  );
-}
-
 export function AnswerView({ id, answer }: { id: string; answer?: JevAnswer }) {
   if (answer === undefined) return null;
   if (answer.type === "noul") {
-    return (
-      <>
-        <Meter value={answer.noul} />
-        <p className="numeric">値 {answer.noul.toFixed(2)}</p>
-      </>
-    );
+    return <p className="numeric">{answer.noul.toFixed(2)}</p>;
   }
   if (answer.type === "choice") {
     return (
       <p className="numeric">
-        {choiceLabel(id, answer.choice)}　確信度 {answer.confidence.toFixed(2)}
+        {choiceLabel(id, answer.choice)}　{answer.confidence.toFixed(2)}
       </p>
     );
   }
   return (
-    <>
-      <Meter value={answer.score / 2} />
-      <p className="numeric">
-        値 {answer.score.toFixed(2)}　確信度 {answer.confidence.toFixed(2)}
-      </p>
-    </>
+    <p className="numeric">
+      {answer.score.toFixed(2)}　{answer.confidence.toFixed(2)}
+    </p>
   );
 }

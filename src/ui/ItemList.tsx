@@ -9,7 +9,7 @@ export function ItemList({ items, compact = false }: { items: readonly ItemResul
         <tr>
           <th>項目</th>
           <th>判定</th>
-          <th>測定値</th>
+          <th>値</th>
         </tr>
       </thead>
       <tbody>

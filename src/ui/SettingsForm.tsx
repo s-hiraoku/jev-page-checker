@@ -27,13 +27,12 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
         setBusy(true);
         setMessage(null);
         void onSave(draft)
-          .then(() => setMessage("保存しました。"))
+          .then(() => setMessage("Saved."))
           .catch((error: unknown) => setMessage(error instanceof Error ? error.message : String(error)))
           .finally(() => setBusy(false));
       }}
     >
-      <h1 className="page-title">設定</h1>
-      <p className="help">キーは拡張のストレージにだけ置き、Jev への 1 回の問い合わせ以外には使いません。ログには出しません。</p>
+      <p className="help">キーは端末内だけ。Jev への問い合わせ以外には使わない。ログにも出さない。</p>
 
       <fieldset className="fieldset">
         <legend>接続</legend>
@@ -49,10 +48,10 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
       </fieldset>
 
       <fieldset className="fieldset">
-        <legend>検査</legend>
+        <legend>動作</legend>
         <label className="toggle">
           <input type="checkbox" checked={draft.followTab} onChange={(event) => update("followTab", event.target.checked)} />
-          表示中のタブを追跡して検査する
+          Follow tab
         </label>
         <label className="toggle">
           <input
@@ -60,20 +59,19 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
             checked={draft.recheckOnChange}
             onChange={(event) => update("recheckOnChange", event.target.checked)}
           />
-          本文が変わったら再検査する
+          本文が変わったらやり直す
         </label>
         <label className="field">
-          <span>再検査までの待ち（ミリ秒）</span>
+          <span>やり直しまでの待ち（ミリ秒）</span>
           <input
             type="number"
             value={draft.debounceMs}
             onChange={(event) => update("debounceMs", Number(event.target.value))}
           />
         </label>
-        <label className="field">
-          <span>Jev に送る本文の上限（文字）</span>
-          <input type="number" value={draft.maxChars} onChange={(event) => update("maxChars", Number(event.target.value))} />
-        </label>
+        <p className="help">
+          Jev の入力枠は state と最長の質問で 32k トークン、1 リクエスト 64k（公式 Models）。収まる主本文は 1 回で送り、超えたら重ねて分割する。URL ごとに変えない。
+        </p>
         <label className="field">
           <span>本文とみなす最小語数</span>
           <input type="number" value={draft.minWords} onChange={(event) => update("minWords", Number(event.target.value))} />
@@ -100,7 +98,7 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
 
       <div className="toolbar">
         <button className="btn" type="submit" disabled={busy}>
-          設定を保存
+          Save
         </button>
         {message ? <p className="help">{message}</p> : null}
       </div>

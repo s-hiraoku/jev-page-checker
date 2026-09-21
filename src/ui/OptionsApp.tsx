@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Bridge } from "../lib/bridge.js";
 import type { SessionPayload } from "../lib/session.js";
+import { AppHeader } from "./bits.js";
 import { SettingsForm } from "./SettingsForm.js";
 
 export function OptionsApp({ bridge }: { bridge: Bridge }) {
@@ -20,9 +21,7 @@ export function OptionsApp({ bridge }: { bridge: Bridge }) {
   if (session === null) {
     return (
       <>
-        <header className="app-header">
-          <div className="app-name">Jev 信憑性チェッカー</div>
-        </header>
+        <AppHeader />
         <main className="shell wide">{error ?? "読み込み中…"}</main>
       </>
     );
@@ -30,10 +29,7 @@ export function OptionsApp({ bridge }: { bridge: Bridge }) {
 
   return (
     <>
-      <header className="app-header">
-        <div className="app-name">Jev 信憑性チェッカー</div>
-        <div className="app-meta">設定 / 定義 v{session.definitionVersion}</div>
-      </header>
+      <AppHeader meta={`Settings · v${session.definitionVersion}`} />
       <main className="shell wide">
         <SettingsForm
           settings={session.settings}

@@ -2,7 +2,7 @@
   "name": "jev-page-checker",
   "private": true,
   "version": "0.0.1",
-  "description": "表示中のタブを追跡し、TypeSafe の Jev でサイトと本文の信憑性を検査する Chrome 拡張",
+  "description": "Follow the current tab and audit site plus body with TypeSafe Jev",
   "homepage": "https://github.com/s-hiraoku/jev-page-checker",
   "type": "module",
   "engines": {
@@ -29,9 +29,9 @@
     "jsdom": "30.1.0",
     "@vitejs/plugin-react": "6.1.1",
     "@wxt-dev/module-react": "1.2.2",
-    "tsx": "4.23.13",
-    "typescript": "5.9.3",
-    "vite": "7.3.6",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vite": "8.3.0",
     "wxt": "0.21.4"
   }
 }

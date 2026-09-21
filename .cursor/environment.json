@@ -1,0 +1,10 @@
+{
+  "name": "jev-page-checker",
+  "install": "npm ci && npm run build",
+  "terminals": [
+    {
+      "name": "preview",
+      "command": "npm run preview"
+    }
+  ]
+}
