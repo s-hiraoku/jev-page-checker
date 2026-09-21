@@ -6,6 +6,7 @@ import {
   bodyQuestionIds,
   bodySendKind,
   isBodyQuestion,
+  isCiteQuestion,
   mergeConservativeItem,
   siteQuestionIds,
   softenSynthesisErrors,
@@ -31,7 +32,8 @@ test("site and body lanes come from hasArticle applyWhen, not restated ids", () 
     "certainty_matches_evidence",
   ]);
   for (const question of definition.questions) {
-    assert.equal(isBodyQuestion(question.applyWhen), bodyIds.includes(question.id));
+    const inBodyLane = isBodyQuestion(question.applyWhen) && !isCiteQuestion(question);
+    assert.equal(inBodyLane, bodyIds.includes(question.id));
   }
 });
 

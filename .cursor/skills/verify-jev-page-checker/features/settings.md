@@ -1,11 +1,11 @@
 # Settings
 
-Settings is where a user stores the TypeSafe key, tracking toggles, and a whole-list approval. The page shows all nine checklist items in readable sentences. Save is in-memory in preview; the visible proof is `保存しました。`
+Settings is where a user stores the TypeSafe key, tracking toggles, and a whole-list approval. The page shows all fourteen checklist items in readable sentences: nine verdict questions and five sentence-choice companions. Save is in-memory in preview; the visible proof is `保存しました。`
 
 ## Sub-features
 
 - `settings-open` opens the form from the panel toolbar, the preview `Settings` button, or `#options`.
-- `settings-checklist` shows `質問 9` with ids such as `identifiable_publisher`.
+- `settings-checklist` shows `質問 14` with ids such as `identifiable_publisher` and `evidence_for_claims_cite`.
 - `settings-approve` requires the whole-list checkbox only. There is no name field and the checklist is not editable.
 - `settings-save` writes the draft and shows `保存しました。`
 - `settings-follow` exposes `タブに追従する`.
@@ -27,14 +27,14 @@ Preconditions:
 - `control-jev doctor` reports `ok: true`.
 - Start from `/?scene=setup#options` so approval starts empty.
 
-- **URL entry.** Open settings on the setup scene. Run `control-jev browser goto --path "/?scene=setup#options"`. Meta `Settings · v5` and `質問 9` are visible. A checklist article contains `発行元が特定できる` and `identifiable_publisher`.
+- **URL entry.** Open settings on the setup scene. Run `control-jev browser goto --path "/?scene=setup#options"`. Meta `Settings · v6` and `質問 14` are visible. A checklist article contains `発行元が特定できる` and `identifiable_publisher`. A cite article contains `主張の根拠を支える文`, `evidence_for_claims_cite`, and `選択肢は、このページから切った文です。none のときは文を出しません。この選択は判定のチップを動かしません。`
 - **Toolbar entry.** Go to the setup panel and choose `Settings`. Run `control-jev browser goto --path "/?scene=setup#side"` and `control-jev browser click --name "Settings"`. The form appears again.
 - **Approve and key.** Tick the whole list and enter a key. There is no 承認者の名前 field. Run `control-jev browser check --label "このチェックリスト全体を承認する"` and `control-jev browser fill --label "TypeSafe API キー" --value "sk-preview"`.
 - **タブに追従する.** Leave tracking on. Run `control-jev browser text --contains "タブに追従する"`. The checkbox is checked by default. English locale uses `Follow the tab`.
 - **Theme.** The appearance select defaults to `システム`. Run `control-jev browser text --contains "テーマ"` and `control-jev browser select --label "テーマ" --value "light"`. Then `control-jev browser attr --selector "html" --name "data-theme"` prints `light`. Repeat with `--value "dark"` then `--value "system"` to restore the default.
 - **Language.** The language select defaults to `システム`. Preview Chrome is `ja-JP`, so copy starts in Japanese. Run `control-jev browser select --label "言語" --value "en"`. The page shows `Language` and `I accept this whole checklist`. Restore with `--value "ja"` or `--value "system"`.
 - **Save.** Choose `保存`. Run `control-jev browser click --name "保存"`. Status `保存しました。` appears.
-- **Proof.** Capture the saved form. Run `control-jev browser screenshot --path .cursor/skills/verify-jev-page-checker/artifacts/settings/saved.png` and `control-jev browser snapshot --path .cursor/skills/verify-jev-page-checker/artifacts/settings/saved.aria.txt`. Both show `Settings`, the nine-item heading, and `保存しました。`
+- **Proof.** Capture the saved form. Run `control-jev browser screenshot --path .cursor/skills/verify-jev-page-checker/artifacts/settings/saved.png` and `control-jev browser snapshot --path .cursor/skills/verify-jev-page-checker/artifacts/settings/saved.aria.txt`. Both show `Settings`, the fourteen-question heading, and `保存しました。`
 
 ## Gotchas
 

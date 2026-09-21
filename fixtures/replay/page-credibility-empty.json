@@ -39,7 +39,12 @@
         "unclear": 0.72
       }
     },
-    "disclosed_incentives": { "type": "noul", "noul": 0.81 }
+    "disclosed_incentives": {
+      "type": "choice",
+      "choice": "no_pitch",
+      "confidence": 0.81,
+      "probabilities": { "no_pitch": 0.81, "named_beneficiary": 0.1, "hidden_beneficiary": 0.09 }
+    }
   },
   "usage": { "input_tokens": 180, "output_tokens": 12 }
 }

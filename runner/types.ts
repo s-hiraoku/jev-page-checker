@@ -40,6 +40,8 @@ export type ChoiceCheck = CheckBase & {
   criteria: ChoiceCriteria;
   options: Record<string, MappedVerdict>;
   confidenceFloor?: number;
+  /** When set, this choice selects a sentence for that question and does not vote in a lane. */
+  citeFor?: QuestionId;
 };
 
 export type ScoreCheck = CheckBase & {
@@ -72,6 +74,8 @@ export interface ItemResult {
   reason: string;
   basis?: string;
   answer?: JevAnswer;
+  /** A sentence cut from the page and selected by Jev. Absent when none was selected. */
+  cite?: string;
 }
 
 /** Recorded at check time so the UI does not re-run windowing or restated lane ids. */

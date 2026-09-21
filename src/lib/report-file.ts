@@ -33,6 +33,7 @@ export function reportDocument(record: StoredRecord, locale: ResolvedLocale): st
     const basis = basisLabel(item.id, item.answer, locale, item.basis?.trim() ?? "");
     lines.push(`${questionLabel(item.id, locale)}: ${VERDICT_LABELS[item.verdict]}`);
     if (basis) lines.push(basis);
+    if (item.cite) lines.push(item.cite);
     lines.push("");
   }
   lines.push(snapshot.text);

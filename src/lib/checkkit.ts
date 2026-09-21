@@ -3,6 +3,7 @@ export {
   DefinitionError,
   buildRequest,
   evaluate,
+  extractSpans,
   exitCodeFor,
   jsonEqual,
   liveGateway,

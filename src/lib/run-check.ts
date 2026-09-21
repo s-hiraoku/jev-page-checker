@@ -14,6 +14,7 @@ import {
 } from "./checkkit.js";
 import {
   bodyQuestionIds,
+  citeQuestionIds,
   mergeConservativeItem,
   siteQuestionIds,
   softenSynthesisErrors,
@@ -57,10 +58,12 @@ function answerNote(answer: JevAnswer | undefined): string {
 }
 
 function mergeReports(definition: ApprovedDefinition, rounds: readonly CheckReport[]): CheckReport {
-  const items = definition.questions.map((question) => {
-    const versions = rounds.flatMap((round) => round.items.filter((item) => item.id === question.id));
-    return mergeConservativeItem(versions);
-  });
+  const items = definition.questions
+    .filter((question) => question.type !== "choice" || question.citeFor === undefined)
+    .map((question) => {
+      const versions = rounds.flatMap((round) => round.items.filter((item) => item.id === question.id));
+      return mergeConservativeItem(versions);
+    });
   return {
     definition: { id: definition.id, version: definition.version },
     items,
@@ -89,12 +92,13 @@ export async function checkSnapshot(snapshot: PageSnapshot, definitionRaw: unkno
   const siteIds = siteQuestionIds(definition.questions);
   const bodyIds = bodyQuestionIds(definition.questions);
   const bodyIdSet = new Set(bodyIds);
+  const citeIds = citeQuestionIds(definition.questions);
   const split = snapshot.hasArticle
     ? splitOverlappingChunks(snapshot.text)
     : { windows: [{ text: snapshot.text, start: 0, end: snapshot.text.length }], covered: true };
   const first = await evaluate(definition, stateForWindow(snapshot, split.windows[0]?.text ?? ""), jev);
   const extraWindows = snapshot.hasArticle ? split.windows.slice(1) : [];
-  const bodyDefinition = withQuestions(definition, bodyIds);
+  const bodyDefinition = withQuestions(definition, [...bodyIds, ...citeIds]);
   const extras =
     extraWindows.length === 0
       ? []

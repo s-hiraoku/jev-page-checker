@@ -75,14 +75,14 @@ Prefer URL entry points over nav buttons when starting a recipe. Scene is a quer
 | `/?scene=pass#side` | Side panel, sourced news replay, both lanes Pass |
 | `/?scene=fail#side` | Side panel, sales-page replay, both lanes Alert |
 | `/?scene=setup#side` | Side panel blocked until checklist approval |
-| `/?scene=pass#options` or `#options` after Settings | Settings form and 9-item checklist |
+| `/?scene=pass#options` or `#options` after Settings | Settings form and 14-question checklist |
 | `/?scene=pass#details` | Full report and 送った文 |
 | `/?scene=pass#history` | History list of past Audits |
 | `/?scene=pass&store=1#side` | Fake article column + side panel (store screenshot layout) |
 
 Stable handles (accessible names / labels from the real UI, not test ids):
 
-- App chrome: heading-equivalent `Audit` (mark `Jev` + name `Audit` from `labels.ts`), meta `v5` on the panel / `Report · v5` / `History · v5` / `Settings · v5`
+- App chrome: heading-equivalent `Audit` (mark `Jev` + name `Audit` from `labels.ts`), meta `v6` on the panel / `Report · v6` / `History · v6` / `Settings · v6`
 - Preview fixture row: `Pass`, `Fail`, `Truncated`, `Chunked`. Product chrome row: `Setup`, `Inspector`, `Settings`, `Report`, `History`. They are not one toolbar.
 - Side panel buttons: `Audit`, `Report`, `History`, `Settings` (gated panel uses the same `Settings` button)
 - Side panel copy: `サイト`, `本文`, `Pass`, `Alert`, `Review`, `N/A`. Ready Inspector has no score lede and no footer about following the tab. Default basis text is Japanese, for example `責任者として分かる`.
@@ -93,9 +93,9 @@ Stable handles (accessible names / labels from the real UI, not test ids):
 - Theme options: `システム` (default), `ライト`, `ダーク`
 - Locale options: `システム` (default), `日本語`, `English`. Preview daemon locale is `ja-JP`, so system copy is Japanese.
 - Language options: `システム` (default), `日本語`, `English`
-- Settings actions: button `保存`, status `保存しました。`, heading `質問 9`. English locale uses button `Save` and status `Saved.`
-- Details: meta `Report · v5`, panel head `送った文`, title label `タイトル`. No history list.
-- History: meta `History · v5`, heading `History` (not `履歴`), row names are snapshot titles, each row shows `Audit した時刻`, and each row has `この記録を消す`
+- Settings actions: button `保存`, status `保存しました。`, heading `質問 14`. English locale uses button `Save` and status `Saved.` Cite questions include the note `選択肢は、このページから切った文です。none のときは文を出しません。この選択は判定のチップを動かしません。`
+- Details: meta `Report · v6`, panel head `送った文`, title label `タイトル`. No history list. The pass body row `主張の根拠` includes the page sentence with `12 September`.
+- History: meta `History · v6`, heading `History` (not `履歴`), row names are snapshot titles, each row shows `Audit した時刻`, and each row has `この記録を消す`
 
 `click --name` matches a **button** exactly. `fill --label` matches the wrapping `<label>` text exactly. `check --label` is a substring match so the long approval sentence can be shortened to `このチェックリスト全体を承認する`.
 

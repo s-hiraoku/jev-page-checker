@@ -1,6 +1,6 @@
 {
   "id": "page-credibility",
-  "version": 5,
+  "version": 6,
   "subject": "Site safety of the current page (who is responsible, whether it impersonates another party, what it is for, whether a pitch is disclosed) and, when the page is one piece of writing, scrutiny of that writing. A listing is not an article. A purpose of opinion is not a safety failure. The report is evidence, not a reputation score for a familiar site.",
   "approval": { "status": "approved", "at": "2026-09-21T00:00:00Z", "by": "fixture" },
   "questions": [
@@ -50,14 +50,19 @@
     },
     {
       "id": "disclosed_incentives",
-      "type": "noul",
-      "instructions": "If the page is trying to sell something, raise money, or advocate for a party that would benefit, does it disclose that relationship? An obvious storefront, or a text with no pitch, passes. Affiliate links, sponsored slots, or a health, money, or legal pitch that hides who is paid fail. Naming a product is not disclosure if the reader cannot tell who is paid to promote it.",
+      "type": "choice",
+      "instructions": "If the page is trying to sell something, raise money, or advocate for a party that would benefit, which of these is true? no_pitch means there is no sales or advocacy pitch. named_beneficiary means a pitch is present and the beneficiary or sponsor is named. hidden_beneficiary means the page pushes a product, donation, or political outcome while hiding who benefits. An obvious storefront is no_pitch. Naming a product is not named_beneficiary when the reader cannot tell who is paid to promote it.",
       "criteria": {
-        "true": "There is no sales or advocacy pitch, or a pitch is present and the beneficiary or sponsor is named.",
-        "false": "The page pushes a product, donation, or political outcome while hiding who benefits."
+        "no_pitch": "There is no sales or advocacy pitch.",
+        "named_beneficiary": "A pitch is present and the beneficiary or sponsor is named.",
+        "hidden_beneficiary": "The page pushes a product, donation, or political outcome while hiding who benefits."
       },
-      "passAt": 0.8,
-      "failAt": 0.2
+      "options": {
+        "no_pitch": "pass",
+        "named_beneficiary": "pass",
+        "hidden_beneficiary": "fail"
+      },
+      "confidenceFloor": 0.6
     },
     {
       "id": "evidence_for_claims",
@@ -120,6 +125,56 @@
       },
       "passAt": 0.8,
       "failAt": 0.2,
+      "applyWhen": { "path": "hasArticle", "op": "equals", "value": true }
+    },
+    {
+      "id": "evidence_for_claims_cite",
+      "type": "choice",
+      "citeFor": "evidence_for_claims",
+      "instructions": "Sentences cut from this page are labeled s1, s2, and so on. The description of each label is that sentence. Choose the single sentence that most carries evidence_for_claims. Choose none when no single sentence carries it. Do not write a new sentence.",
+      "criteria": { "none": "No single sentence carries this question." },
+      "options": { "none": "pass" },
+      "confidenceFloor": 0.6,
+      "applyWhen": { "path": "hasArticle", "op": "equals", "value": true }
+    },
+    {
+      "id": "separates_fact_and_opinion_cite",
+      "type": "choice",
+      "citeFor": "separates_fact_and_opinion",
+      "instructions": "Sentences cut from this page are labeled s1, s2, and so on. The description of each label is that sentence. Choose the single sentence that most carries separates_fact_and_opinion. Choose none when no single sentence carries it. Do not write a new sentence.",
+      "criteria": { "none": "No single sentence carries this question." },
+      "options": { "none": "pass" },
+      "confidenceFloor": 0.6,
+      "applyWhen": { "path": "hasArticle", "op": "equals", "value": true }
+    },
+    {
+      "id": "unsourced_specifics_cite",
+      "type": "choice",
+      "citeFor": "unsourced_specifics",
+      "instructions": "Sentences cut from this page are labeled s1, s2, and so on. The description of each label is that sentence. Choose the single sentence that most carries unsourced_specifics. Choose none when no single sentence carries it. Do not write a new sentence.",
+      "criteria": { "none": "No single sentence carries this question." },
+      "options": { "none": "pass" },
+      "confidenceFloor": 0.6,
+      "applyWhen": { "path": "hasArticle", "op": "equals", "value": true }
+    },
+    {
+      "id": "self_consistent_cite",
+      "type": "choice",
+      "citeFor": "self_consistent",
+      "instructions": "Sentences cut from this page are labeled s1, s2, and so on. The description of each label is that sentence. Choose the single sentence that most carries self_consistent. Choose none when no single sentence carries it. Do not write a new sentence.",
+      "criteria": { "none": "No single sentence carries this question." },
+      "options": { "none": "pass" },
+      "confidenceFloor": 0.6,
+      "applyWhen": { "path": "hasArticle", "op": "equals", "value": true }
+    },
+    {
+      "id": "certainty_matches_evidence_cite",
+      "type": "choice",
+      "citeFor": "certainty_matches_evidence",
+      "instructions": "Sentences cut from this page are labeled s1, s2, and so on. The description of each label is that sentence. Choose the single sentence that most carries certainty_matches_evidence. Choose none when no single sentence carries it. Do not write a new sentence.",
+      "criteria": { "none": "No single sentence carries this question." },
+      "options": { "none": "pass" },
+      "confidenceFloor": 0.6,
       "applyWhen": { "path": "hasArticle", "op": "equals", "value": true }
     }
   ]

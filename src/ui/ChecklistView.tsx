@@ -34,7 +34,11 @@ export function ChecklistView({ questions }: { questions: readonly Check[] }) {
             {questionLabel(check.id, locale)} <span className="url">{check.id}</span>
           </h3>
           <p className="help">{instructionLabel(check.id, locale, instructionText(check))}</p>
-          <p className="help">{thresholdText(check, copy)}</p>
+          {check.type === "choice" && check.citeFor !== undefined ? (
+            <p className="help">{copy.citeChoices}</p>
+          ) : (
+            <p className="help">{thresholdText(check, copy)}</p>
+          )}
           {asksWhenArticle(check) ? <p className="help">{copy.articleOnly}</p> : null}
           <ul className="checklist-criteria">
             {basisEntries(check.id, locale).map((entry) => (
