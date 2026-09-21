@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { replayGateway } from "./checkkit.js";
+import { replayGateway, type JevAnswer, type JevGateway } from "./checkkit.js";
 import { PAGE_QUESTION_IDS, SITE_QUESTION_IDS, worstVerdict } from "./groups.js";
 import type { PageSnapshot } from "./page-state.js";
 import { checkSnapshot } from "./run-check.js";
@@ -23,8 +23,36 @@ async function reportOf(name: string, patch: Partial<PageSnapshot> = {}) {
     ...patch,
     extractedAt: "2026-09-20T00:00:00.000Z",
     textTruncated: patch.textTruncated ?? replay.state.textTruncated ?? false,
+    textLimit: patch.textLimit ?? replay.state.textLimit ?? 10000,
   };
   return checkSnapshot(snapshot, definition, replayGateway(replay.answers, replay.usage));
+}
+
+function snapshotOf(name: string, patch: Partial<PageSnapshot> = {}): PageSnapshot {
+  const replay = loadReplay(name);
+  return {
+    ...replay.state,
+    ...patch,
+    extractedAt: "2026-09-20T00:00:00.000Z",
+    textTruncated: patch.textTruncated ?? replay.state.textTruncated ?? false,
+    textLimit: patch.textLimit ?? replay.state.textLimit ?? 10000,
+  };
+}
+
+function twoWindowText(base: string): string {
+  return `${base} ${"x".repeat(12000)}`;
+}
+
+function scriptedGateway(answersList: Record<string, JevAnswer>[]): JevGateway & { calls: number } {
+  const gateway: JevGateway & { calls: number } = {
+    calls: 0,
+    async ask() {
+      const answers = answersList[Math.min(gateway.calls, answersList.length - 1)] ?? {};
+      gateway.calls += 1;
+      return { answers, usage: { input_tokens: 1, output_tokens: 1 } };
+    },
+  };
+  return gateway;
 }
 
 test("a sourced news article passes site safety and body scrutiny", async () => {
@@ -76,5 +104,48 @@ test("a truncated extract still reports a body fail found in the prefix", async 
 
 test("a truncated listing still skips body questions", async () => {
   const report = await reportOf("page-credibility-portal.json", { textTruncated: true });
+  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "not_applicable");
+});
+
+test("a long article asks overlapping body windows and a synthesis, then can pass", async () => {
+  const pass = loadReplay("page-credibility-pass.json");
+  const snapshot = snapshotOf("page-credibility-pass.json", { text: twoWindowText(pass.state.text) });
+  const gateway = replayGateway(pass.answers, pass.usage);
+  const report = await checkSnapshot(snapshot, definition, gateway);
+  assert.ok(gateway.calls >= 3);
+  assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
+  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "pass");
+});
+
+test("a later window fail is not overwritten by other window passes", async () => {
+  const pass = loadReplay("page-credibility-pass.json");
+  const fail = loadReplay("page-credibility-fail.json");
+  const snapshot = snapshotOf("page-credibility-pass.json", { text: twoWindowText(pass.state.text) });
+  const gateway = scriptedGateway([pass.answers, fail.answers, pass.answers]);
+  const report = await checkSnapshot(snapshot, definition, gateway);
+  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "fail");
+  assert.equal(report.items.find((item) => item.id === "unsourced_specifics")?.verdict, "fail");
+  assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
+});
+
+test("synthesis fail catches a contradiction that no single window failed", async () => {
+  const pass = loadReplay("page-credibility-pass.json");
+  const synthesisFail = {
+    ...pass.answers,
+    self_consistent: { type: "noul" as const, noul: 0.05 },
+  };
+  const snapshot = snapshotOf("page-credibility-pass.json", { text: twoWindowText(pass.state.text) });
+  const gateway = scriptedGateway([pass.answers, pass.answers, synthesisFail]);
+  const report = await checkSnapshot(snapshot, definition, gateway);
+  assert.equal(report.items.find((item) => item.id === "self_consistent")?.verdict, "fail");
+  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "fail");
+});
+
+test("a long listing still makes one call and skips body questions", async () => {
+  const portal = loadReplay("page-credibility-portal.json");
+  const snapshot = snapshotOf("page-credibility-portal.json", { text: `${portal.state.text} ${"word ".repeat(4000)}` });
+  const gateway = replayGateway(portal.answers, portal.usage);
+  const report = await checkSnapshot(snapshot, definition, gateway);
+  assert.equal(gateway.calls, 1);
   assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "not_applicable");
 });

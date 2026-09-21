@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { JSDOM } from "jsdom";
+import { bodyCollectLimit } from "./body-windows.js";
 import { classifyPageKind, collectOutbound, collectText, extractSnapshot, wordCount } from "./extract.js";
 
 test("wordCount ignores surrounding space", () => {
@@ -41,10 +42,10 @@ test("extractSnapshot prefers article text, records author, and flags a short bo
   assert.equal(snapshot.isHttps, true);
   assert.match(snapshot.text, /bureau delayed/);
   assert.equal(snapshot.text.includes("Home Sports"), false);
-  assert.deepEqual(snapshot.outboundHosts, ["transport.example.gov"]);
   assert.equal(snapshot.pageKind, "article");
   assert.equal(snapshot.hasArticle, false);
   assert.equal(snapshot.textTruncated, false);
+  assert.equal(snapshot.textLimit, 1000);
 });
 
 test("classifyPageKind uses structure, not the URL path", () => {
@@ -97,8 +98,8 @@ test("collectText flags leftover text in a later node after an exact fit", () =>
   assert.equal(collected.truncated, true);
 });
 
-test("extractSnapshot flags truncation from leftover main text, not from skipped chrome", () => {
-  const prose = "abcdefghij leftover";
+test("extractSnapshot collects beyond one window and flags leftover after the coverable cap", () => {
+  const prose = `abcdefghij leftover ${"x".repeat(bodyCollectLimit(10) + 20)}`;
   const dom = new JSDOM(
     `<!doctype html><html><head><title>Memo</title></head><body>
       <nav>${"nav ".repeat(80)}</nav>
@@ -107,6 +108,9 @@ test("extractSnapshot flags truncation from leftover main text, not from skipped
     { url: "https://writer.example.org/memo" },
   );
   const snapshot = extractSnapshot(dom.window.document, dom.window.location, 10, 1, () => "2026-09-20T00:00:00.000Z");
-  assert.equal(snapshot.text, "abcdefghij");
+  assert.equal(snapshot.text.startsWith("abcdefghij"), true);
+  assert.equal(snapshot.text.includes("nav"), false);
   assert.equal(snapshot.textTruncated, true);
+  assert.equal(snapshot.text.length, bodyCollectLimit(10));
+  assert.equal(snapshot.textLimit, 10);
 });

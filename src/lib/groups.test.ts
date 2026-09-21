@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { ItemResult, Verdict } from "./checkkit.js";
-import { PAGE_QUESTION_IDS, SITE_QUESTION_IDS, withholdBodyPassOnTruncation, worstVerdict } from "./groups.js";
+import { mergeConservativeItem, PAGE_QUESTION_IDS, SITE_QUESTION_IDS, withholdBodyPassOnTruncation, worstVerdict } from "./groups.js";
 
 const item = (id: string, verdict: Verdict) => ({ id, verdict });
 
@@ -33,4 +33,20 @@ test("withholdBodyPassOnTruncation turns body pass into review and leaves fail a
   assert.equal(withheld.find((entry) => entry.id === "self_consistent")?.verdict, "fail");
   assert.equal(withheld.find((entry) => entry.id === "unsourced_specifics")?.verdict, "review");
   assert.deepEqual(withholdBodyPassOnTruncation(items, false), items);
+});
+
+test("mergeConservativeItem keeps fail over a later pass", () => {
+  const fail: ItemResult = {
+    id: "self_consistent" as ItemResult["id"],
+    verdict: "fail",
+    reason: "noul 0.1 is at or below failAt 0.2",
+  };
+  const pass: ItemResult = {
+    id: "self_consistent" as ItemResult["id"],
+    verdict: "pass",
+    reason: "noul 0.9 is at or above passAt 0.8",
+  };
+  assert.equal(mergeConservativeItem([pass, fail]).verdict, "fail");
+  assert.equal(mergeConservativeItem([fail, pass]).verdict, "fail");
+  assert.equal(mergeConservativeItem([pass, { ...pass, verdict: "review", reason: "between" }]).verdict, "review");
 });

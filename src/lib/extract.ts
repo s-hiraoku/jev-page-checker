@@ -1,3 +1,4 @@
+import { bodyCollectLimit } from "./body-windows.js";
 import type { PageSnapshot } from "./page-state.js";
 
 const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "NAV", "FOOTER", "ASIDE", "SVG", "IFRAME", "CANVAS"]);
@@ -99,7 +100,7 @@ export function extractSnapshot(
     }
   });
   const { hosts, citationCount } = collectOutbound(hrefs, loc.hostname);
-  const { text, truncated } = collectText(root ?? doc.body, maxChars);
+  const { text, truncated } = collectText(root ?? doc.body, bodyCollectLimit(maxChars));
   const words = wordCount(text);
   const pageKind = classifyPageKind(articleCount, hrefs.length, words);
   return {
@@ -124,6 +125,7 @@ export function extractSnapshot(
     outboundHosts: hosts,
     text,
     textTruncated: truncated,
+    textLimit: maxChars,
     extractedAt: now(),
   };
 }

@@ -33,7 +33,7 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
       }}
     >
       <h1 className="page-title">設定</h1>
-      <p className="help">キーは拡張のストレージにだけ置き、Jev への 1 回の問い合わせ以外には使いません。ログには出しません。</p>
+      <p className="help">キーは拡張のストレージにだけ置き、Jev への問い合わせ以外には使いません。ログには出しません。</p>
 
       <fieldset className="fieldset">
         <legend>接続</legend>
@@ -74,7 +74,7 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
           <span>Jev に送る本文の上限（文字）</span>
           <input type="number" value={draft.maxChars} onChange={(event) => update("maxChars", Number(event.target.value))} />
         </label>
-        <p className="help">上限を超えた続きは送らない。そのとき本文レーンは通過にしない。URL ごとに上限を変えない。</p>
+        <p className="help">1 回に送る上限。長い主本文は重ねて分割し、切れ残りがあるとき本文レーンは通過にしない。URL ごとに変えない。</p>
         <label className="field">
           <span>本文とみなす最小語数</span>
           <input type="number" value={draft.minWords} onChange={(event) => update("minWords", Number(event.target.value))} />

@@ -33,6 +33,10 @@ export function worstVerdict(items: readonly { id: string; verdict: Verdict }[],
 
 const PAGE_QUESTION_ID_SET: ReadonlySet<string> = new Set(PAGE_QUESTION_IDS);
 
+export function isPageQuestionId(id: string): boolean {
+  return PAGE_QUESTION_ID_SET.has(id);
+}
+
 /** Prefix truncation is unread remainder. Body pass is not a completed inspection. */
 export function withholdBodyPassOnTruncation(items: readonly ItemResult[], truncated: boolean): ItemResult[] {
   if (!truncated) return [...items];
@@ -44,4 +48,19 @@ export function withholdBodyPassOnTruncation(items: readonly ItemResult[], trunc
       reason: `extracted text was cut at the character limit; unread remainder cannot support pass (${item.reason})`,
     };
   });
+}
+
+/** Later pass must not hide fail or review from another window. */
+export function mergeConservativeItem(versions: readonly ItemResult[]): ItemResult {
+  const first = versions[0];
+  if (first === undefined) throw new Error("mergeConservativeItem needs at least one result");
+  let picked = first;
+  for (const item of versions.slice(1)) {
+    if (RANK[item.verdict] > RANK[picked.verdict]) picked = item;
+  }
+  if (versions.length === 1) return picked;
+  return {
+    ...picked,
+    reason: `${picked.reason} (conservative merge of ${versions.length} windows)`,
+  };
 }
