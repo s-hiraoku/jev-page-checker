@@ -1,7 +1,7 @@
 import type { Check, Verdict } from "./checkkit.js";
 
-export const APP_NAME = "裏取り";
-export const APP_NAME_FULL = "Jev 裏取り";
+export const APP_NAME = "Audit";
+export const APP_NAME_FULL = "Jev Audit";
 export const APP_MARK = "Jev";
 
 export const QUESTION_LABELS: Record<string, string> = {
@@ -29,11 +29,11 @@ export const QUESTION_AXIS_LABELS: Record<string, string> = {
 };
 
 export const VERDICT_LABELS: Record<Verdict, string> = {
-  pass: "通過",
-  fail: "要警戒",
-  review: "要確認",
-  not_applicable: "対象外",
-  error: "エラー",
+  pass: "Pass",
+  fail: "Alert",
+  review: "Review",
+  not_applicable: "N/A",
+  error: "Error",
 };
 
 export const PURPOSE_LABELS: Record<string, string> = {

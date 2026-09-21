@@ -36,10 +36,10 @@ export function DetailsApp({ bridge }: { bridge: Bridge }) {
 
   return (
     <>
-      <AppHeader meta={`記録 · v${session.definitionVersion}`} />
+      <AppHeader meta={`Report · v${session.definitionVersion}`} />
       <main className="shell wide">
         <p className="help">判断材料。ここから公開も送信もしない。</p>
-        {record ? <ReportView record={record} /> : <p className="notice">まだ記録がない。パネルからこのタブの裏を取ってください。</p>}
+        {record ? <ReportView record={record} /> : <p className="notice">まだ結果がありません。Inspector から Audit してください。</p>}
         {record ? (
           <section className="panel">
             <div className="panel-head">送った文</div>

@@ -27,7 +27,7 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
         setBusy(true);
         setMessage(null);
         void onSave(draft)
-          .then(() => setMessage("保存しました。"))
+          .then(() => setMessage("Saved."))
           .catch((error: unknown) => setMessage(error instanceof Error ? error.message : String(error)))
           .finally(() => setBusy(false));
       }}
@@ -51,7 +51,7 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
         <legend>動作</legend>
         <label className="toggle">
           <input type="checkbox" checked={draft.followTab} onChange={(event) => update("followTab", event.target.checked)} />
-          タブを追って裏を取る
+          Follow tab
         </label>
         <label className="toggle">
           <input
@@ -99,7 +99,7 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
 
       <div className="toolbar">
         <button className="btn" type="submit" disabled={busy}>
-          保存
+          Save
         </button>
         {message ? <p className="help">{message}</p> : null}
       </div>

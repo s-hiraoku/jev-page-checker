@@ -1,6 +1,6 @@
-# Jev 裏取り
+# Jev Audit
 
-表示中のタブをパネルが追跡し、TypeSafe の Jev でサイトの発行元と本文を裏取りする Chrome 拡張です。React + Manifest V3 です。レポートは判断材料だけで、ページの遮断・公開・外部送信はしません。
+表示中のタブを Inspector が追跡し、TypeSafe の Jev でサイトの発行元と本文を Audit する Chrome 拡張です。React + Manifest V3 です。レポートは判断材料だけで、ページの遮断・公開・外部送信はしません。
 
 jev-checkkit とは別リポジトリです。この拡張だけで完結します。
 
@@ -14,16 +14,16 @@ npm test
 npm run build
 ```
 
-Chrome で `chrome://extensions` を開き、デベロッパーモードをオンにして `.output/chrome-mv3` を読み込みます。ツールバーのアイコンで側面パネルが開きます。
+Chrome で `chrome://extensions` を開き、デベロッパーモードをオンにして `.output/chrome-mv3` を読み込みます。ツールバーのアイコンで Inspector が開きます。
 
 1. 設定でチェックリスト全文を確認し、承認者名を入れてリスト全体を承認する。
 2. TypeSafe の API キーを保存する。キーは拡張のストレージにだけ置き、Jev への送信以外には使いません。
-3. 「タブを追って裏を取る」をオンのままにしておくと、タブ切替と読み込み完了のたびにやり直します。
-4. パネルはサイトと本文を別レーンで出し、記録画面で質問ごとと送った文を見ます。Chrome ツールバーの常駐アイコンも同じ分け方で、上段がサイト、下段が本文です。判定が変わると色とバッジが差し替わります。
+3. Follow tab をオンのままにしておくと、タブ切替と読み込み完了のたびにやり直します。
+4. Inspector はサイトと本文を別レーンで出し、Report で質問ごとと送った文を見ます。Chrome ツールバーの常駐アイコンも同じ分け方で、上段がサイト、下段が本文です。判定が変わると色とバッジが差し替わります。
 
 画面だけ見る場合は `npm run preview` です。手元のストア提出用 zip は `npm run zip` で `.output/` に出ます。`v*` タグを push すると CI が同じ zip を GitHub Release に付けます。main と pull request ではテスト・型検査・ビルドのあと、同じ zip を Actions の成果物にも残します。掲載文と審査用の記入例は [`store/listing.md`](store/listing.md)、プライバシーポリシーは [`docs/privacy.html`](docs/privacy.html) です。
 
-## 検査項目
+## 質問
 
 定義は `fixtures/page-credibility.checker.json` です。Jev には意味だけを聞き、同じページへの質問は 1 回の呼び出しにまとめます。特定サイト向けに合格線を動かさないこと。詳細は [`docs/judgement.md`](docs/judgement.md) です。
 

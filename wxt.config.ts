@@ -4,9 +4,9 @@ export default defineConfig({
   srcDir: "src",
   modules: ["@wxt-dev/module-react"],
   manifest: {
-    name: "Jev 裏取り",
+    name: "Jev Audit",
     version: "0.0.1",
-    description: "いまの頁の発行元と本文を、承認済みの Jev チェックリストで裏取りする",
+    description: "Audit the publisher and body of the current page with an approved Jev checklist",
     homepage_url: "https://github.com/s-hiraoku/jev-page-checker",
     permissions: ["sidePanel", "storage", "tabs"],
     host_permissions: ["http://*/*", "https://*/*", "https://api.typesafe.ai/*"],
@@ -14,7 +14,7 @@ export default defineConfig({
       open_in_tab: true,
     },
     action: {
-      default_title: "このタブを裏取り",
+      default_title: "Audit this tab",
       default_icon: {
         16: "icon-16.png",
         32: "icon-32.png",

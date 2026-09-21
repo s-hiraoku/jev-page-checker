@@ -71,8 +71,8 @@ function labelLayout(index: number, total: number, radius: number): { x: number;
 
 function describeAxes(title: string, axes: readonly RadarAxis[]): string {
   const parts = axes.map((axis) => {
-    const verdict = axis.verdict === null ? "未測定" : VERDICT_LABELS[axis.verdict];
-    const value = axis.value === null ? "対象外" : axis.value.toFixed(2);
+    const verdict = axis.verdict === null ? "—" : VERDICT_LABELS[axis.verdict];
+    const value = axis.value === null ? "N/A" : axis.value.toFixed(2);
     return `${axis.fullLabel} ${verdict} ${value}`;
   });
   return `${title}のレーダー。${parts.join("。")}`;
@@ -98,7 +98,7 @@ export function RadarChart({
     return (
       <div className="radar-card">
         <h3>{title}</h3>
-        <p className="radar-empty">{title}は対象外</p>
+        <p className="radar-empty">{title}: N/A</p>
       </div>
     );
   }

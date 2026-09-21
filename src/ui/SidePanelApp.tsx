@@ -48,7 +48,7 @@ export function SidePanelApp({ bridge }: { bridge: Bridge }) {
             {view.reason === "approval" ? "チェックリスト全体の承認が先。" : "TypeSafe の API キーがまだない。"}
             <div className="row" style={{ marginTop: 8 }}>
               <button className="btn" type="button" onClick={() => void bridge.openOptions()}>
-                設定
+                Settings
               </button>
             </div>
           </div>
@@ -59,11 +59,11 @@ export function SidePanelApp({ bridge }: { bridge: Bridge }) {
         ) : null}
 
         {view?.status === "idle" ? (
-          <p className="help">{view.followTab ? "タブを開くと自動で裏を取る。" : "追跡オフ。必要なときだけ。"}</p>
+          <p className="help">{view.followTab ? "タブを開くと自動で Audit する。" : "Follow tab オフ。必要なときだけ。"}</p>
         ) : null}
 
         {view?.status === "checking" ? (
-          <p className="help">裏取り中… {view.snapshot.title || view.snapshot.hostname}</p>
+          <p className="help">Auditing… {view.snapshot.title || view.snapshot.hostname}</p>
         ) : null}
 
         {view?.status === "error" ? <p className="notice fail">{view.message}</p> : null}
@@ -81,18 +81,18 @@ export function SidePanelApp({ bridge }: { bridge: Bridge }) {
                 .catch((caught: unknown) => setError(caught instanceof Error ? caught.message : String(caught)))
             }
           >
-            裏を取る
+            Audit
           </button>
           <button className="btn secondary" type="button" onClick={() => void bridge.openDetails()}>
-            記録
+            Report
           </button>
           <button className="btn secondary" type="button" onClick={() => void bridge.openOptions()}>
-            設定
+            Settings
           </button>
         </div>
         <p className="foot">
-          アイコン上段がサイト、下段が本文。根拠であり遮断しない。追跡{" "}
-          {session?.settings.followTab ?? DEFAULT_SETTINGS.followTab ? "オン" : "オフ"}
+          アイコン上段がサイト、下段が本文。根拠であり遮断しない。Follow tab{" "}
+          {session?.settings.followTab ?? DEFAULT_SETTINGS.followTab ? "on" : "off"}
         </p>
       </main>
     </>

@@ -41,7 +41,7 @@ export function actionIconModel(view: SessionView): ActionIconModel {
       return {
         site: "idle",
         page: "idle",
-        title: view.followTab ? "タブを開くと裏を取る" : "まだ裏を取っていない",
+        title: view.followTab ? "Follow tab" : "No audit yet",
         badge: "",
         badgeColor: "#345c8c",
       };
@@ -49,7 +49,7 @@ export function actionIconModel(view: SessionView): ActionIconModel {
       return {
         site: "checking",
         page: "checking",
-        title: "裏取り中…",
+        title: "Auditing…",
         badge: "…",
         badgeColor: "#246cb0",
       };

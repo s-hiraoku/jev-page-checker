@@ -29,7 +29,7 @@ export function OptionsApp({ bridge }: { bridge: Bridge }) {
 
   return (
     <>
-      <AppHeader meta={`設定 · v${session.definitionVersion}`} />
+      <AppHeader meta={`Settings · v${session.definitionVersion}`} />
       <main className="shell wide">
         <SettingsForm
           settings={session.settings}
