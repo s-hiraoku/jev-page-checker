@@ -23,7 +23,7 @@ Preconditions:
 - Preview is healthy at `http://127.0.0.1:4174`.
 - `control-jev doctor` reports `ok: true`.
 
-- **URL entry.** Open the pass details page. Run `control-jev browser goto --path "/?scene=pass#details"`. Meta `Report · v3` is visible. Lanes are both `Pass`. The extract row contains `210 語` and `HTTPS あり`. `送った文` includes `The city transportation bureau said Thursday`.
+- **URL entry.** Open the pass details page. Run `control-jev browser goto --path "/?scene=pass#details"`. Meta `Report · v4` is visible. Lanes are both `Pass`. The extract row contains `210 語` and `HTTPS あり`. `送った文` includes `The city transportation bureau said Thursday`.
 - **Panel entry.** From the pass panel, choose `Report`. Run `control-jev browser goto --path "/?scene=pass#side"` and `control-jev browser click --name "Report"`. The same sent-body section appears. `control-jev browser url` includes `#details`.
 - **History.** On details, both history titles are listed. Run `control-jev browser text --contains "Doctors hate this: one pill reverses aging in 11 days"`. Choosing that link is a page navigation (`?id=preview-fail`); after it loads, wait for `Audit` and expect the fail title as the current report. Preview hash routing may drop `#details` on that navigation — if the side panel returns, `goto --path "/?scene=fail#details"` and say which entry you used.
 - **Proof.** Capture the pass details view. Run `control-jev browser goto --path "/?scene=pass#details"`, `control-jev browser screenshot --path .cursor/skills/verify-jev-page-checker/artifacts/details-report/pass-details.png`, and `control-jev browser snapshot --path .cursor/skills/verify-jev-page-checker/artifacts/details-report/pass-details.aria.txt`. Both show `送った文` and the bridge title.

@@ -1,16 +1,16 @@
 {
   "id": "page-credibility",
-  "version": 3,
+  "version": 4,
   "subject": "Site safety of the current page (who is responsible, whether it impersonates another party, what it is for, whether a pitch is disclosed) and, when the page is one piece of writing, scrutiny of that writing. A listing is not an article. A purpose of opinion is not a safety failure. The report is evidence, not a reputation score for a familiar site.",
-  "approval": { "status": "approved", "at": "2026-09-20T00:00:00Z", "by": "fixture" },
+  "approval": { "status": "approved", "at": "2026-09-21T00:00:00Z", "by": "fixture" },
   "questions": [
     {
       "id": "identifiable_publisher",
       "type": "noul",
-      "instructions": "From the hostname, title, site name, byline, and visible text, can a real publisher, organization, or named person responsible for the page be identified? A publishing platform plus a named author or public handle is identifiable. An anonymous shop, a disposable domain, or only a generic label is not.",
+      "instructions": "From the hostname, title, site name, byline, and visible text, can a reader name a real publisher, organization, or person responsible for this page? A publishing platform plus a named author or public handle is identifiable. A brand-like word in a headline, a generic desk name, or the word official with no named party is not. Judge whether a party can be named from this page. Do not treat a well-known host as identified, and do not require a contact address.",
       "criteria": {
         "true": "A specific organization, publication, platform-plus-author, or named person is identifiable as responsible.",
-        "false": "The responsible party is missing, anonymous, or only a generic label with no identifiable publisher."
+        "false": "The responsible party is missing, anonymous, only a generic label, or only a slogan that names no publisher."
       },
       "passAt": 0.8,
       "failAt": 0.2
@@ -18,7 +18,7 @@
     {
       "id": "honest_identity",
       "type": "noul",
-      "instructions": "Does the visible branding, title, and claimed publisher match the actual hostname, or does the page impersonate another party? Judge identity fraud, not writing quality. A site speaking as itself is honest. A page that copies another organization's name, logo, or login while living on a different host is not.",
+      "instructions": "Does the visible branding, title, and claimed publisher match the actual hostname, or does the page impersonate another party? Judge identity fraud, not writing quality or fame. A site speaking as itself is honest, including a harsh critic of a named institution. A page that copies another organization's name, logo, or login while living on a different host is not. Lookalike spelling of another party's host is impersonation. Satire that clearly labels itself as satire is honest about identity.",
       "criteria": {
         "true": "The branding matches the hostname, or a hosting platform is presenting a named author's page as that author's page.",
         "false": "The page claims to be a different organization than the hostname suggests (typosquat, fake login, copied masthead, spoofed institution)."
@@ -29,12 +29,12 @@
     {
       "id": "site_purpose",
       "type": "choice",
-      "instructions": "What is the primary purpose of this page, given pageKind, the URL, the title, and the visible text? pageKind is a structural label from the client: portal means a listing of destinations, article means one piece of writing. Purpose is not a popularity or quality score. Opinion, teaching, and commentary are opinion_analysis.",
+      "instructions": "What is the primary purpose of this page, given pageKind, the title, and the visible text? pageKind is a structural label from the client: portal means a listing of destinations, article means one piece of writing. Do not use the host's reputation. Purpose is not a popularity or quality score. Opinion, teaching, and commentary are opinion_analysis. A page that looks like reporting but exists to sell, rank products, or capture a lead is commercial. Incompatible purposes mixed without labeling them are unclear.",
       "criteria": {
         "news_reference": "Reports or explains events or facts in a journalistic or encyclopedic way.",
         "opinion_analysis": "Argues a position, teaches, or interprets; the author's view or experience is the point.",
         "portal": "A listing, index, or headline board rather than one piece of writing.",
-        "commercial": "Exists mainly to sell a product, service, or lead.",
+        "commercial": "Exists mainly to sell a product, service, or lead, including affiliate copy dressed as reporting.",
         "satire_entertainment": "Humor, fiction, or entertainment that is not claiming to be a news report.",
         "unclear": "Purpose cannot be determined, or incompatible purposes are mixed without labeling them."
       },
@@ -51,7 +51,7 @@
     {
       "id": "disclosed_incentives",
       "type": "noul",
-      "instructions": "If the page is trying to sell something, raise money, or advocate for a party that would benefit, does it disclose that relationship? An obvious store, or a text with no pitch, passes. A hidden checkout, undisclosed sponsor, or a health, money, or legal pitch that hides who is paid fails.",
+      "instructions": "If the page is trying to sell something, raise money, or advocate for a party that would benefit, does it disclose that relationship? An obvious storefront, or a text with no pitch, passes. Affiliate links, sponsored slots, or a health, money, or legal pitch that hides who is paid fail. Naming a product is not disclosure if the reader cannot tell who is paid to promote it.",
       "criteria": {
         "true": "There is no sales or advocacy pitch, or a pitch is present and the beneficiary or sponsor is named.",
         "false": "The page pushes a product, donation, or political outcome while hiding who benefits."
@@ -62,7 +62,7 @@
     {
       "id": "evidence_for_claims",
       "type": "score",
-      "instructions": "How well does the visible text support the factual claims it makes? Evidence the reader can inspect on the page counts: named sources, data, documents, methods, or work the author presents as their own and points to. Do not require a particular citation style. Empty marketing claims and invented numbers score low.",
+      "instructions": "How well does the visible text support the factual claims it makes? Count only evidence the reader can inspect on this page: named sources, data, documents, methods, or work the author presents as their own and points to. Experts say with no name, and empty marketing claims, score low. Do not require a particular citation style. Do not credit a claim because the host is well known.",
       "criteria": [
         "Factual claims are made with little or no supporting evidence, data, or sources on the page.",
         "Some claims have sources or data, but important claims are left unsupported.",
@@ -76,7 +76,7 @@
     {
       "id": "separates_fact_and_opinion",
       "type": "noul",
-      "instructions": "Does the text keep factual statements and the author's judgments distinct enough that a reader can tell them apart? An essay or opinion page may mix them; pass if judgments are readable as judgments and reported facts are not invented. Fail if opinions are written as settled fact, or if facts are framed as mere opinion to dodge responsibility.",
+      "instructions": "Does the text keep factual statements and the author's judgments distinct enough that a reader can tell them apart? An essay or opinion page may mix them; pass if judgments are readable as judgments and reported facts are not invented. Do not fail an essay for having a thesis. Fail when a judgment is written as a measured fact, or a measured fact is written as mere taste to dodge a source.",
       "criteria": {
         "true": "Facts and judgments are labeled or clearly separated, or the page is clearly an essay or opinion throughout.",
         "false": "Opinions are written as if they were established facts, or facts are framed as mere opinion to dodge responsibility."
@@ -88,7 +88,7 @@
     {
       "id": "unsourced_specifics",
       "type": "choice",
-      "instructions": "Does the text present specific numbers, dates, quotes, or named events without a source the reader can check? The author's own stated work counts as a source when the page says it is theirs and gives a way to inspect it. A load-bearing particular given as external fact with no checkable source does not.",
+      "instructions": "Does the text present specific numbers, dates, quotes, or named events without a source the reader can check? The author's own stated work counts as a source when the page says it is theirs and gives a way to inspect it. A load-bearing particular given as external fact with no checkable source does not. Round promotional figures (overnight, 10x, clinically proven with no study) count as specifics when they carry the claim.",
       "criteria": {
         "none": "Specific facts are sourced, are the author's own stated work, or the page stays at a level of generality that does not invent particulars.",
         "some": "A few specifics lack a source, but they are not the main load-bearing claims.",
@@ -101,7 +101,7 @@
     {
       "id": "self_consistent",
       "type": "noul",
-      "instructions": "Is the text free of internal contradictions on the same fact? Two statements that agree pass. Two incompatible values for the same quantity, or a claim later denied as if it were never made, fail.",
+      "instructions": "Is the text free of internal contradictions on the same fact? Two statements that agree pass. Rhetorical repetition of the same claim is not a contradiction. Two incompatible numbers, dates, or outcomes for the same fact fail, as does a claim later denied as if it were never made.",
       "criteria": {
         "true": "No two statements conflict on the same fact.",
         "false": "The page states one thing and later the opposite, for example two different values for the same quantity."
@@ -113,7 +113,7 @@
     {
       "id": "certainty_matches_evidence",
       "type": "noul",
-      "instructions": "Does the text match how certain it sounds to the evidence it actually shows? Strong claims need strong evidence. Personal results presented as personal results, and uncertain points that are hedged, pass. Contested or thinly supported claims stated as settled fact fail, especially in health, money, or law.",
+      "instructions": "Does the text match how certain it sounds to the evidence it actually shows? Strong claims need strong evidence. Personal results marked as personal, and uncertain points that are hedged, pass. Health, money, identity, or law claims that sound settled need settled evidence on the page. Contested or thinly supported claims stated as settled fact fail.",
       "criteria": {
         "true": "Strong claims come with strong evidence; uncertain points are hedged or marked as the author's view or as unknown.",
         "false": "The page states contested or thinly supported claims as settled fact, or hides strong evidence behind false uncertainty."

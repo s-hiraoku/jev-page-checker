@@ -8,7 +8,7 @@ export const APP_MARK = "Jev";
 const QUESTION_LABELS: Record<ResolvedLocale, Record<string, string>> = {
   ja: {
     identifiable_publisher: "発行元が特定できる",
-    honest_identity: "表示と実体の一致",
+    honest_identity: "なりすましではない",
     site_purpose: "ページの主な目的",
     disclosed_incentives: "利害の開示",
     evidence_for_claims: "主張の根拠",
@@ -19,7 +19,7 @@ const QUESTION_LABELS: Record<ResolvedLocale, Record<string, string>> = {
   },
   en: {
     identifiable_publisher: "Publisher is identifiable",
-    honest_identity: "Branding matches the host",
+    honest_identity: "Not impersonating",
     site_purpose: "Main purpose of the page",
     disclosed_incentives: "Incentives are disclosed",
     evidence_for_claims: "Evidence for claims",
