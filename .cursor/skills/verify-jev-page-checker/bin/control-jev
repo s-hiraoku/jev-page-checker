@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO="$(cd "$ROOT/../../.." && pwd)"
+
+if [[ ! -d "$ROOT/node_modules/playwright-core" ]]; then
+  (cd "$ROOT" && npm install --omit=dev --no-fund --no-audit)
+fi
+
+export JEV_VERIFY_REPO="${JEV_VERIFY_REPO:-$REPO}"
+exec node "$ROOT/lib/control.mjs" "$@"

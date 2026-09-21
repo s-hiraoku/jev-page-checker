@@ -79,7 +79,6 @@ async function publish(definition: ApprovedDefinition, checkedTabId?: number): P
 async function extractTab(tabId: number, settings: ExtensionSettings): Promise<PageSnapshot> {
   const message: ExtractMessage = {
     type: "EXTRACT",
-    maxChars: settings.maxChars,
     minWords: settings.minWords,
   };
   const snapshot = (await chrome.tabs.sendMessage(tabId, message)) as PageSnapshot | { error: string };
@@ -89,8 +88,11 @@ async function extractTab(tabId: number, settings: ExtensionSettings): Promise<P
 
 function errorMessage(error: unknown): string {
   if (error instanceof TypeSafeError) return "Jev への送信に失敗しました。キーとネットワークを確認してください。";
-  if (error instanceof Error && error.message.includes("Could not establish connection")) {
-    return "このページからは本文を取れません。再読み込みしてから検査してください。";
+  if (error instanceof Error) {
+    if (error.message.includes("Could not establish connection")) {
+      return "このページからは本文を取れません。再読み込みしてからもう一度。";
+    }
+    return error.message;
   }
   return unknownErrorMessage(error);
 }
@@ -199,7 +201,7 @@ export function startBackground(definitionRaw: unknown): void {
         }
         if (message.type === "CHECK_NOW") {
           const id = (await activeTabId()) ?? tabId;
-          if (id === undefined) throw new Error("検査するタブがありません。");
+          if (id === undefined) throw new Error("対象のタブがありません。");
           await checkTab(definition, id, true);
           sendResponse(await payload(definition, id));
           return;

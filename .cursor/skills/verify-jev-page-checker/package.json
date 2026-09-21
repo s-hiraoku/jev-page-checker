@@ -1,0 +1,9 @@
+{
+  "name": "verify-jev-page-checker-control",
+  "private": true,
+  "type": "module",
+  "description": "Verification harness for the Jev page-checker preview. Not part of the extension runtime.",
+  "dependencies": {
+    "playwright-core": "1.63.0"
+  }
+}

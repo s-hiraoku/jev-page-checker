@@ -1,20 +1,18 @@
 import type { ReactNode } from "react";
+import { AppHeader } from "./bits.js";
 
 export function AppChrome({
   meta,
   wide = false,
   children,
 }: {
-  meta?: ReactNode;
+  meta?: string;
   wide?: boolean;
   children: ReactNode;
 }) {
   return (
     <>
-      <header className="app-header">
-        <div className="app-name">Jev 信憑性チェッカー</div>
-        {meta != null && meta !== "" ? <div className="app-meta">{meta}</div> : null}
-      </header>
+      <AppHeader meta={meta} />
       <main className={wide ? "shell wide" : "shell"}>{children}</main>
     </>
   );

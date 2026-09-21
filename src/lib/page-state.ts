@@ -23,6 +23,7 @@ export interface PageSnapshot {
   citationCount: number;
   outboundHosts: string[];
   text: string;
+  textTruncated: boolean;
   extractedAt: string;
 }
 
@@ -30,7 +31,11 @@ export function snapshotFingerprint(snapshot: Pick<PageSnapshot, "url" | "text">
   return `${snapshot.url}\n${snapshot.text}`;
 }
 
-export function snapshotToState({ extractedAt: _extractedAt, ...state }: PageSnapshot): EntryType {
+export function snapshotToState({
+  extractedAt: _extractedAt,
+  textTruncated: _textTruncated,
+  ...state
+}: PageSnapshot): EntryType {
   return state;
 }
 

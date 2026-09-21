@@ -1,7 +1,6 @@
 import { unknownErrorMessage } from "../lib/errors.js";
 import { extractSnapshot } from "../lib/extract.js";
 import { snapshotFingerprint } from "../lib/page-state.js";
-import { DEFAULT_SETTINGS } from "../lib/settings.js";
 import { isExtractMessage } from "../lib/messages.js";
 
 export default defineContentScript({
@@ -10,14 +9,15 @@ export default defineContentScript({
   main() {
     let lastFingerprint = "";
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let lastMinWords = 40;
 
-    const snapshotNow = (maxChars = DEFAULT_SETTINGS.maxChars, minWords = DEFAULT_SETTINGS.minWords) =>
-      extractSnapshot(document, location, maxChars, minWords);
+    const snapshotNow = (minWords: number) => extractSnapshot(document, location, minWords);
 
     chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       if (!isExtractMessage(message)) return;
       try {
-        const snapshot = snapshotNow(message.maxChars, message.minWords);
+        lastMinWords = message.minWords;
+        const snapshot = snapshotNow(lastMinWords);
         lastFingerprint = snapshotFingerprint(snapshot);
         sendResponse(snapshot);
       } catch (error) {
@@ -29,13 +29,13 @@ export default defineContentScript({
     const observer = new MutationObserver(() => {
       clearTimeout(timer);
       timer = setTimeout(() => {
-        const snapshot = snapshotNow();
+        const snapshot = snapshotNow(lastMinWords);
         const fingerprint = snapshotFingerprint(snapshot);
         if (fingerprint === lastFingerprint) return;
         lastFingerprint = fingerprint;
         void chrome.runtime.sendMessage({ type: "PAGE_CHANGED", fingerprint });
       }, 1200);
     });
-    observer.observe(document.documentElement, { subtree: true, childList: true, characterData: true });
+    observer.observe(document.documentElement, { subtree: true, characterData: true, childList: true });
   },
 });

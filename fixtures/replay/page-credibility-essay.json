@@ -20,7 +20,8 @@
     "wordCount": 420,
     "citationCount": 2,
     "outboundHosts": ["docs.example.org"],
-    "text": "Ada Example writes on Example Notes that a typed check of a claim is more useful than a generated paragraph. She links the checklist she ran and the numbers from her own run, and she marks the rest as her opinion."
+    "text": "Ada Example writes on Example Notes that a typed check of a claim is more useful than a generated paragraph. She links the checklist she ran and the numbers from her own run, and she marks the rest as her opinion.",
+    "textTruncated": false
   },
   "answers": {
     "identifiable_publisher": { "type": "noul", "noul": 0.9 },

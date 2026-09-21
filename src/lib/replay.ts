@@ -11,7 +11,11 @@ export interface ReplayFixture {
 }
 
 export function snapshotFromReplay(state: Omit<PageSnapshot, "extractedAt">): PageSnapshot {
-  return { ...state, extractedAt: REPLAY_CLOCK };
+  return {
+    ...state,
+    extractedAt: REPLAY_CLOCK,
+    textTruncated: state.textTruncated ?? false,
+  };
 }
 
 export function checkReplay(definition: ApprovedDefinition, replay: ReplayFixture) {
