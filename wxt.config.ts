@@ -5,7 +5,7 @@ export default defineConfig({
   modules: ["@wxt-dev/module-react"],
   manifest: {
     name: "Jev Audit",
-    version: "1.0.0",
+    version: "1.0.1",
     description: "Audit the publisher and body of the current page with an approved Jev checklist",
     homepage_url: "https://github.com/s-hiraoku/jev-page-checker",
     permissions: ["sidePanel", "storage", "tabs"],
@@ -32,6 +32,8 @@ export default defineConfig({
   hooks: {
     "build:manifestGenerated": (_wxt, manifest) => {
       if (manifest.options_ui) manifest.options_ui.open_in_tab = true;
+      // WXT treats entrypoints/history as chrome://history. History is our page.
+      delete manifest.chrome_url_overrides;
     },
   },
 });

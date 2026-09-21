@@ -1,7 +1,7 @@
 {
   "name": "jev-page-checker",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Follow the current tab and audit site plus body with TypeSafe Jev",
   "homepage": "https://github.com/s-hiraoku/jev-page-checker",
   "type": "module",
@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "wxt",
     "build": "wxt build",
-    "zip": "wxt zip",
+    "zip": "wxt build && python3 scripts/pack-chrome-zip.py",
     "typecheck": "wxt prepare && tsc --noEmit",
     "preview": "vite --config vite.preview.config.ts --port 4173",
     "test": "node --import tsx --test src/lib/*.test.ts"

@@ -21,7 +21,7 @@ Chrome で `chrome://extensions` を開き、デベロッパーモードをオ�
 3. Follow tab をオンのままにしておくと、タブ切替と読み込み完了のたびにやり直します。
 4. Inspector はサイトと本文を別レーンで出し、Report で質問ごとと送った文を見ます。過去の Audit は History です。Chrome ツールバーの常駐アイコンも同じ分け方で、上段がサイト、下段が本文です。判定が変わると色とバッジが差し替わります。
 
-画面だけ見る場合は `npm run preview` です。手元のストア提出用 zip は `npm run zip` で `.output/` に出ます。`v*` タグを push すると CI が同じ zip を GitHub Release に付けます。main と pull request ではテスト・型検査・ビルドのあと、同じ zip を Actions の成果物にも残します。掲載文と審査用の記入例は [`store/listing.md`](store/listing.md)、プライバシーポリシーは [`docs/privacy.html`](docs/privacy.html) です。
+画面だけ見る場合は `npm run preview` です。手元のストア提出用 zip は `npm run zip` で `.output/` に出ます。中身のルートに `manifest.json` があり、親フォルダは挟みません。`v*` タグを push すると CI が同じ zip を GitHub Release に付けます。main と pull request ではテスト・型検査・ビルドのあと、同じ zip を Actions の成果物にも残します。掲載文と審査用の記入例は [`store/listing.md`](store/listing.md)、プライバシーポリシーは [`docs/privacy.html`](docs/privacy.html) です。Chrome ウェブストアにはその zip をそのまま上げてください。展開してフォルダごと固め直すと、ストアはマニフェスト無しと見なします。
 
 ## 質問
 
@@ -47,7 +47,7 @@ Chrome で `chrome://extensions` を開き、デベロッパーモードをオ�
 
 | 提出物 | 場所 |
 | --- | --- |
-| 拡張 zip | `npm run zip` → `.output/*.zip`。タグ `v*` では Release の添付になる |
+| 拡張 zip | `npm run zip` → `.output/*-chrome.zip`。ルートが `manifest.json`。タグ `v*` では Release の添付になる |
 | 掲載文・権限の理由 | `store/listing.md` |
 | アイコン / プロモ画像 | `store/images/` |
 | スクリーンショット | `store/images/screenshot-*.png` |

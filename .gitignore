@@ -3,4 +3,5 @@ node_modules/
 .wxt/
 dist/
 .chrome-store-profile/
+__pycache__/
 
