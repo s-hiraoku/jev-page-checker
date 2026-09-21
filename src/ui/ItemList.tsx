@@ -1,6 +1,6 @@
 import type { ItemResult } from "../lib/checkkit.js";
 import type { PageSnapshot } from "../lib/page-state.js";
-import { questionLabel } from "../lib/labels.js";
+import { basisLabel, questionLabel } from "../lib/labels.js";
 import { AnswerView, VerdictChip } from "./bits.js";
 import { useCopy, useLocale } from "./useLocale.js";
 
@@ -71,7 +71,7 @@ function ResultTable({
       </thead>
       <tbody>
         {items.map((item) => {
-          const basis = item.basis?.trim() ?? "";
+          const basis = basisLabel(item.id, item.answer, locale, item.basis?.trim() ?? "");
           const span = identitySpan(item.id, snapshot);
           const showReason =
             item.reason.length > 0 &&
