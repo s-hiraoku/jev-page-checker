@@ -30,24 +30,24 @@
 
     <h2>収集する情報</h2>
     <ul>
-      <li>利用者が設定画面に保存する TypeSafe API キー。</li>
+      <li>利用者が Settings に保存する TypeSafe API キー。</li>
       <li>対象タブの URL、タイトル、メタ情報、本文、外部リンクのホスト。</li>
       <li>結果（判定、理由、使用量、時刻）。</li>
     </ul>
     <p>アカウント登録、広告識別子、位置情報、支払い情報は扱いません。</p>
 
     <h2>利用目的</h2>
-    <p>収集した情報は、表示中ページを Jev で Audit し、Inspector と Report に結果を出すためだけに使います。ページの遮断、広告、再販売、プロファイリングには使いません。</p>
+    <p>収集した情報は、表示中ページを Jev で Audit し、Inspector、Report、History に結果を出すためだけに使います。ページの遮断、広告、再販売、プロファイリングには使いません。</p>
 
     <h2>共有先</h2>
     <p>利用者が Audit を実行したとき、本文とメタ情報を含む <code>state</code> を TypeSafe AI（<a href="https://api.typesafe.ai">https://api.typesafe.ai</a>）へ送ります。送信は利用者が保存した API キーで認証します。キーや本文を、この拡張の開発者サーバーへ送ることはありません。レポートの結果をもとに、公開・送信・遮断を自動では行いません。</p>
     <p>TypeSafe 側の取り扱いは TypeSafe の契約とプライバシー方針に従います。</p>
 
     <h2>保存場所と期間</h2>
-    <p>API キー、承認記録、直近の履歴は Chrome の <code>storage.local</code> に保存します。拡張を削除するか、利用者が設定を消すまで残ります。ログにキーは出しません。</p>
+    <p>API キー、承認記録、History は Chrome の <code>storage.local</code> に保存します。拡張を削除するか、利用者が保存内容を消すまで残ります。ログにキーは出しません。</p>
 
     <h2>利用者の選択</h2>
-    <p>チェックリスト全体を承認し、API キーを保存するまで Live の Audit は走りません。Follow tab をオフにすれば、手動だけになります。拡張を削除すると、端末上の保存データは消えます。</p>
+    <p>チェックリスト全体を承認し、API キーを保存するまで Audit は走りません。Follow tab をオフにすれば、手動だけになります。拡張を削除すると、端末上の保存データは消えます。</p>
 
     <h2>問い合わせ</h2>
     <p>質問は <a href="https://github.com/s-hiraoku/jev-page-checker/issues">GitHub Issues</a> へ送ってください。</p>
