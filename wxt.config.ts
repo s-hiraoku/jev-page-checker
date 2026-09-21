@@ -5,7 +5,7 @@ export default defineConfig({
   modules: ["@wxt-dev/module-react"],
   manifest: {
     name: "Jev Audit",
-    version: "0.0.2",
+    version: "0.0.3",
     description: "Audit the publisher and body of the current page with an approved Jev checklist",
     homepage_url: "https://github.com/s-hiraoku/jev-page-checker",
     permissions: ["sidePanel", "storage", "tabs"],
