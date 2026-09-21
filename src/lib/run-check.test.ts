@@ -60,10 +60,12 @@ function scriptedGateway(answersList: Record<string, JevAnswer>[]): JevGateway &
 
 test("a sourced news article passes site safety and body scrutiny", async () => {
   const report = await reportOf("page-credibility-pass.json");
-  assert.equal(report.definition.version, 4);
+  assert.equal(report.definition.version, 5);
   assert.equal(report.items.every((item) => item.verdict === "pass"), true);
   assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
   assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "pass");
+  assert.match(report.items.find((item) => item.id === "identifiable_publisher")?.basis ?? "", /identifiable as responsible/);
+  assert.match(report.items.find((item) => item.id === "evidence_for_claims")?.basis ?? "", /presented as established/);
 });
 
 test("a miracle-cure sales page fails site safety and body scrutiny", async () => {
@@ -72,6 +74,8 @@ test("a miracle-cure sales page fails site safety and body scrutiny", async () =
   assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "fail");
   assert.equal(report.items.find((item) => item.id === "identifiable_publisher")?.verdict, "fail");
   assert.equal(report.items.find((item) => item.id === "unsourced_specifics")?.verdict, "fail");
+  assert.match(report.items.find((item) => item.id === "identifiable_publisher")?.basis ?? "", /missing, anonymous/);
+  assert.match(report.items.find((item) => item.id === "evidence_for_claims")?.basis ?? "", /little or no supporting evidence/);
 });
 
 test("a listing skips body questions because there is no single text to scrutinize", async () => {

@@ -82,7 +82,7 @@ Prefer URL entry points over nav buttons when starting a recipe. Scene is a quer
 
 Stable handles (accessible names / labels from the real UI, not test ids):
 
-- App chrome: heading-equivalent `Audit` (mark `Jev` + name `Audit` from `labels.ts`), meta `v4` on the panel / `Report · v4` / `History · v4` / `Settings · v4`
+- App chrome: heading-equivalent `Audit` (mark `Jev` + name `Audit` from `labels.ts`), meta `v5` on the panel / `Report · v5` / `History · v5` / `Settings · v5`
 - Preview fixture row: `Pass`, `Fail`, `Truncated`, `Chunked`. Product chrome row: `Setup`, `Inspector`, `Settings`, `Report`, `History`. They are not one toolbar.
 - Side panel buttons: `Audit`, `Report`, `History`, `Settings` (gated panel uses the same `Settings` button)
 - Side panel copy: `サイト`, `本文`, `Pass`, `Alert`, `Review`, `N/A`. Ready Inspector has no `一つの点数にはしない` lede and no `Follow tab on` footer.
@@ -94,8 +94,8 @@ Stable handles (accessible names / labels from the real UI, not test ids):
 - Locale options: `システム` (default), `日本語`, `English`. Preview daemon locale is `ja-JP`, so system copy is Japanese.
 - Language options: `システム` (default), `日本語`, `English`
 - Settings actions: button `Save`, status `Saved.`, heading `質問 9`
-- Details: meta `Report · v4`, panel head `送った文`, title label `タイトル`. No history list.
-- History: meta `History · v4`, heading `History` (not `履歴`), row names are snapshot titles
+- Details: meta `Report · v5`, panel head `送った文`, title label `タイトル`. No history list.
+- History: meta `History · v5`, heading `History` (not `履歴`), row names are snapshot titles
 
 `click --name` matches a **button** exactly. `fill --label` matches the wrapping `<label>` text exactly. `check --label` is a substring match so the long approval sentence can be shortened to `上のチェックリスト全体を承認する`.
 

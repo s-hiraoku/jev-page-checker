@@ -49,6 +49,120 @@ export function metaContent(doc: ParentNode, names: readonly string[]): string {
   return "";
 }
 
+const NAME_MAX = 80;
+const NAME_MAX_WORDS = 8;
+
+function collapsed(text: string): string {
+  return text.replace(/\s+/g, " ").trim();
+}
+
+function isPlausibleName(text: string): boolean {
+  if (text.length < 1 || text.length > NAME_MAX) return false;
+  if (/^https?:\/\//i.test(text)) return false;
+  return text.split(" ").filter(Boolean).length <= NAME_MAX_WORDS;
+}
+
+function firstPlausible(values: readonly string[]): string {
+  for (const value of values) {
+    const text = collapsed(value);
+    if (isPlausibleName(text)) return text;
+  }
+  return "";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && Array.isArray(value) === false;
+}
+
+function ldName(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const name = ldName(item);
+      if (name) return name;
+    }
+    return "";
+  }
+  if (!isRecord(value)) return "";
+  return ldName(value.name);
+}
+
+function collectJsonLd(node: unknown, authors: string[], publishers: string[]): void {
+  if (Array.isArray(node)) {
+    for (const item of node) collectJsonLd(item, authors, publishers);
+    return;
+  }
+  if (!isRecord(node)) return;
+  if (node.author !== undefined) {
+    const name = ldName(node.author);
+    if (name) authors.push(name);
+  }
+  if (node.publisher !== undefined) {
+    const name = ldName(node.publisher);
+    if (name) publishers.push(name);
+  }
+  if (node.isPartOf !== undefined) {
+    const name = ldName(node.isPartOf);
+    if (name) publishers.push(name);
+  }
+  if (node["@graph"] !== undefined) collectJsonLd(node["@graph"], authors, publishers);
+}
+
+function jsonLdIdentity(doc: Document): { author: string; publisher: string } {
+  const authors: string[] = [];
+  const publishers: string[] = [];
+  for (const script of doc.querySelectorAll('script[type="application/ld+json"]')) {
+    try {
+      collectJsonLd(JSON.parse(script.textContent ?? ""), authors, publishers);
+    } catch {
+      continue;
+    }
+  }
+  return { author: firstPlausible(authors), publisher: firstPlausible(publishers) };
+}
+
+function namedMeta(doc: ParentNode, names: readonly string[]): string {
+  return firstPlausible(names.map((name) => metaContent(doc, [name])));
+}
+
+function visibleByline(doc: Document): string {
+  const seen = new Set<Element>();
+  const candidates: Element[] = [];
+  const push = (elements: Iterable<Element>): void => {
+    for (const element of elements) {
+      if (seen.has(element)) continue;
+      seen.add(element);
+      candidates.push(element);
+    }
+  };
+  push(doc.querySelectorAll('[rel="author"], [itemprop="author"] [itemprop="name"], [itemprop="author"], [itemprop="creator"]'));
+  for (const root of doc.querySelectorAll("article, header, [role=main], main, aside")) {
+    push(root.querySelectorAll('[class*="byline" i], [class*="author" i], [id*="author" i], [id*="byline" i]'));
+  }
+  for (const element of candidates) {
+    if (element.closest("footer") !== null) continue;
+    const text = collapsed(element.textContent ?? "");
+    if (isPlausibleName(text)) return text;
+  }
+  for (const root of doc.querySelectorAll("header, aside")) {
+    if (root.closest("nav") !== null || root.closest("footer") !== null) continue;
+    const links = [...root.querySelectorAll("a")].filter((anchor) => anchor.closest("nav") === null);
+    const names = links.map((anchor) => collapsed(anchor.textContent ?? "")).filter(isPlausibleName);
+    if (names.length === 1) return names[0] ?? "";
+  }
+  return "";
+}
+
+function pageAuthor(doc: Document, ldAuthor: string): string {
+  return firstPlausible([
+    namedMeta(doc, ["author", "byl", "citation_author", "dc.creator", "parsely-author", "sailthru.author"]),
+    namedMeta(doc, ["article:author", "og:article:author"]),
+    ldAuthor,
+    namedMeta(doc, ["twitter:creator"]),
+    visibleByline(doc),
+  ]);
+}
+
 export function collectText(root: ParentNode, maxChars: number): { text: string; truncated: boolean } {
   const parts: string[] = [];
   let length = 0;
@@ -85,9 +199,10 @@ export function extractSnapshot(
   now = (): string => new Date().toISOString(),
   collectLimit = bodyCollectLimit(),
 ): PageSnapshot {
-  const author = metaContent(doc, ["author", "article:author", "byl", "citation_author"]);
+  const ld = jsonLdIdentity(doc);
+  const author = pageAuthor(doc, ld.author);
   const publishedAt = metaContent(doc, ["article:published_time", "date", "pubdate", "dc.date"]);
-  const siteName = metaContent(doc, ["og:site_name", "application-name"]);
+  const siteName = firstPlausible([metaContent(doc, ["og:site_name", "application-name"]), ld.publisher]);
   const metaDescription = metaContent(doc, ["description", "og:description"]);
   const articleCount = doc.querySelectorAll("article").length;
   const root = doc.querySelector("article, [role=main], main") ?? doc.body;

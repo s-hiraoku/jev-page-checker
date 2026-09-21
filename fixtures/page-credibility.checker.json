@@ -1,13 +1,13 @@
 {
   "id": "page-credibility",
-  "version": 4,
+  "version": 5,
   "subject": "Site safety of the current page (who is responsible, whether it impersonates another party, what it is for, whether a pitch is disclosed) and, when the page is one piece of writing, scrutiny of that writing. A listing is not an article. A purpose of opinion is not a safety failure. The report is evidence, not a reputation score for a familiar site.",
   "approval": { "status": "approved", "at": "2026-09-21T00:00:00Z", "by": "fixture" },
   "questions": [
     {
       "id": "identifiable_publisher",
       "type": "noul",
-      "instructions": "From the hostname, title, site name, byline, and visible text, can a reader name a real publisher, organization, or person responsible for this page? A publishing platform plus a named author or public handle is identifiable. A brand-like word in a headline, a generic desk name, or the word official with no named party is not. Judge whether a party can be named from this page. Do not treat a well-known host as identified, and do not require a contact address.",
+      "instructions": "From the hostname, title, siteName, author, and visible text, can a reader name a real publisher, organization, or person responsible for this page? The author and siteName fields are page chrome: byline, publisher name, author link, JSON-LD, or metadata. They count even when those strings were stripped from the main body text as navigation. A publishing platform plus a named author or public handle is identifiable. A brand-like word in a headline, a generic desk name, the host alone, or the word official with no named party is not. Judge whether a party can be named from this page. Do not treat a well-known host as identified, and do not require a contact address.",
       "criteria": {
         "true": "A specific organization, publication, platform-plus-author, or named person is identifiable as responsible.",
         "false": "The responsible party is missing, anonymous, only a generic label, or only a slogan that names no publisher."
@@ -62,11 +62,11 @@
     {
       "id": "evidence_for_claims",
       "type": "score",
-      "instructions": "How well does the visible text support the factual claims it makes? Count only evidence the reader can inspect on this page: named sources, data, documents, methods, or work the author presents as their own and points to. Experts say with no name, and empty marketing claims, score low. Do not require a particular citation style. Do not credit a claim because the host is well known.",
+      "instructions": "How well does the visible text support the factual claims it presents as established? Count only evidence the reader can inspect on this page: named sources, data, documents, methods, or work the author presents as their own and points to. Design proposals, working hypotheses, and points the text marks as unverified, as needing an experiment, or as not yet measured are not established factual claims. Do not score a clearly marked proposal the same as an unsupported news assertion. Missing official links or measurements on a proposal still stay below the top of the rubric. Experts say with no name, and empty marketing claims, score low. Do not require a particular citation style. Do not credit a claim because the host is well known.",
       "criteria": [
-        "Factual claims are made with little or no supporting evidence, data, or sources on the page.",
-        "Some claims have sources or data, but important claims are left unsupported.",
-        "The main factual claims are backed by named sources, data, documents, or the author's inspectable work."
+        "Established factual claims are made with little or no supporting evidence, data, or sources on the page.",
+        "Some established claims have sources or data, or the writing is a proposal or hypothesis whose main particulars are not checkable; important established claims or measurements are still missing.",
+        "The main factual claims presented as established are backed by named sources, data, documents, or the author's inspectable work."
       ],
       "passAt": 1.5,
       "failAt": 0.5,
@@ -76,7 +76,7 @@
     {
       "id": "separates_fact_and_opinion",
       "type": "noul",
-      "instructions": "Does the text keep factual statements and the author's judgments distinct enough that a reader can tell them apart? An essay or opinion page may mix them; pass if judgments are readable as judgments and reported facts are not invented. Do not fail an essay for having a thesis. Fail when a judgment is written as a measured fact, or a measured fact is written as mere taste to dodge a source.",
+      "instructions": "Does the text keep factual statements and the author's judgments distinct enough that a reader can tell them apart? An essay or opinion page may mix them; pass if judgments are readable as judgments and reported facts are not invented. Do not fail an essay for having a thesis. A speculative design marked as speculative, as a hypothesis, or as needing an experiment is not a judgment written as a measured fact. Fail when a judgment is written as a measured fact, or a measured fact is written as mere taste to dodge a source.",
       "criteria": {
         "true": "Facts and judgments are labeled or clearly separated, or the page is clearly an essay or opinion throughout.",
         "false": "Opinions are written as if they were established facts, or facts are framed as mere opinion to dodge responsibility."
@@ -88,11 +88,11 @@
     {
       "id": "unsourced_specifics",
       "type": "choice",
-      "instructions": "Does the text present specific numbers, dates, quotes, or named events without a source the reader can check? The author's own stated work counts as a source when the page says it is theirs and gives a way to inspect it. A load-bearing particular given as external fact with no checkable source does not. Round promotional figures (overnight, 10x, clinically proven with no study) count as specifics when they carry the claim.",
+      "instructions": "Does the text present specific numbers, dates, quotes, or named events as established external facts without a source the reader can check? The author's own stated work counts as a source when the page says it is theirs and gives a way to inspect it. A load-bearing particular given as external fact with no checkable source does not. Particulars the text marks as hypothesis, unverified, or needing an experiment are not unsourced facts; if those particulars still function as the main load-bearing numbers without a checkable source, choose some, not many. Round promotional figures (overnight, 10x, clinically proven with no study) count as specifics when they carry the claim as established fact.",
       "criteria": {
-        "none": "Specific facts are sourced, are the author's own stated work, or the page stays at a level of generality that does not invent particulars.",
-        "some": "A few specifics lack a source, but they are not the main load-bearing claims.",
-        "many": "Load-bearing numbers, dates, quotes, or events are given as fact with no checkable source and are not the author's own stated work."
+        "none": "Specific facts are sourced, are the author's own stated work, are marked as unverified hypothesis, or the page stays at a level of generality that does not invent particulars.",
+        "some": "A few specifics lack a source, including unmeasured proposal details, but they are not presented as settled external facts that carry the piece.",
+        "many": "Load-bearing numbers, dates, quotes, or events are given as established fact with no checkable source and are not the author's own stated work."
       },
       "options": { "none": "pass", "some": "review", "many": "fail" },
       "confidenceFloor": 0.6,
@@ -113,9 +113,9 @@
     {
       "id": "certainty_matches_evidence",
       "type": "noul",
-      "instructions": "Does the text match how certain it sounds to the evidence it actually shows? Strong claims need strong evidence. Personal results marked as personal, and uncertain points that are hedged, pass. Health, money, identity, or law claims that sound settled need settled evidence on the page. Contested or thinly supported claims stated as settled fact fail.",
+      "instructions": "Does the text match how certain it sounds to the evidence it actually shows? Strong claims need strong evidence. Personal results marked as personal, and uncertain points that are hedged, pass. Claims marked as a hypothesis, as unverified, or as needing an experiment are correctly uncertain; do not treat them as settled facts. Health, money, identity, or law claims that sound settled need settled evidence on the page. Contested or thinly supported claims stated as settled fact fail.",
       "criteria": {
-        "true": "Strong claims come with strong evidence; uncertain points are hedged or marked as the author's view or as unknown.",
+        "true": "Strong claims come with strong evidence; uncertain points are hedged or marked as the author's view, as a hypothesis, as unverified, or as unknown.",
         "false": "The page states contested or thinly supported claims as settled fact, or hides strong evidence behind false uncertainty."
       },
       "passAt": 0.8,

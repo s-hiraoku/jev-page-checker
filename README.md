@@ -29,15 +29,15 @@ Chrome で `chrome://extensions` を開き、デベロッパーモードをオ�
 
 | id | レーン | 型 | 聞くこと |
 | --- | --- | --- | --- |
-| `identifiable_publisher` | サイト | noul | このページから発行元を名指しできるか。見出しのブランド風の語だけでは足りない |
+| `identifiable_publisher` | サイト | noul | このページから発行元を名指しできるか。見出しのブランド風の語だけでは足りない。著者・byline・発行者 chrome は主本文の外にあっても数える |
 | `honest_identity` | サイト | noul | 表示がホストと一致するか。なりすましは Alert。批評であること自体はなりすましではない |
 | `site_purpose` | サイト | choice | 目的のラベル。報道・意見・一覧は Pass。販売（報道に見せたアフィリエイト含む）・風刺は Review。判別不能は Alert |
 | `disclosed_incentives` | サイト | noul | 販売や働きかけがあるとき、誰が得をするかを出しているか |
-| `evidence_for_claims` | 本文 | score | 主張がこのページ上の根拠で支えられているか。記事でないと N/A |
+| `evidence_for_claims` | 本文 | score | 確定として出した主張がこのページ上の根拠で支えられているか。仮説・未検証と明記した提案は未裏付け報道と同じ失敗にしない。記事でないと N/A |
 | `separates_fact_and_opinion` | 本文 | noul | 事実と意見が読み分けられるか。エッセイであること自体は失敗ではない |
-| `unsourced_specifics` | 本文 | choice | 出典のない具体値。宣伝の丸い数字も含む。`none` は Pass、`some` は Review、`many` は Alert |
+| `unsourced_specifics` | 本文 | choice | 出典のない具体値。宣伝の丸い数字も含む。未検証と書いた仮説の数値は `many` にしない。`none` は Pass、`some` は Review、`many` は Alert |
 | `self_consistent` | 本文 | noul | 同じ事実が食い違っていないか。反復は矛盾ではない |
-| `certainty_matches_evidence` | 本文 | noul | 断定の強さが根拠に見合っているか。健康・金・法はより強い根拠が要る |
+| `certainty_matches_evidence` | 本文 | noul | 断定の強さが根拠に見合っているか。仮説・未検証と明記した点は正しい不確かさ。健康・金・法はより強い根拠が要る |
 
 サイトレーンは「誰か・なりすましか・何のためのページか・隠し勧誘か」です。本文レーンは「根拠・事実と意見・出典・矛盾・断定」です。意見であること自体は危険ではありません。一覧（リンクが多く、リンクあたりの本文が短い）は記事ではないので本文 5 問は走りません。パスが `/` だからポータル、特定の有名サイトだから通過、といった例外はありません。noul の Pass は 0.8、choice / score の確信度の床は 0.6 で、迷ったら Review です。コード側で見るのは HTTPS、著者・日付メタ、語数、リンク密度、外部ホスト、主本文が Jev の入力枠で切れたかです。収まる主本文は 1 回、超えたら重ねて分割し、切れ残りがあるとき本文 5 問（根拠・出典・矛盾・断定）は Pass にしません。アプリ側の 1 万〜2 万文字キャップや URL ごとの例外では直しません。判定は Pass / Review / Alert / N/A / Error の 5 種類で、一つの信頼スコアにはしません。定義を変えたら Settings でリスト全体を再承認します。
 

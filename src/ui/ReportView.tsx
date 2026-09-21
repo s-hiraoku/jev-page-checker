@@ -70,7 +70,7 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
           )}
         </tbody>
       </table>
-      <ItemList items={record.report.items} compact={compact} siteIds={siteIds} bodyIds={bodyIds} />
+      <ItemList items={record.report.items} siteIds={siteIds} bodyIds={bodyIds} snapshot={record.snapshot} />
     </div>
   );
 }
