@@ -94,7 +94,11 @@ function SettingsFields({
         <legend>{copy.appearance}</legend>
         <label className="field">
           <span>{copy.theme}</span>
-          <select value={draft.theme} onChange={(event) => update("theme", parseTheme(event.target.value))}>
+          <select
+            aria-label={copy.theme}
+            value={draft.theme}
+            onChange={(event) => update("theme", parseTheme(event.target.value))}
+          >
             <option value="system">{copy.themeSystem}</option>
             <option value="light">{copy.themeLight}</option>
             <option value="dark">{copy.themeDark}</option>
@@ -103,7 +107,11 @@ function SettingsFields({
         <p className="help">{copy.themeHelp}</p>
         <label className="field">
           <span>{copy.locale}</span>
-          <select value={draft.locale} onChange={(event) => update("locale", parseLocale(event.target.value))}>
+          <select
+            aria-label={copy.locale}
+            value={draft.locale}
+            onChange={(event) => update("locale", parseLocale(event.target.value))}
+          >
             <option value="system">{copy.localeSystem}</option>
             <option value="ja">日本語</option>
             <option value="en">English</option>

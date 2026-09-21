@@ -56,7 +56,7 @@ async function handle(req) {
   }
   if (action === "select") {
     if (!req.label || req.value === undefined) return { ok: false, error: "browser select --label <label> --value <option>" };
-    await page.getByLabel(req.label, { exact: true }).selectOption(String(req.value));
+    await page.getByRole("combobox", { name: req.label, exact: true }).selectOption(String(req.value));
     return { ok: true, out: `selected ${req.value} for ${req.label}` };
   }
   if (action === "attr") {
