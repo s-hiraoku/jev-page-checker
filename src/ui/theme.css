@@ -5,6 +5,8 @@
   font-size: 13px;
   line-height: 1.45;
   font-feature-settings: "kern" 1, "palt" 0;
+  --radius: 6px;
+  --radius-sm: 4px;
 }
 
 :root,
@@ -214,6 +216,8 @@ a:hover {
   grid-template-columns: 1fr 1fr;
   border: 1px solid var(--line);
   background: var(--surface);
+  border-radius: var(--radius) var(--radius) 0 0;
+  overflow: hidden;
 }
 
 .lane {
@@ -253,6 +257,7 @@ a:hover {
   padding: 1px 6px;
   border: 1px solid color-mix(in srgb, currentColor 70%, var(--line));
   background: transparent;
+  border-radius: var(--radius-sm);
   font-size: 11px;
   font-weight: 600;
   line-height: 1.35;
@@ -269,6 +274,8 @@ a:hover {
 .panel {
   background: var(--surface);
   border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
 }
 
 .panel-head {
@@ -362,6 +369,7 @@ a:hover {
   min-height: 26px;
   font-size: 13px;
   font-weight: 600;
+  border-radius: var(--radius);
 }
 
 .btn.secondary {
@@ -409,7 +417,7 @@ a:hover {
   background: var(--input);
   padding: 6px 8px;
   color: var(--ink);
-  border-radius: 0;
+  border-radius: var(--radius);
   line-height: 1.4;
 }
 
@@ -424,6 +432,7 @@ a:hover {
   width: 13px;
   height: 13px;
   accent-color: var(--focus);
+  border-radius: 0;
 }
 
 .fieldset {
@@ -431,6 +440,7 @@ a:hover {
   padding: 8px;
   border: 1px solid var(--line);
   background: var(--surface);
+  border-radius: var(--radius);
 }
 
 .fieldset legend {
@@ -569,6 +579,7 @@ a:hover {
   border-left: 2px solid var(--review);
   padding: 8px 10px;
   background: var(--review-soft);
+  border-radius: var(--radius);
   font-size: 13px;
   line-height: 1.45;
 }
@@ -592,6 +603,13 @@ a:hover {
 
 .checklist-item:first-of-type {
   border-top: 1px solid var(--line);
+  border-top-left-radius: var(--radius);
+  border-top-right-radius: var(--radius);
+}
+
+.checklist-item:last-of-type {
+  border-bottom-left-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
 }
 
 .checklist-item h3 {
@@ -626,6 +644,14 @@ a:hover {
 .history a:first-child,
 .history button:first-child {
   border-top: 1px solid var(--line);
+  border-top-left-radius: var(--radius);
+  border-top-right-radius: var(--radius);
+}
+
+.history a:last-child,
+.history button:last-child {
+  border-bottom-left-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
 }
 
 .history a:hover,
@@ -713,6 +739,11 @@ a:hover {
   font-size: 12px;
   font-weight: 600;
   background: var(--header);
+}
+
+.report .result-group:last-child {
+  border-radius: 0 0 var(--radius) var(--radius);
+  overflow: hidden;
 }
 
 @media (max-width: 520px) {
