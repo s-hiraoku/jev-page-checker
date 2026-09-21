@@ -828,6 +828,22 @@ a:hover {
   padding: 6px 12px 7px;
 }
 
+.preview-chrome .btn {
+  color: var(--header-ink);
+  background: color-mix(in srgb, var(--header-ink) 18%, transparent);
+  border-color: transparent;
+}
+
+.preview-chrome .btn.secondary {
+  background: transparent;
+  color: var(--header-ink);
+  border-color: color-mix(in srgb, var(--header-ink) 40%, transparent);
+}
+
+.preview-chrome .btn.secondary:hover {
+  background: color-mix(in srgb, var(--header-ink) 12%, transparent);
+}
+
 .preview-nav {
   display: flex;
   gap: 6px;
