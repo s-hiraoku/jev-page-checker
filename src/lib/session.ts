@@ -31,7 +31,7 @@ export type ClientMessage =
   | { type: "SAVE_SETTINGS"; settings: unknown }
   | { type: "OPEN_DETAILS"; id?: string }
   | { type: "OPEN_OPTIONS" }
-  | { type: "EXTRACT"; maxChars: number; minWords: number }
+  | { type: "EXTRACT"; minWords: number }
   | { type: "PAGE_CHANGED"; fingerprint: string };
 
 export type ServerMessage = { type: "SESSION_UPDATED" };

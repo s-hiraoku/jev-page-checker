@@ -24,8 +24,6 @@ export interface PageSnapshot {
   outboundHosts: string[];
   text: string;
   textTruncated: boolean;
-  /** Per-window character budget used when this snapshot was taken. */
-  textLimit?: number;
   extractedAt: string;
 }
 

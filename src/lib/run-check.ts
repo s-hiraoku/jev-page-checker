@@ -1,6 +1,7 @@
 import type { EntryType, Usage } from "@typesafe-ai/sdk";
 import { TypeSafeClient } from "@typesafe-ai/sdk";
 import { packSynthesisText, splitOverlappingChunks } from "./body-windows.js";
+import { bodyTokenBudget } from "./jev-budget.js";
 import {
   evaluate,
   liveGateway,
@@ -11,7 +12,6 @@ import {
   type JevAnswer,
   type JevGateway,
 } from "./checkkit.js";
-import { DEFAULT_SETTINGS } from "./settings.js";
 import { isPageQuestionId, mergeConservativeItem, PAGE_QUESTION_IDS, withholdBodyPassOnTruncation } from "./groups.js";
 import { snapshotToState, type PageSnapshot } from "./page-state.js";
 
@@ -84,9 +84,8 @@ function stateFor(snapshot: PageSnapshot, text: string, extras: Record<string, E
 
 export async function checkSnapshot(snapshot: PageSnapshot, definitionRaw: unknown, jev: JevGateway): Promise<CheckReport> {
   const definition = loadDefinition(definitionRaw);
-  const textLimit = snapshot.textLimit ?? DEFAULT_SETTINGS.maxChars;
   const split = snapshot.hasArticle
-    ? splitOverlappingChunks(snapshot.text, textLimit)
+    ? splitOverlappingChunks(snapshot.text)
     : { windows: [{ text: snapshot.text, start: 0, end: snapshot.text.length }], covered: true };
   const first = await evaluate(definition, stateFor(snapshot, split.windows[0]?.text ?? ""), jev);
   const extraWindows = snapshot.hasArticle ? split.windows.slice(1) : [];
@@ -102,7 +101,7 @@ export async function checkSnapshot(snapshot: PageSnapshot, definitionRaw: unkno
       snapshot.text,
       split.windows,
       windowReports.map((report, index) => findingLine(index, report.items)),
-      textLimit,
+      bodyTokenBudget(),
     );
     const synthesis = await evaluate(
       bodyDefinition,

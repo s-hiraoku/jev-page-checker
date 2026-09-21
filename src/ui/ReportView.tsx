@@ -1,7 +1,6 @@
 import { splitOverlappingChunks } from "../lib/body-windows.js";
 import { PAGE_QUESTION_IDS, SITE_QUESTION_IDS, worstVerdict } from "../lib/groups.js";
 import { TEXT_CHUNKED_NOTICE, TEXT_TRUNCATED_NOTICE } from "../lib/labels.js";
-import { DEFAULT_SETTINGS } from "../lib/settings.js";
 import type { StoredRecord } from "../lib/session.js";
 import { ItemList } from "./ItemList.js";
 import { Lane } from "./bits.js";
@@ -10,7 +9,7 @@ import { ResultRadars } from "./RadarChart.js";
 export function ReportView({ record, compact = false }: { record: StoredRecord; compact?: boolean }) {
   const site = worstVerdict(record.report.items, SITE_QUESTION_IDS);
   const page = worstVerdict(record.report.items, PAGE_QUESTION_IDS);
-  const windows = splitOverlappingChunks(record.snapshot.text, record.snapshot.textLimit ?? DEFAULT_SETTINGS.maxChars).windows;
+  const windows = splitOverlappingChunks(record.snapshot.text).windows;
   const chunked = record.snapshot.hasArticle && windows.length > 1 && !record.snapshot.textTruncated;
   return (
     <div className="report">

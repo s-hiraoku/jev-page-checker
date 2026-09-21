@@ -2,6 +2,7 @@ import { parseDefinition, replayGateway, type JevAnswer } from "../lib/checkkit.
 import type { Bridge } from "../lib/bridge.js";
 import type { PageSnapshot } from "../lib/page-state.js";
 import { checkSnapshot } from "../lib/run-check.js";
+import { JEV_ENGLISH_CHARS_PER_TOKEN, bodyTokenBudget } from "../lib/jev-budget.js";
 import { DEFAULT_SETTINGS, parseSettings, type ExtensionSettings } from "../lib/settings.js";
 import type { SessionPayload, StoredRecord } from "../lib/session.js";
 import definitionRaw from "../../fixtures/page-credibility.checker.json";
@@ -19,7 +20,6 @@ function toSnapshot(state: Omit<PageSnapshot, "extractedAt">): PageSnapshot {
     ...state,
     extractedAt: "2026-09-20T00:00:00.000Z",
     textTruncated: state.textTruncated ?? false,
-    textLimit: state.textLimit ?? DEFAULT_SETTINGS.maxChars,
   };
 }
 
@@ -35,7 +35,7 @@ export async function createPreviewBridge(scene: string): Promise<Bridge> {
   const fail = await recordFrom(failReplay as ReplayFile, "preview-fail");
   const truncated = await recordFrom({ ...passFile, state: { ...passFile.state, textTruncated: true } }, "preview-truncated");
   const chunked = await recordFrom(
-    { ...passFile, state: { ...passFile.state, text: `${passFile.state.text} ${"x".repeat(12000)}`, textTruncated: false } },
+    { ...passFile, state: { ...passFile.state, text: `${passFile.state.text} ${"x".repeat(Math.ceil((bodyTokenBudget() + 32) * JEV_ENGLISH_CHARS_PER_TOKEN))}`, textTruncated: false } },
     "preview-chunked",
   );
   let settings: ExtensionSettings = {

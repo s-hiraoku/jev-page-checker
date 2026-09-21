@@ -104,7 +104,6 @@ async function broadcast(definitionRaw: unknown): Promise<void> {
 async function extractTab(tabId: number, settings: ExtensionSettings): Promise<PageSnapshot> {
   const snapshot = (await chrome.tabs.sendMessage(tabId, {
     type: "EXTRACT",
-    maxChars: settings.maxChars,
     minWords: settings.minWords,
   })) as PageSnapshot | { error: string };
   if (snapshot && typeof snapshot === "object" && "error" in snapshot) throw new Error(snapshot.error);

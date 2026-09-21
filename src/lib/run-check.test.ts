@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { replayGateway, type JevAnswer, type JevGateway } from "./checkkit.js";
 import { PAGE_QUESTION_IDS, SITE_QUESTION_IDS, worstVerdict } from "./groups.js";
+import { bodyTokenBudget, JEV_ENGLISH_CHARS_PER_TOKEN } from "./jev-budget.js";
 import type { PageSnapshot } from "./page-state.js";
 import { checkSnapshot } from "./run-check.js";
 
@@ -23,7 +24,6 @@ async function reportOf(name: string, patch: Partial<PageSnapshot> = {}) {
     ...patch,
     extractedAt: "2026-09-20T00:00:00.000Z",
     textTruncated: patch.textTruncated ?? replay.state.textTruncated ?? false,
-    textLimit: patch.textLimit ?? replay.state.textLimit ?? 10000,
   };
   return checkSnapshot(snapshot, definition, replayGateway(replay.answers, replay.usage));
 }
@@ -35,12 +35,12 @@ function snapshotOf(name: string, patch: Partial<PageSnapshot> = {}): PageSnapsh
     ...patch,
     extractedAt: "2026-09-20T00:00:00.000Z",
     textTruncated: patch.textTruncated ?? replay.state.textTruncated ?? false,
-    textLimit: patch.textLimit ?? replay.state.textLimit ?? 10000,
   };
 }
 
 function twoWindowText(base: string): string {
-  return `${base} ${"x".repeat(12000)}`;
+  const extra = Math.ceil((bodyTokenBudget() + 32) * JEV_ENGLISH_CHARS_PER_TOKEN);
+  return `${base} ${"x".repeat(extra)}`;
 }
 
 function scriptedGateway(answersList: Record<string, JevAnswer>[]): JevGateway & { calls: number } {
@@ -105,6 +105,16 @@ test("a truncated extract still reports a body fail found in the prefix", async 
 test("a truncated listing still skips body questions", async () => {
   const report = await reportOf("page-credibility-portal.json", { textTruncated: true });
   assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "not_applicable");
+});
+
+test("an article that fits the Jev token budget is one call", async () => {
+  const pass = loadReplay("page-credibility-pass.json");
+  const snapshot = snapshotOf("page-credibility-pass.json", { text: `${pass.state.text} ${"x".repeat(12_000)}` });
+  const gateway = replayGateway(pass.answers, pass.usage);
+  const report = await checkSnapshot(snapshot, definition, gateway);
+  assert.equal(gateway.calls, 1);
+  assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
+  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "pass");
 });
 
 test("a long article asks overlapping body windows and a synthesis, then can pass", async () => {

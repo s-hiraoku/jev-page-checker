@@ -52,7 +52,7 @@ export const SPECIFIC_LABELS: Record<string, string> = {
 };
 
 export const TEXT_TRUNCATED_NOTICE =
-  "主本文が文字数上限で切れているため、続きは精査していません。本文レーンは通過にしません。";
+  "主本文が Jev の入力枠でカバーできる量を超えて切れているため、続きは精査していません。本文レーンは通過にしません。";
 
 export const TEXT_CHUNKED_NOTICE = "主本文が長いため重ねて分割し、厳しめに合成して精査しました。";
 

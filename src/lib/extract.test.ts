@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { JSDOM } from "jsdom";
-import { bodyCollectLimit } from "./body-windows.js";
 import { classifyPageKind, collectOutbound, collectText, extractSnapshot, wordCount } from "./extract.js";
 
 test("wordCount ignores surrounding space", () => {
@@ -34,7 +33,7 @@ test("extractSnapshot prefers article text, records author, and flags a short bo
     </body></html>`,
     { url: "https://news.example.org/reports/bridge-delay" },
   );
-  const snapshot = extractSnapshot(dom.window.document, dom.window.location, 1000, 40, () => "2026-09-20T00:00:00.000Z");
+  const snapshot = extractSnapshot(dom.window.document, dom.window.location, 40, () => "2026-09-20T00:00:00.000Z");
   assert.equal(snapshot.author, "Mina Ito");
   assert.equal(snapshot.siteName, "Example News");
   assert.equal(snapshot.hasAuthor, true);
@@ -45,7 +44,6 @@ test("extractSnapshot prefers article text, records author, and flags a short bo
   assert.equal(snapshot.pageKind, "article");
   assert.equal(snapshot.hasArticle, false);
   assert.equal(snapshot.textTruncated, false);
-  assert.equal(snapshot.textLimit, 1000);
 });
 
 test("classifyPageKind uses structure, not the URL path", () => {
@@ -60,7 +58,7 @@ test("extractSnapshot treats a link listing as a portal on any host", () => {
   const dom = new JSDOM(`<!doctype html><html><head><title>Headlines</title></head><body>${links}</body></html>`, {
     url: "https://news.example.org/",
   });
-  const snapshot = extractSnapshot(dom.window.document, dom.window.location, 1000, 40, () => "2026-09-20T00:00:00.000Z");
+  const snapshot = extractSnapshot(dom.window.document, dom.window.location, 40, () => "2026-09-20T00:00:00.000Z");
   assert.equal(snapshot.pageKind, "portal");
   assert.equal(snapshot.hasArticle, false);
   assert.equal(snapshot.textTruncated, false);
@@ -71,7 +69,7 @@ test("extractSnapshot treats a long single text at the site root as an article",
   const dom = new JSDOM(`<!doctype html><html><head><title>Memo</title></head><body><article>${prose}</article></body></html>`, {
     url: "https://writer.example.org/",
   });
-  const snapshot = extractSnapshot(dom.window.document, dom.window.location, 4000, 40, () => "2026-09-20T00:00:00.000Z");
+  const snapshot = extractSnapshot(dom.window.document, dom.window.location, 40, () => "2026-09-20T00:00:00.000Z");
   assert.equal(snapshot.pageKind, "article");
   assert.equal(snapshot.hasArticle, true);
   assert.equal(snapshot.textTruncated, false);
@@ -99,7 +97,7 @@ test("collectText flags leftover text in a later node after an exact fit", () =>
 });
 
 test("extractSnapshot collects beyond one window and flags leftover after the coverable cap", () => {
-  const prose = `abcdefghij leftover ${"x".repeat(bodyCollectLimit(10) + 20)}`;
+  const prose = `abcdefghij leftover ${"x".repeat(20)}`;
   const dom = new JSDOM(
     `<!doctype html><html><head><title>Memo</title></head><body>
       <nav>${"nav ".repeat(80)}</nav>
@@ -107,10 +105,9 @@ test("extractSnapshot collects beyond one window and flags leftover after the co
     </body></html>`,
     { url: "https://writer.example.org/memo" },
   );
-  const snapshot = extractSnapshot(dom.window.document, dom.window.location, 10, 1, () => "2026-09-20T00:00:00.000Z");
+  const snapshot = extractSnapshot(dom.window.document, dom.window.location, 1, () => "2026-09-20T00:00:00.000Z", 10);
   assert.equal(snapshot.text.startsWith("abcdefghij"), true);
   assert.equal(snapshot.text.includes("nav"), false);
   assert.equal(snapshot.textTruncated, true);
-  assert.equal(snapshot.text.length, bodyCollectLimit(10));
-  assert.equal(snapshot.textLimit, 10);
+  assert.equal(snapshot.text.length, 10);
 });

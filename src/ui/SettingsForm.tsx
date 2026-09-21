@@ -69,11 +69,9 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
             onChange={(event) => update("debounceMs", Number(event.target.value))}
           />
         </label>
-        <label className="field">
-          <span>Jev に送る本文の上限（文字）</span>
-          <input type="number" value={draft.maxChars} onChange={(event) => update("maxChars", Number(event.target.value))} />
-        </label>
-        <p className="help">1 回に送る上限。長い主本文は重ねて分割し、切れ残りがあるとき本文レーンは通過にしない。URL ごとに変えない。</p>
+        <p className="help">
+          Jev の入力枠は state と最長の質問で 32k トークン、1 リクエスト 64k（公式 Models）。収まる主本文は 1 回で送り、超えたら重ねて分割する。URL ごとに変えない。
+        </p>
         <label className="field">
           <span>本文とみなす最小語数</span>
           <input type="number" value={draft.minWords} onChange={(event) => update("minWords", Number(event.target.value))} />
