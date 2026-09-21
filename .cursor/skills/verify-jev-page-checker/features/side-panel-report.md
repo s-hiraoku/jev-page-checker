@@ -27,7 +27,7 @@ Preconditions:
 - **Pass questions.** Assert question labels. Run `control-jev browser text --contains "発行元が特定できる"` and `control-jev browser text --contains "なりすましではない"` and `control-jev browser text --contains "主張の根拠"`. All appear in the result table.
 - **Fail URL.** Open the sales-page panel. Run `control-jev browser goto --path "/?scene=fail#side"`. Both lanes show `Alert`. The title is `Doctors hate this: one pill reverses aging in 11 days`. The URL cell contains `http://deal-today.example/miracle-cure`.
 - **Scene buttons.** From the fail panel, choose `Pass`. Run `control-jev browser click --name "Pass"`. The title returns to the city-bridge story and both lanes read `Pass`.
-- **Toolbar.** On the ready panel, the buttons `Audit`, `Report`, and `Settings` are present. Run `control-jev browser text --contains "Audit"`. Footer says `Follow tab on`.
+- **Toolbar.** On the ready panel, the buttons `Audit`, `Report`, and `Settings` are present. Run `control-jev browser text --contains "Audit"`. There is no lede about splitting lanes and no Follow tab footer.
 - **Proof.** Stay on the pass panel. Run `control-jev browser goto --path "/?scene=pass#side"`, `control-jev browser screenshot --path .cursor/skills/verify-jev-page-checker/artifacts/side-panel-report/pass-side.png`, and `control-jev browser snapshot --path .cursor/skills/verify-jev-page-checker/artifacts/side-panel-report/pass-side.aria.txt`. Both artifacts show the app name, both Pass lanes, and the bridge title.
 
 ## Gotchas
