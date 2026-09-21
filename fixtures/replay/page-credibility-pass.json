@@ -45,9 +45,9 @@
       "score": 1.85,
       "confidence": 0.88,
       "legend": {
-        "0": "Factual claims are made with little or no supporting evidence, data, or sources on the page.",
-        "1": "Some claims have sources or data, but important claims are left unsupported.",
-        "2": "The main factual claims are backed by named sources, data, documents, or the author's inspectable work."
+        "0": "Established factual claims are made with little or no supporting evidence, data, or sources on the page.",
+        "1": "Some established claims have sources or data, or the writing is a proposal or hypothesis whose main particulars are not checkable; important established claims or measurements are still missing.",
+        "2": "The main factual claims presented as established are backed by named sources, data, documents, or the author's inspectable work."
       },
       "probabilities": { "0": 0.02, "1": 0.11, "2": 0.87 }
     },
