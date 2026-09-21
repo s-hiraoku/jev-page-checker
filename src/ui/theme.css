@@ -264,19 +264,47 @@ a:hover {
 }
 
 .lane {
+  position: relative;
+  overflow: hidden;
   padding: 10px 12px 12px;
   background: var(--input);
   border: 1px solid var(--line);
-  border-left: 3px solid var(--line);
   border-radius: var(--radius);
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 8%, transparent);
 }
 
-.lane-pass { border-left-color: var(--pass); }
-.lane-fail { border-left-color: var(--fail); }
-.lane-review { border-left-color: var(--review); }
-.lane-error { border-left-color: var(--error); }
-.lane-not_applicable { border-left-color: var(--na); }
+.lane::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 28px;
+  height: 3px;
+  border-radius: 0 0 3px 0;
+  background: var(--line-strong);
+}
+
+.lane-pass {
+  background: color-mix(in srgb, var(--pass) 8%, var(--input));
+}
+.lane-fail {
+  background: color-mix(in srgb, var(--fail) 8%, var(--input));
+}
+.lane-review {
+  background: color-mix(in srgb, var(--review) 8%, var(--input));
+}
+.lane-error {
+  background: color-mix(in srgb, var(--error) 8%, var(--input));
+}
+.lane-not_applicable {
+  background: color-mix(in srgb, var(--na) 8%, var(--input));
+}
+
+.lane-pass::before { background: var(--pass); }
+.lane-fail::before { background: var(--fail); }
+.lane-review::before { background: var(--review); }
+.lane-error::before { background: var(--error); }
+.lane-not_applicable::before { background: var(--na); }
 
 .lane strong {
   display: block;
@@ -381,33 +409,32 @@ a:hover {
 }
 
 .result-table tbody th {
+  position: relative;
   font-size: 14px;
   font-weight: 600;
   color: var(--ink);
   background: transparent;
   white-space: normal;
   line-height: 1.5;
+  padding-left: 22px;
 }
 
-.result-table tbody tr:has(.chip-pass) th {
-  box-shadow: inset 3px 0 0 var(--pass);
+.result-table tbody th::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 13px;
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--na);
 }
 
-.result-table tbody tr:has(.chip-fail) th {
-  box-shadow: inset 3px 0 0 var(--fail);
-}
-
-.result-table tbody tr:has(.chip-review) th {
-  box-shadow: inset 3px 0 0 var(--review);
-}
-
-.result-table tbody tr:has(.chip-error) th {
-  box-shadow: inset 3px 0 0 var(--error);
-}
-
-.result-table tbody tr:has(.chip-not_applicable) th {
-  box-shadow: inset 3px 0 0 var(--na);
-}
+.result-table tbody tr:has(.chip-pass) th::before { background: var(--pass); }
+.result-table tbody tr:has(.chip-fail) th::before { background: var(--fail); }
+.result-table tbody tr:has(.chip-review) th::before { background: var(--review); }
+.result-table tbody tr:has(.chip-error) th::before { background: var(--error); }
+.result-table tbody tr:has(.chip-not_applicable) th::before { background: var(--na); }
 
 .meta-table th {
   width: 5.5em;
@@ -675,18 +702,33 @@ a:hover {
 }
 
 .notice {
+  position: relative;
+  overflow: hidden;
   border: 1px solid var(--line-strong);
-  border-left: 3px solid var(--review);
-  padding: 8px 10px;
+  padding: 10px 10px 8px;
   background: var(--review-soft);
   border-radius: var(--radius);
   font-size: 13px;
   line-height: 1.45;
 }
 
+.notice::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 28px;
+  height: 3px;
+  border-radius: 0 0 3px 0;
+  background: var(--review);
+}
+
 .notice.fail {
-  border-left-color: var(--fail);
   background: var(--fail-soft);
+}
+
+.notice.fail::before {
+  background: var(--fail);
 }
 
 .report > .notice,
@@ -922,7 +964,6 @@ a:hover {
   font-weight: 600;
   letter-spacing: 0;
   background: color-mix(in srgb, var(--header) 8%, var(--surface));
-  box-shadow: inset 2px 0 0 var(--line-strong);
 }
 
 .report .result-group:last-child {
