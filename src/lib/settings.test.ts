@@ -5,10 +5,10 @@ import { DEFAULT_SETTINGS, parseSettings, setupGap } from "./settings.js";
 test("parseSettings fills defaults and clamps ranges", () => {
   const parsed = parseSettings({ debounceMs: 10, maxChars: 999999, followTab: false });
   assert.equal(parsed.debounceMs, 250);
-  assert.equal(parsed.maxChars, 20000);
   assert.equal(parsed.followTab, false);
   assert.equal(parsed.recheckOnChange, true);
   assert.equal(parsed.apiKey, "");
+  assert.equal("maxChars" in parsed, false);
 });
 
 test("setupGap asks for the whole-list approval before it asks for a key", () => {

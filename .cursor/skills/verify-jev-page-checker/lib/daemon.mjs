@@ -4,7 +4,7 @@ import { createServer } from "node:net";
 import { dirname } from "node:path";
 import { chromium } from "playwright-core";
 
-const APP_NAME = "Jev 信憑性チェッカー";
+const APP_NAME = "Audit";
 const stateDir = process.env.JEV_VERIFY_STATE_DIR;
 const origin = process.env.JEV_VERIFY_ORIGIN;
 const sockPath = `${stateDir}/browser.sock`;

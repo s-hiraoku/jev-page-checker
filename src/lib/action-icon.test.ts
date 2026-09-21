@@ -18,6 +18,13 @@ const ready = (site: "pass" | "fail" | "review", page: "pass" | "fail" | "review
         { id: "identifiable_publisher" as StoredRecord["report"]["items"][number]["id"], verdict: site, reason: "" },
         { id: "evidence_for_claims" as StoredRecord["report"]["items"][number]["id"], verdict: page, reason: "" },
       ],
+      inspection: {
+        windowCount: 1,
+        covered: true,
+        unreadRemainder: false,
+        siteQuestionIds: ["identifiable_publisher"],
+        bodyQuestionIds: ["evidence_for_claims"],
+      },
     },
   },
 });

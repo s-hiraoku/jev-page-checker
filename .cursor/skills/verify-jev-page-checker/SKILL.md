@@ -1,13 +1,15 @@
 ---
 name: verify-jev-page-checker
-description: Drive the Jev 信憑性チェッカー preview UI (side panel, settings, details) the way a user would. Use when proving panel, setup-gate, settings, or details behavior after UI or judgement-display changes.
+description: Drive the Jev Audit preview UI (side panel, settings, details) the way a user would. Use when proving panel, setup-gate, settings, or details behavior after UI or judgement-display changes.
 ---
 
-# Verify Jev 信憑性チェッカー
+# Verify Jev Audit
 
 This skill drives the **preview surface**, not a loaded Chrome extension. Users normally load `.output/chrome-mv3` in Chrome and open the side panel from the toolbar. Agents do not load that into a shared Chrome profile. The repo's own screen-only path is `npm run preview`, which mounts the real `SidePanelApp`, `OptionsApp`, and `DetailsApp` against a replay bridge.
 
 Read `features/README.md` and the matching feature file before driving. A proof that hits one convenient URL is incomplete when the map lists other entry points.
+
+Copy in this skill must match `src/lib/labels.ts` and the live preview chrome. Do not restore older Japanese button labels.
 
 ## What this is not
 
@@ -29,7 +31,7 @@ export JEV_VERIFY_RUN_ID="${JEV_VERIFY_RUN_ID:-agent}"
 
 Launch runs `npx wxt prepare` when `.wxt/tsconfig.json` is missing. That file is gitignored generated output; Vite cannot compile `src/preview/main.tsx` without it.
 
-Ready when stdout contains `ready` and `origin=http://127.0.0.1:4174`. Vite has answered GET `/` with HTML whose `<title>` is `Jev 信憑性チェッカー プレビュー`. The helper also starts a Playwright daemon (system Chrome, headless) bound to `/tmp/jev-verify-$JEV_VERIFY_RUN_ID/browser.sock`.
+Ready when stdout contains `ready` and `origin=http://127.0.0.1:4174`. Vite has answered GET `/` with HTML whose `<title>` is `Jev Audit preview`. The helper also starts a Playwright daemon (system Chrome, headless) bound to `/tmp/jev-verify-$JEV_VERIFY_RUN_ID/browser.sock`.
 
 If launch says the port is in use, pick another `--port`. Do not kill a foreign process by name. Do not reuse someone else's preview.
 
@@ -48,7 +50,7 @@ It is read-only. It must report `ok: true` plus:
 - `origin` `http://127.0.0.1:4174` (or the port you passed)
 - `pid` still running `vite --config vite.preview.config.ts`
 - that pid (or its vite child) owns the port
-- GET origin is 200 and the document title text `Jev 信憑性チェッカー プレビュー` is present
+- GET origin is 200 and the document title text `Jev Audit preview` is present
 - browser daemon answers `ping`
 
 If doctor fails, cleanup and launch again. Do not continue on a shared or foreign instance.
@@ -59,10 +61,10 @@ All browser actions go through `control-jev browser`. The daemon keeps one page,
 
 ```bash
 .cursor/skills/verify-jev-page-checker/bin/control-jev browser goto --path "/?scene=pass#side"
-.cursor/skills/verify-jev-page-checker/bin/control-jev browser click --name "設定"
+.cursor/skills/verify-jev-page-checker/bin/control-jev browser click --name "Settings"
 .cursor/skills/verify-jev-page-checker/bin/control-jev browser fill --label "承認者の名前" --value "verifier"
 .cursor/skills/verify-jev-page-checker/bin/control-jev browser check --label "上のチェックリスト全体を承認する"
-.cursor/skills/verify-jev-page-checker/bin/control-jev browser text --contains "通過"
+.cursor/skills/verify-jev-page-checker/bin/control-jev browser text --contains "Pass"
 .cursor/skills/verify-jev-page-checker/bin/control-jev browser screenshot --path .cursor/skills/verify-jev-page-checker/artifacts/side.png
 .cursor/skills/verify-jev-page-checker/bin/control-jev browser snapshot --path .cursor/skills/verify-jev-page-checker/artifacts/side.aria.txt
 ```
@@ -71,25 +73,25 @@ Prefer URL entry points over nav buttons when starting a recipe. Scene is a quer
 
 | Path | User-visible page |
 | --- | --- |
-| `/?scene=pass#side` | Side panel, sourced news replay, both lanes 通過 |
-| `/?scene=fail#side` | Side panel, sales-page replay, both lanes 要警戒 |
+| `/?scene=pass#side` | Side panel, sourced news replay, both lanes Pass |
+| `/?scene=fail#side` | Side panel, sales-page replay, both lanes Alert |
 | `/?scene=setup#side` | Side panel blocked until checklist approval |
-| `/?scene=pass#options` or `#options` after 設定 | Settings form and 9-item checklist |
-| `/?scene=pass#details` | Full report, 送った本文, history |
+| `/?scene=pass#options` or `#options` after Settings | Settings form and 9-item checklist |
+| `/?scene=pass#details` | Full report, 送った文, history |
 | `/?scene=pass&store=1#side` | Fake article column + side panel (store screenshot layout) |
 
 Stable handles (accessible names / labels from the real UI, not test ids):
 
-- App chrome: heading-equivalent `Jev 信憑性チェッカー`, meta `定義 v3`
-- Preview nav buttons: `通過例`, `要警戒例`, `初期設定`, `側面パネル`, `設定`, `詳細`
-- Side panel buttons: `今のタブを検査`, `詳細`, `設定`, and when gated `設定を開く`
-- Side panel copy: `検査`, `サイト`, `本文`, `通過`, `要警戒`, `要確認`, `対象外`, `追跡 オン`
+- App chrome: heading-equivalent `Audit` (mark `Jev` + name `Audit` from `labels.ts`), meta `v3` on the panel / `Report · v3` / `Settings · v3`
+- Preview nav buttons: `Pass`, `Fail`, `Truncated`, `Chunked`, `Setup`, `Inspector`, `Settings`, `Report`
+- Side panel buttons: `Audit`, `Report`, `Settings` (gated panel uses the same `Settings` button)
+- Side panel copy: `サイト`, `本文`, `Pass`, `Alert`, `Review`, `N/A`, `Follow tab on`
 - Pass title: `City delays river bridge opening after inspection, officials say`
 - Fail title: `Doctors hate this: one pill reverses aging in 11 days`
-- Setup gate: `設定でチェックリスト全体を承認するまで検査しません。`
-- Settings labels: `TypeSafe API キー`, `表示中のタブを追跡して検査する`, `本文が変わったら再検査する`, `再検査までの待ち（ミリ秒）`, `Jev に送る本文の上限（文字）`, `本文とみなす最小語数`, `承認者の名前`, `上のチェックリスト全体を承認する。判定は根拠であり、公開・送信・遮断の許可ではない。`
-- Settings actions: button `設定を保存`, status `保存しました。`, heading `検査項目 9 件`
-- Details: `検査の詳細`, `送った本文`, history links whose names start with the snapshot title
+- Setup gate: `チェックリスト全体の承認が先。`
+- Settings labels: `TypeSafe API キー`, `Follow tab`, `本文が変わったらやり直す`, `やり直しまでの待ち（ミリ秒）`, `本文とみなす最小語数`, `承認者の名前`, `上のチェックリスト全体を承認する。判定は根拠であり、公開・送信・遮断の許可ではない。`
+- Settings actions: button `Save`, status `Saved.`, heading `質問 9`
+- Details: meta `Report · v3`, panel head `送った文`, history links whose names start with the snapshot title
 
 `click --name` matches a **button** exactly. `fill --label` matches the wrapping `<label>` text exactly. `check --label` is a substring match so the long approval sentence can be shortened to `上のチェックリスト全体を承認する`.
 
@@ -101,7 +103,7 @@ Standards:
 
 - Drive the preview the way a user does: nav buttons, labeled fields, report tables. Do not call `checkSnapshot`, `saveSettings`, or `replayGateway` from a scratch script and call that a UI proof.
 - Capture the **action and the resulting state**. A final screenshot is not enough. Pair it with an ARIA snapshot and a `text --contains` assertion from before/after.
-- Preview has no disk or network side effect for settings or checks. The observable result is the next screen: `保存しました。`, a hash of `#options` / `#details`, lane labels, question rows. Do not claim chrome.storage or Jev were touched.
+- Preview has no disk or network side effect for settings or checks. The observable result is the next screen: `Saved.`, a hash of `#options` / `#details`, lane labels, question rows. Do not claim chrome.storage or Jev were touched.
 - When proving a replay scene, assert the fixture title **and** the lane verdicts. Do not treat a green chip as a live-site pass.
 - Mocks are allowed only at the existing boundary: `createPreviewBridge` / `replayGateway`. Do not add a new fake inside the React trees to make a proof pass.
 - Judgement thresholds stay as in `docs/judgement.md`. Do not retune a scene so one URL looks better.

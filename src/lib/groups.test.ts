@@ -1,16 +1,39 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import type { ItemResult, Verdict } from "./checkkit.js";
+import { parseDefinition, type ItemResult, type Verdict } from "./checkkit.js";
 import {
+  bodyQuestionIds,
+  bodySendKind,
+  isBodyQuestion,
   mergeConservativeItem,
-  PAGE_QUESTION_IDS,
-  SITE_QUESTION_IDS,
+  siteQuestionIds,
+  softenSynthesisErrors,
   withholdBodyPassOnTruncation,
   worseVerdict,
   worstVerdict,
 } from "./groups.js";
 
+const definition = parseDefinition(
+  JSON.parse(readFileSync(new URL("../../fixtures/page-credibility.checker.json", import.meta.url), "utf8")),
+);
+const siteIds = siteQuestionIds(definition.questions);
+const bodyIds = bodyQuestionIds(definition.questions);
 const item = (id: string, verdict: Verdict) => ({ id, verdict });
+
+test("site and body lanes come from hasArticle applyWhen, not restated ids", () => {
+  assert.deepEqual(siteIds, ["identifiable_publisher", "honest_identity", "site_purpose", "disclosed_incentives"]);
+  assert.deepEqual(bodyIds, [
+    "evidence_for_claims",
+    "separates_fact_and_opinion",
+    "unsourced_specifics",
+    "self_consistent",
+    "certainty_matches_evidence",
+  ]);
+  for (const question of definition.questions) {
+    assert.equal(isBodyQuestion(question.applyWhen), bodyIds.includes(question.id));
+  }
+});
 
 test("worstVerdict prefers fail over review over pass and ignores the other lane", () => {
   const items = [
@@ -21,9 +44,9 @@ test("worstVerdict prefers fail over review over pass and ignores the other lane
     item("evidence_for_claims", "fail"),
     item("self_consistent", "pass"),
   ];
-  assert.equal(worstVerdict(items, SITE_QUESTION_IDS), "review");
-  assert.equal(worstVerdict(items, PAGE_QUESTION_IDS), "fail");
-  assert.equal(worstVerdict([item("self_consistent", "not_applicable")], PAGE_QUESTION_IDS), "not_applicable");
+  assert.equal(worstVerdict(items, siteIds), "review");
+  assert.equal(worstVerdict(items, bodyIds), "fail");
+  assert.equal(worstVerdict([item("self_consistent", "not_applicable")], bodyIds), "not_applicable");
 });
 
 test("worseVerdict compares two verdicts without inventing question ids", () => {
@@ -39,13 +62,35 @@ test("withholdBodyPassOnTruncation turns body pass into review and leaves fail a
     { id: "self_consistent" as ItemResult["id"], verdict: "fail", reason: "noul 0.1 is at or below failAt 0.2" },
     { id: "unsourced_specifics" as ItemResult["id"], verdict: "review", reason: "choice some maps to review" },
   ];
-  const withheld = withholdBodyPassOnTruncation(items, true);
+  const withheld = withholdBodyPassOnTruncation(items, true, bodyIds);
   assert.equal(withheld.find((entry) => entry.id === "identifiable_publisher")?.verdict, "pass");
   assert.equal(withheld.find((entry) => entry.id === "evidence_for_claims")?.verdict, "review");
   assert.match(withheld.find((entry) => entry.id === "evidence_for_claims")?.reason ?? "", /character limit/);
   assert.equal(withheld.find((entry) => entry.id === "self_consistent")?.verdict, "fail");
   assert.equal(withheld.find((entry) => entry.id === "unsourced_specifics")?.verdict, "review");
-  assert.deepEqual(withholdBodyPassOnTruncation(items, false), items);
+  assert.deepEqual(withholdBodyPassOnTruncation(items, false, bodyIds), items);
+});
+
+test("softenSynthesisErrors turns body errors into review", () => {
+  const items: ItemResult[] = [
+    { id: "identifiable_publisher" as ItemResult["id"], verdict: "error", reason: "timeout" },
+    { id: "self_consistent" as ItemResult["id"], verdict: "error", reason: "timeout" },
+  ];
+  const softened = softenSynthesisErrors(items, bodyIds);
+  assert.equal(softened[0]?.verdict, "error");
+  assert.equal(softened[1]?.verdict, "review");
+});
+
+test("bodySendKind reads recorded inspection instead of re-splitting text", () => {
+  assert.equal(bodySendKind(undefined), "whole");
+  assert.equal(
+    bodySendKind({ windowCount: 3, covered: true, unreadRemainder: false, siteQuestionIds: siteIds, bodyQuestionIds: bodyIds }),
+    "chunked",
+  );
+  assert.equal(
+    bodySendKind({ windowCount: 8, covered: false, unreadRemainder: true, siteQuestionIds: siteIds, bodyQuestionIds: bodyIds }),
+    "unread",
+  );
 });
 
 test("mergeConservativeItem keeps fail over a later pass", () => {

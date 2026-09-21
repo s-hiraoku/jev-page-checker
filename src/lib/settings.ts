@@ -5,8 +5,6 @@ export interface ExtensionSettings {
   followTab: boolean;
   recheckOnChange: boolean;
   debounceMs: number;
-  /** Stored leftover. Jev windows use the documented 32k token budget, not this cap. */
-  maxChars: number;
   minWords: number;
 }
 
@@ -17,7 +15,6 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   followTab: true,
   recheckOnChange: true,
   debounceMs: 1500,
-  maxChars: 10000,
   minWords: 40,
 };
 
@@ -35,7 +32,6 @@ export function parseSettings(raw: unknown): ExtensionSettings {
     followTab: record.followTab !== false,
     recheckOnChange: record.recheckOnChange !== false,
     debounceMs: finiteInt(record.debounceMs, DEFAULT_SETTINGS.debounceMs, 250, 15000),
-    maxChars: finiteInt(record.maxChars, DEFAULT_SETTINGS.maxChars, 500, 20000),
     minWords: finiteInt(record.minWords, DEFAULT_SETTINGS.minWords, 10, 400),
   };
 }

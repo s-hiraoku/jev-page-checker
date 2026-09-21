@@ -1,5 +1,5 @@
 import type { Verdict } from "./checkkit.js";
-import { PAGE_QUESTION_IDS, SITE_QUESTION_IDS, worseVerdict, worstVerdict } from "./groups.js";
+import { worseVerdict, worstVerdict } from "./groups.js";
 import { VERDICT_LABELS } from "./labels.js";
 import type { SessionView } from "./session.js";
 
@@ -70,8 +70,8 @@ export function actionIconModel(view: SessionView): ActionIconModel {
         badgeColor: "#6c40a0",
       };
     case "ready": {
-      const site = worstVerdict(view.record.report.items, SITE_QUESTION_IDS);
-      const page = worstVerdict(view.record.report.items, PAGE_QUESTION_IDS);
+      const site = worstVerdict(view.record.report.items, view.record.report.inspection?.siteQuestionIds ?? []);
+      const page = worstVerdict(view.record.report.items, view.record.report.inspection?.bodyQuestionIds ?? []);
       return {
         site,
         page,

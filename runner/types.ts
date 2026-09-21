@@ -73,9 +73,19 @@ export interface ItemResult {
   answer?: JevAnswer;
 }
 
+/** Recorded at check time so the UI does not re-run windowing or restated lane ids. */
+export interface ReportInspection {
+  windowCount: number;
+  covered: boolean;
+  unreadRemainder: boolean;
+  siteQuestionIds: readonly string[];
+  bodyQuestionIds: readonly string[];
+}
+
 export interface CheckReport {
   definition: { id: CheckerId; version: number };
   items: ItemResult[];
   usage: Usage;
   timing: { wallMs: number; jevMs: number };
+  inspection?: ReportInspection;
 }

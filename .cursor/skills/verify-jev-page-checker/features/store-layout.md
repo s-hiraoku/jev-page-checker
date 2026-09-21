@@ -4,8 +4,8 @@
 
 ## Sub-features
 
-- `store-pass` shows the news article column plus a 通過 panel.
-- `store-fail` shows the sales article column plus a 要警戒 panel.
+- `store-pass` shows the news article column plus a Pass panel.
+- `store-fail` shows the sales article column plus an Alert panel.
 - `store-nav-hidden` hides the preview scene/page buttons on the side layout.
 
 ## How to get to it (user POV)
@@ -21,8 +21,8 @@ Preconditions:
 - Preview is healthy at `http://127.0.0.1:4174`.
 - `control-jev doctor` reports `ok: true`.
 
-- **Pass layout.** Open the store news layout. Run `control-jev browser goto --path "/?scene=pass&store=1#side"`. The article column reads `報道ページの例` and `City delays river bridge opening after inspection`. The panel still shows `Jev 信憑性チェッカー` and both lanes `通過`. Preview buttons `通過例` / `側面パネル` are absent.
-- **Fail layout.** Open the store sales layout. Run `control-jev browser goto --path "/?scene=fail&store=1#side"`. The article column reads `販売ページの例` and `Doctors hate this: one pill reverses aging in 11 days`. Panel lanes are `要警戒`.
+- **Pass layout.** Open the store news layout. Run `control-jev browser goto --path "/?scene=pass&store=1#side"`. The article column reads `報道ページの例` and `City delays river bridge opening after inspection`. The panel still shows `Audit` and both lanes `Pass`. Preview buttons `Pass` / `Inspector` are absent.
+- **Fail layout.** Open the store sales layout. Run `control-jev browser goto --path "/?scene=fail&store=1#side"`. The article column reads `販売ページの例` and `Doctors hate this: one pill reverses aging in 11 days`. Panel lanes are `Alert`.
 - **Proof.** Capture the pass store layout. Run `control-jev browser screenshot --path .cursor/skills/verify-jev-page-checker/artifacts/store-layout/pass-store.png` and `control-jev browser snapshot --path .cursor/skills/verify-jev-page-checker/artifacts/store-layout/pass-store.aria.txt`. Both show the fake article heading and the side panel identity together.
 
 ## Gotchas

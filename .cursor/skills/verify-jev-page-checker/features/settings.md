@@ -1,20 +1,20 @@
 # Settings
 
-Settings is where a user stores the TypeSafe key, tracking toggles, and a whole-list approval. The page shows all nine checklist items. Save is in-memory in preview; the visible proof is `保存しました。`
+Settings is where a user stores the TypeSafe key, tracking toggles, and a whole-list approval. The page shows all nine checklist items. Save is in-memory in preview; the visible proof is `Saved.`
 
 ## Sub-features
 
-- `settings-open` opens the form from the panel toolbar, the preview `設定` button, or `#options`.
-- `settings-checklist` shows `検査項目 9 件` with ids such as `identifiable_publisher`.
+- `settings-open` opens the form from the panel toolbar, the preview `Settings` button, or `#options`.
+- `settings-checklist` shows `質問 9` with ids such as `identifiable_publisher`.
 - `settings-approve` requires a non-empty 承認者の名前 plus the whole-list checkbox.
-- `settings-save` writes the draft and shows `保存しました。`
-- `settings-follow` exposes `表示中のタブを追跡して検査する`.
+- `settings-save` writes the draft and shows `Saved.`
+- `settings-follow` exposes `Follow tab`.
 
 ## How to get to it (user POV)
 
 - Open `/?scene=pass#options` or `/?scene=setup#options`.
-- From the side panel, choose `設定` or, when gated, `設定を開く`.
-- From the preview nav, choose `設定`.
+- From the side panel, choose `Settings`.
+- From the preview nav, choose `Settings`.
 - In the real extension, open the options page from the gear in Chrome. Do not use a shared profile as a stand-in.
 
 ## Driving it with control-jev
@@ -25,12 +25,12 @@ Preconditions:
 - `control-jev doctor` reports `ok: true`.
 - Start from `/?scene=setup#options` so approval starts empty.
 
-- **URL entry.** Open settings on the setup scene. Run `control-jev browser goto --path "/?scene=setup#options"`. Heading `設定` and `検査項目 9 件` are visible. A checklist article contains `発行元が特定できる` and `(identifiable_publisher)`.
-- **Toolbar entry.** Go to the setup panel and choose `設定`. Run `control-jev browser goto --path "/?scene=setup#side"` and `control-jev browser click --name "設定"`. The form appears again.
+- **URL entry.** Open settings on the setup scene. Run `control-jev browser goto --path "/?scene=setup#options"`. Meta `Settings · v3` and `質問 9` are visible. A checklist article contains `発行元が特定できる` and `(identifiable_publisher)`.
+- **Toolbar entry.** Go to the setup panel and choose `Settings`. Run `control-jev browser goto --path "/?scene=setup#side"` and `control-jev browser click --name "Settings"`. The form appears again.
 - **Approve and key.** Fill the approver, tick the whole list, and enter a key. Run `control-jev browser fill --label "承認者の名前" --value "verifier"`, `control-jev browser check --label "上のチェックリスト全体を承認する"`, and `control-jev browser fill --label "TypeSafe API キー" --value "sk-preview"`.
-- **Follow tab.** Leave tracking on. Run `control-jev browser text --contains "表示中のタブを追跡して検査する"`. The checkbox is checked by default.
-- **Save.** Choose `設定を保存`. Run `control-jev browser click --name "設定を保存"`. Status `保存しました。` appears.
-- **Proof.** Capture the saved form. Run `control-jev browser screenshot --path .cursor/skills/verify-jev-page-checker/artifacts/settings/saved.png` and `control-jev browser snapshot --path .cursor/skills/verify-jev-page-checker/artifacts/settings/saved.aria.txt`. Both show `設定`, the nine-item heading, and `保存しました。`
+- **Follow tab.** Leave tracking on. Run `control-jev browser text --contains "Follow tab"`. The checkbox is checked by default.
+- **Save.** Choose `Save`. Run `control-jev browser click --name "Save"`. Status `Saved.` appears.
+- **Proof.** Capture the saved form. Run `control-jev browser screenshot --path .cursor/skills/verify-jev-page-checker/artifacts/settings/saved.png` and `control-jev browser snapshot --path .cursor/skills/verify-jev-page-checker/artifacts/settings/saved.aria.txt`. Both show `Settings`, the nine-item heading, and `Saved.`
 
 ## Gotchas
 
@@ -39,3 +39,4 @@ Preconditions:
 - `fill --label "TypeSafe API キー"` targets a password input. The typed value is not echoed as visible text; do not screenshot-assert the key.
 - Changing `scene` remounts the bridge and drops unsaved and saved preview settings. Finish the recipe before a scene `goto`.
 - Definition edits require approving the **whole** list again. Do not look for a per-question ack control.
+- There is no per-install character cap. Body length follows the Jev 32k token budget for every URL.

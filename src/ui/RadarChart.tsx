@@ -1,5 +1,5 @@
 import { useLayoutEffect, useState } from "react";
-import { PAGE_QUESTION_IDS, SITE_QUESTION_IDS, worstVerdict } from "../lib/groups.js";
+import { worstVerdict } from "../lib/groups.js";
 import { questionAxisLabel, questionLabel, VERDICT_LABELS } from "../lib/labels.js";
 import { polarPoint, radarAxes, type RadarAxis } from "../lib/radar-values.js";
 import type { ItemResult, Verdict } from "../lib/checkkit.js";
@@ -163,13 +163,23 @@ export function RadarChart({
   );
 }
 
-export function ResultRadars({ items, compact = false }: { items: readonly ItemResult[]; compact?: boolean }) {
-  const site = radarAxes(items, SITE_QUESTION_IDS, questionLabel, questionAxisLabel);
-  const page = radarAxes(items, PAGE_QUESTION_IDS, questionLabel, questionAxisLabel);
+export function ResultRadars({
+  items,
+  compact = false,
+  siteQuestionIds,
+  bodyQuestionIds,
+}: {
+  items: readonly ItemResult[];
+  compact?: boolean;
+  siteQuestionIds: readonly string[];
+  bodyQuestionIds: readonly string[];
+}) {
+  const site = radarAxes(items, siteQuestionIds, questionLabel, questionAxisLabel);
+  const page = radarAxes(items, bodyQuestionIds, questionLabel, questionAxisLabel);
   return (
     <div className={`radar-pair${compact ? " compact" : ""}`}>
-      <RadarChart title="サイト" axes={site} compact={compact} verdict={worstVerdict(items, SITE_QUESTION_IDS)} />
-      <RadarChart title="本文" axes={page} compact={compact} verdict={worstVerdict(items, PAGE_QUESTION_IDS)} />
+      <RadarChart title="サイト" axes={site} compact={compact} verdict={worstVerdict(items, siteQuestionIds)} />
+      <RadarChart title="本文" axes={page} compact={compact} verdict={worstVerdict(items, bodyQuestionIds)} />
     </div>
   );
 }

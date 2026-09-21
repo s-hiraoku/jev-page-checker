@@ -6,8 +6,8 @@ import { dirname, isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const DEFAULT_PORT = 4174;
-const APP_TITLE = "Jev 信憑性チェッカー プレビュー";
-const APP_NAME = "Jev 信憑性チェッカー";
+const APP_TITLE = "Jev Audit preview";
+const APP_NAME = "Audit";
 const HERE = dirname(fileURLToPath(import.meta.url));
 
 function die(message, code = 1) {
@@ -363,9 +363,9 @@ control-jev browser goto --path "/?scene=pass#side"
 control-jev browser click --name "設定"
 control-jev browser fill --label "承認者の名前" --value "verifier"
 control-jev browser check --label "上のチェックリスト全体を承認する"
-control-jev browser uncheck --label "表示中のタブを追跡して検査する"
-control-jev browser text --contains "通過"
-control-jev browser wait --contains "保存しました。"
+control-jev browser uncheck --label "Follow tab"
+control-jev browser text --contains "Pass"
+control-jev browser wait --contains "Saved."
 control-jev browser url
 control-jev browser screenshot --path artifacts/side.png
 control-jev browser snapshot --path artifacts/side.aria.txt

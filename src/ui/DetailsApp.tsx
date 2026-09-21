@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { splitOverlappingChunks } from "../lib/body-windows.js";
 import { recordById, type Bridge } from "../lib/bridge.js";
+import { bodySendKind } from "../lib/groups.js";
 import { AppChrome } from "./AppChrome.js";
 import { ReportView } from "./ReportView.js";
 import { useBridgeSession } from "./useBridgeSession.js";
@@ -8,6 +8,12 @@ import { useBridgeSession } from "./useBridgeSession.js";
 function requestedId(): string | null {
   const params = new URLSearchParams(window.location.search);
   return params.get("id");
+}
+
+function sentLabel(kind: ReturnType<typeof bodySendKind>): string {
+  if (kind === "unread") return "抽出した主本文（切れ残りあり）";
+  if (kind === "chunked") return "抽出した主本文（分割して送信）";
+  return "送った文";
 }
 
 export function DetailsApp({ bridge }: { bridge: Bridge }) {
@@ -18,12 +24,7 @@ export function DetailsApp({ bridge }: { bridge: Bridge }) {
     return <AppChrome wide>{error ?? "読み込み中…"}</AppChrome>;
   }
   const record = recordById(session.history, id);
-  const windows = record ? splitOverlappingChunks(record.snapshot.text).windows : [];
-  const sentLabel = record?.snapshot.textTruncated
-    ? "抽出した主本文（切れ残りあり）"
-    : record?.snapshot.hasArticle && windows.length > 1
-      ? "抽出した主本文（分割して送信）"
-      : "送った文";
+  const kind = bodySendKind(record?.report.inspection);
 
   return (
     <AppChrome wide meta={`Report · v${session.definitionVersion}`}>
@@ -31,7 +32,7 @@ export function DetailsApp({ bridge }: { bridge: Bridge }) {
       {record ? <ReportView record={record} /> : <p className="notice">まだ結果がありません。Inspector から Audit してください。</p>}
       {record ? (
         <section className="panel">
-          <div className="panel-head">{sentLabel}</div>
+          <div className="panel-head">{sentLabel(kind)}</div>
           <div className="panel-body">
             <p className="help">{record.snapshot.text}</p>
           </div>
