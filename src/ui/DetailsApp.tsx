@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { splitOverlappingChunks } from "../lib/body-windows.js";
 import { recordById, type Bridge } from "../lib/bridge.js";
-import { DEFAULT_SETTINGS } from "../lib/settings.js";
 import type { SessionPayload } from "../lib/session.js";
 import { AppHeader } from "./bits.js";
 import { ReportView } from "./ReportView.js";
@@ -36,7 +35,7 @@ export function DetailsApp({ bridge }: { bridge: Bridge }) {
   }
   const record = recordById(session.history, id);
   const windows = record
-    ? splitOverlappingChunks(record.snapshot.text, record.snapshot.textLimit ?? DEFAULT_SETTINGS.maxChars).windows
+    ? splitOverlappingChunks(record.snapshot.text).windows
     : [];
   const sentLabel = record?.snapshot.textTruncated
     ? "抽出した主本文（切れ残りあり）"

@@ -5,6 +5,7 @@ export interface ExtensionSettings {
   followTab: boolean;
   recheckOnChange: boolean;
   debounceMs: number;
+  /** Stored leftover. Jev windows use the documented 32k token budget, not this cap. */
   maxChars: number;
   minWords: number;
 }

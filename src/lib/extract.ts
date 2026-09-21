@@ -81,9 +81,9 @@ export function collectText(root: ParentNode, maxChars: number): { text: string;
 export function extractSnapshot(
   doc: Document,
   loc: Pick<Location, "href" | "hostname" | "protocol">,
-  maxChars: number,
   minWords: number,
   now = (): string => new Date().toISOString(),
+  collectLimit = bodyCollectLimit(),
 ): PageSnapshot {
   const author = metaContent(doc, ["author", "article:author", "byl", "citation_author"]);
   const publishedAt = metaContent(doc, ["article:published_time", "date", "pubdate", "dc.date"]);
@@ -100,7 +100,7 @@ export function extractSnapshot(
     }
   });
   const { hosts, citationCount } = collectOutbound(hrefs, loc.hostname);
-  const { text, truncated } = collectText(root ?? doc.body, bodyCollectLimit(maxChars));
+  const { text, truncated } = collectText(root ?? doc.body, collectLimit);
   const words = wordCount(text);
   const pageKind = classifyPageKind(articleCount, hrefs.length, words);
   return {
@@ -125,7 +125,6 @@ export function extractSnapshot(
     outboundHosts: hosts,
     text,
     textTruncated: truncated,
-    textLimit: maxChars,
     extractedAt: now(),
   };
 }
