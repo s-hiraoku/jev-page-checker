@@ -5,10 +5,14 @@ import { polarPoint, radarAxes, type RadarAxis } from "../lib/radar-values.js";
 import type { ItemResult, Verdict } from "../lib/checkkit.js";
 
 const RINGS = [1 / 3, 2 / 3, 1];
-const GROW_MS = 640;
+const GROW_MS = 800;
 
 function reducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function easeInOut(t: number): number {
+  return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 }
 
 function useGrow(durationMs: number): number {
@@ -23,7 +27,7 @@ function useGrow(durationMs: number): number {
     let frame = 0;
     const tick = (now: number) => {
       const t = Math.min(1, (now - started) / durationMs);
-      setProgress(1 - (1 - t) ** 3);
+      setProgress(easeInOut(t));
       if (t < 1) frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
