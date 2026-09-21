@@ -31,5 +31,6 @@ Preconditions:
 
 - Report no longer lists history. If a recipe still looks for history links on `#details`, it is stale.
 - History `<button>` names are the snapshot title. `click --name` matches that accessible name.
+- Preview nav and the Inspector toolbar both use the chrome word `History`. `click --name "History"` is then two buttons; use `goto --path "/?scene=pass#history"` for URL entry, or the toolbar button inside `main`.
 - Empty History (`まだ履歴がありません`) is not reachable in preview because history is always seeded. Do not claim that empty state was verified here.
 - Preview hash routing keeps the current in-memory bridge. Changing `scene` remounts it.
