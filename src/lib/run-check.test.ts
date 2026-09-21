@@ -60,7 +60,7 @@ function scriptedGateway(answersList: Record<string, JevAnswer>[]): JevGateway &
 
 test("a sourced news article passes site safety and body scrutiny", async () => {
   const report = await reportOf("page-credibility-pass.json");
-  assert.equal(report.definition.version, 3);
+  assert.equal(report.definition.version, 4);
   assert.equal(report.items.every((item) => item.verdict === "pass"), true);
   assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
   assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "pass");

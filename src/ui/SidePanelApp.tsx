@@ -1,5 +1,4 @@
 import type { Bridge } from "../lib/bridge.js";
-import { DEFAULT_SETTINGS } from "../lib/settings.js";
 import type { SessionView, StoredRecord } from "../lib/session.js";
 import { AppChrome } from "./AppChrome.js";
 import { ReportView } from "./ReportView.js";
@@ -24,7 +23,6 @@ export function SidePanelApp({ bridge }: { bridge: Bridge }) {
       <PanelBody
         view={session?.view}
         error={error}
-        followTab={session?.settings.followTab ?? DEFAULT_SETTINGS.followTab}
         onAudit={() => void bridge.checkNow().then(accept).catch(fail)}
         onDetails={() => void bridge.openDetails()}
         onSettings={() => void bridge.openOptions()}
@@ -40,14 +38,12 @@ function LoadingCopy() {
 function PanelBody({
   view,
   error,
-  followTab,
   onAudit,
   onDetails,
   onSettings,
 }: {
   view: SessionView | undefined;
   error: string | null;
-  followTab: boolean;
   onAudit: () => void;
   onDetails: () => void;
   onSettings: () => void;
@@ -56,8 +52,6 @@ function PanelBody({
   const record: StoredRecord | null = view?.status === "ready" ? view.record : null;
   return (
     <>
-      <p className="help">{copy.splitLanes}</p>
-
       {error ? <p className="notice fail">{error}</p> : null}
 
       {view?.status === "needs-setup" ? (
@@ -96,9 +90,6 @@ function PanelBody({
           Settings
         </button>
       </div>
-      <p className="foot">
-        {copy.footer} {followTab ? "on" : "off"}
-      </p>
     </>
   );
 }

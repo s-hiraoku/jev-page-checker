@@ -81,10 +81,10 @@ Prefer URL entry points over nav buttons when starting a recipe. Scene is a quer
 
 Stable handles (accessible names / labels from the real UI, not test ids):
 
-- App chrome: heading-equivalent `Audit` (mark `Jev` + name `Audit` from `labels.ts`), meta `v3` on the panel / `Report · v3` / `Settings · v3`
+- App chrome: heading-equivalent `Audit` (mark `Jev` + name `Audit` from `labels.ts`), meta `v4` on the panel / `Report · v4` / `Settings · v4`
 - Preview nav buttons: `Pass`, `Fail`, `Truncated`, `Chunked`, `Setup`, `Inspector`, `Settings`, `Report`
 - Side panel buttons: `Audit`, `Report`, `Settings` (gated panel uses the same `Settings` button)
-- Side panel copy: `サイト`, `本文`, `Pass`, `Alert`, `Review`, `N/A`, `Follow tab on`
+- Side panel copy: `サイト`, `本文`, `Pass`, `Alert`, `Review`, `N/A`. Ready Inspector has no `一つの点数にはしない` lede and no `Follow tab on` footer.
 - Pass title: `City delays river bridge opening after inspection, officials say`
 - Fail title: `Doctors hate this: one pill reverses aging in 11 days`
 - Setup gate: `チェックリスト全体の承認が先。`
@@ -93,7 +93,7 @@ Stable handles (accessible names / labels from the real UI, not test ids):
 - Locale options: `システム` (default), `日本語`, `English`. Preview daemon locale is `ja-JP`, so system copy is Japanese.
 - Language options: `システム` (default), `日本語`, `English`
 - Settings actions: button `Save`, status `Saved.`, heading `質問 9`
-- Details: meta `Report · v3`, panel head `送った文`, history links whose names start with the snapshot title
+- Details: meta `Report · v4`, panel head `送った文`, history links whose names start with the snapshot title
 
 `click --name` matches a **button** exactly. `fill --label` matches the wrapping `<label>` text exactly. `check --label` is a substring match so the long approval sentence can be shortened to `上のチェックリスト全体を承認する`.
 
