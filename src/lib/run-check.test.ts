@@ -67,6 +67,10 @@ test("a sourced news article passes site safety and body scrutiny", async () => 
   assert.match(report.items.find((item) => item.id === "identifiable_publisher")?.basis ?? "", /identifiable as responsible/);
   assert.match(report.items.find((item) => item.id === "evidence_for_claims")?.basis ?? "", /presented as established/);
   assert.match(report.items.find((item) => item.id === "evidence_for_claims")?.cite ?? "", /12 September/);
+  assert.match(report.items.find((item) => item.id === "separates_fact_and_opinion")?.cite ?? "", /does not add costs/);
+  assert.match(report.items.find((item) => item.id === "unsourced_specifics")?.cite ?? "", /photograph of the south pier/);
+  assert.match(report.items.find((item) => item.id === "self_consistent")?.cite ?? "", /hairline cracks/);
+  assert.match(report.items.find((item) => item.id === "certainty_matches_evidence")?.cite ?? "", /does not add costs/);
   assert.equal(report.items.some((item) => item.id.endsWith("_cite")), false);
 });
 
@@ -111,6 +115,10 @@ test("a miracle-cure sales page fails site safety and body scrutiny", async () =
   assert.match(report.items.find((item) => item.id === "identifiable_publisher")?.basis ?? "", /missing, anonymous/);
   assert.match(report.items.find((item) => item.id === "evidence_for_claims")?.basis ?? "", /little or no supporting evidence/);
   assert.match(report.items.find((item) => item.id === "evidence_for_claims")?.cite ?? "", /11 days/);
+  assert.match(report.items.find((item) => item.id === "separates_fact_and_opinion")?.cite ?? "", /hiding it/);
+  assert.match(report.items.find((item) => item.id === "unsourced_specifics")?.cite ?? "", /94 percent/);
+  assert.match(report.items.find((item) => item.id === "self_consistent")?.cite ?? "", /three days/);
+  assert.match(report.items.find((item) => item.id === "certainty_matches_evidence")?.cite ?? "", /six-month supply/);
 });
 
 test("a listing skips body questions because there is no single text to scrutinize", async () => {

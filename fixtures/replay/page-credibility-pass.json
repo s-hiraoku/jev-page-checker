@@ -51,6 +51,30 @@
       "confidence": 0.84,
       "probabilities": { "s2": 0.84, "none": 0.16 }
     },
+    "separates_fact_and_opinion_cite": {
+      "type": "choice",
+      "choice": "s4",
+      "confidence": 0.81,
+      "probabilities": { "s4": 0.81, "none": 0.19 }
+    },
+    "unsourced_specifics_cite": {
+      "type": "choice",
+      "choice": "s3",
+      "confidence": 0.77,
+      "probabilities": { "s3": 0.77, "none": 0.23 }
+    },
+    "self_consistent_cite": {
+      "type": "choice",
+      "choice": "s1",
+      "confidence": 0.8,
+      "probabilities": { "s1": 0.8, "none": 0.2 }
+    },
+    "certainty_matches_evidence_cite": {
+      "type": "choice",
+      "choice": "s4",
+      "confidence": 0.79,
+      "probabilities": { "s4": 0.79, "none": 0.21 }
+    },
     "evidence_for_claims": {
       "type": "score",
       "score": 1.85,
