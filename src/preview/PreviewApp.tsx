@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Bridge } from "../lib/bridge.js";
 import { DetailsApp } from "../ui/DetailsApp.js";
+import { HistoryApp } from "../ui/HistoryApp.js";
 import { OptionsApp } from "../ui/OptionsApp.js";
 import { SidePanelApp } from "../ui/SidePanelApp.js";
 import { createPreviewBridge } from "./mock.js";
@@ -13,9 +14,10 @@ const SCENES = [
   ["setup", "Setup"],
 ] as const;
 
-function pageFromHash(): "side" | "options" | "details" {
+function pageFromHash(): "side" | "options" | "details" | "history" {
   if (window.location.hash === "#options") return "options";
   if (window.location.hash === "#details") return "details";
+  if (window.location.hash === "#history") return "history";
   return "side";
 }
 
@@ -52,6 +54,7 @@ export function PreviewApp() {
       ) : null}
       {bridge !== null && page === "options" ? <OptionsApp bridge={bridge} /> : null}
       {bridge !== null && page === "details" ? <DetailsApp bridge={bridge} /> : null}
+      {bridge !== null && page === "history" ? <HistoryApp bridge={bridge} /> : null}
     </>
   );
 
@@ -92,6 +95,9 @@ export function PreviewApp() {
         </button>
         <button className={page === "details" ? "btn" : "btn secondary"} type="button" onClick={() => { window.location.hash = "#details"; setPage("details"); }}>
           Report
+        </button>
+        <button className={page === "history" ? "btn" : "btn secondary"} type="button" onClick={() => { window.location.hash = "#history"; setPage("history"); }}>
+          History
         </button>
       </nav>
       {panel}

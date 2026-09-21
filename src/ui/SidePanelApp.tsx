@@ -25,6 +25,7 @@ export function SidePanelApp({ bridge }: { bridge: Bridge }) {
         error={error}
         onAudit={() => void bridge.checkNow().then(accept).catch(fail)}
         onDetails={() => void bridge.openDetails()}
+        onHistory={() => void bridge.openHistory()}
         onSettings={() => void bridge.openOptions()}
       />
     </AppChrome>
@@ -40,12 +41,14 @@ function PanelBody({
   error,
   onAudit,
   onDetails,
+  onHistory,
   onSettings,
 }: {
   view: SessionView | undefined;
   error: string | null;
   onAudit: () => void;
   onDetails: () => void;
+  onHistory: () => void;
   onSettings: () => void;
 }) {
   const copy = useCopy();
@@ -85,6 +88,9 @@ function PanelBody({
         </button>
         <button className="btn secondary" type="button" onClick={onDetails}>
           Report
+        </button>
+        <button className="btn secondary" type="button" onClick={onHistory}>
+          History
         </button>
         <button className="btn secondary" type="button" onClick={onSettings}>
           Settings

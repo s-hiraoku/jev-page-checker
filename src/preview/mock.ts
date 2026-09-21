@@ -81,6 +81,9 @@ export async function createPreviewBridge(scene: string): Promise<Bridge> {
       next.hash = "#details";
       window.location.assign(`${next.pathname}${next.search}${next.hash}`);
     },
+    openHistory: async () => {
+      window.location.hash = "#history";
+    },
     openOptions: async () => {
       window.location.hash = "#options";
     },

@@ -1,11 +1,11 @@
 ---
 name: verify-jev-page-checker
-description: Drive the Jev Audit preview UI (side panel, settings, details) the way a user would. Use when proving panel, setup-gate, settings, or details behavior after UI or judgement-display changes.
+description: Drive the Jev Audit preview UI (side panel, settings, details, history) the way a user would. Use when proving panel, setup-gate, settings, details, or history behavior after UI or judgement-display changes.
 ---
 
 # Verify Jev Audit
 
-This skill drives the **preview surface**, not a loaded Chrome extension. Users normally load `.output/chrome-mv3` in Chrome and open the side panel from the toolbar. Agents do not load that into a shared Chrome profile. The repo's own screen-only path is `npm run preview`, which mounts the real `SidePanelApp`, `OptionsApp`, and `DetailsApp` against a replay bridge.
+This skill drives the **preview surface**, not a loaded Chrome extension. Users normally load `.output/chrome-mv3` in Chrome and open the side panel from the toolbar. Agents do not load that into a shared Chrome profile. The repo's own screen-only path is `npm run preview`, which mounts the real `SidePanelApp`, `OptionsApp`, `DetailsApp`, and `HistoryApp` against a replay bridge.
 
 Read `features/README.md` and the matching feature file before driving. A proof that hits one convenient URL is incomplete when the map lists other entry points.
 
@@ -76,14 +76,15 @@ Prefer URL entry points over nav buttons when starting a recipe. Scene is a quer
 | `/?scene=fail#side` | Side panel, sales-page replay, both lanes Alert |
 | `/?scene=setup#side` | Side panel blocked until checklist approval |
 | `/?scene=pass#options` or `#options` after Settings | Settings form and 9-item checklist |
-| `/?scene=pass#details` | Full report, 送った文, history |
+| `/?scene=pass#details` | Full report and 送った文 |
+| `/?scene=pass#history` | History list of past Audits |
 | `/?scene=pass&store=1#side` | Fake article column + side panel (store screenshot layout) |
 
 Stable handles (accessible names / labels from the real UI, not test ids):
 
-- App chrome: heading-equivalent `Audit` (mark `Jev` + name `Audit` from `labels.ts`), meta `v4` on the panel / `Report · v4` / `Settings · v4`
-- Preview nav buttons: `Pass`, `Fail`, `Truncated`, `Chunked`, `Setup`, `Inspector`, `Settings`, `Report`
-- Side panel buttons: `Audit`, `Report`, `Settings` (gated panel uses the same `Settings` button)
+- App chrome: heading-equivalent `Audit` (mark `Jev` + name `Audit` from `labels.ts`), meta `v4` on the panel / `Report · v4` / `History · v4` / `Settings · v4`
+- Preview nav buttons: `Pass`, `Fail`, `Truncated`, `Chunked`, `Setup`, `Inspector`, `Settings`, `Report`, `History`
+- Side panel buttons: `Audit`, `Report`, `History`, `Settings` (gated panel uses the same `Settings` button)
 - Side panel copy: `サイト`, `本文`, `Pass`, `Alert`, `Review`, `N/A`. Ready Inspector has no `一つの点数にはしない` lede and no `Follow tab on` footer.
 - Pass title: `City delays river bridge opening after inspection, officials say`
 - Fail title: `Doctors hate this: one pill reverses aging in 11 days`
@@ -93,7 +94,8 @@ Stable handles (accessible names / labels from the real UI, not test ids):
 - Locale options: `システム` (default), `日本語`, `English`. Preview daemon locale is `ja-JP`, so system copy is Japanese.
 - Language options: `システム` (default), `日本語`, `English`
 - Settings actions: button `Save`, status `Saved.`, heading `質問 9`
-- Details: meta `Report · v4`, panel head `送った文`, history links whose names start with the snapshot title
+- Details: meta `Report · v4`, panel head `送った文`, title label `タイトル`. No history list.
+- History: meta `History · v4`, heading `History` (not `履歴`), row names are snapshot titles
 
 `click --name` matches a **button** exactly. `fill --label` matches the wrapping `<label>` text exactly. `check --label` is a substring match so the long approval sentence can be shortened to `上のチェックリスト全体を承認する`.
 
@@ -105,7 +107,7 @@ Standards:
 
 - Drive the preview the way a user does: nav buttons, labeled fields, report tables. Do not call `checkSnapshot`, `saveSettings`, or `replayGateway` from a scratch script and call that a UI proof.
 - Capture the **action and the resulting state**. A final screenshot is not enough. Pair it with an ARIA snapshot and a `text --contains` assertion from before/after.
-- Preview has no disk or network side effect for settings or checks. The observable result is the next screen: `Saved.`, a hash of `#options` / `#details`, lane labels, question rows. Do not claim chrome.storage or Jev were touched.
+- Preview has no disk or network side effect for settings or checks. The observable result is the next screen: `Saved.`, a hash of `#options` / `#details` / `#history`, lane labels, question rows. Do not claim chrome.storage or Jev were touched.
 - When proving a replay scene, assert the fixture title **and** the lane verdicts. Do not treat a green chip as a live-site pass.
 - Mocks are allowed only at the existing boundary: `createPreviewBridge` / `replayGateway`. Do not add a new fake inside the React trees to make a proof pass.
 - Judgement thresholds stay as in `docs/judgement.md`. Do not retune a scene so one URL looks better.

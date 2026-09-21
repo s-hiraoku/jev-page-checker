@@ -305,6 +305,29 @@ a {
   color: var(--muted);
 }
 
+.meta-table .identity-title td {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink);
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.meta-table .identity-url td {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--ink);
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+
+.meta-table .identity-url .url {
+  font-size: 13px;
+  color: var(--ink);
+}
+
 .url {
   font-family: ui-monospace, "Cascadia Mono", "IBM Plex Mono", monospace;
   font-size: 11px;
@@ -554,21 +577,27 @@ a {
   color: var(--muted);
 }
 
-.history a {
+.history a,
+.history button {
   display: block;
+  width: 100%;
   padding: 6px 8px;
   border: 1px solid var(--line);
   border-top: 0;
+  border-radius: 0;
   text-decoration: none;
+  text-align: left;
   color: inherit;
   background: var(--surface);
 }
 
-.history a:first-child {
+.history a:first-child,
+.history button:first-child {
   border-top: 1px solid var(--line);
 }
 
-.history a:hover {
+.history a:hover,
+.history button:hover {
   background: var(--hover);
 }
 
@@ -589,9 +618,22 @@ a {
 }
 
 .report .meta-table,
-.report .result-table {
+.report .result-group {
   border: 1px solid var(--line);
   border-top: 0;
+}
+
+.report .result-table {
+  border: 0;
+}
+
+.result-group-head {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--surface);
 }
 
 @media (max-width: 520px) {

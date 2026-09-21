@@ -40,11 +40,11 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
       />
       <table className="meta-table">
         <tbody>
-          <tr>
+          <tr className="identity-title">
             <th>{copy.title}</th>
             <td>{record.snapshot.title || copy.untitled}</td>
           </tr>
-          <tr>
+          <tr className="identity-url">
             <th>URL</th>
             <td className="url">{record.snapshot.url}</td>
           </tr>
@@ -70,7 +70,7 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
           )}
         </tbody>
       </table>
-      <ItemList items={record.report.items} compact={compact} />
+      <ItemList items={record.report.items} compact={compact} siteIds={siteIds} bodyIds={bodyIds} />
     </div>
   );
 }
