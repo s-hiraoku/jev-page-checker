@@ -32,14 +32,14 @@ Preconditions:
 - **Approve and key.** Tick the whole list and enter a key. There is no 承認者の名前 field. Run `control-jev browser check --label "このチェックリスト全体を承認する"` and `control-jev browser fill --label "TypeSafe API キー" --value "sk-preview"`.
 - **タブに追従する.** Leave tracking on. Run `control-jev browser text --contains "タブに追従する"`. The checkbox is checked by default. English locale uses `Follow the tab`.
 - **Theme.** The appearance select defaults to `システム`. Run `control-jev browser text --contains "テーマ"` and `control-jev browser select --label "テーマ" --value "light"`. Then `control-jev browser attr --selector "html" --name "data-theme"` prints `light`. Repeat with `--value "dark"` then `--value "system"` to restore the default.
-- **Language.** The language select defaults to `システム`. Preview Chrome is `ja-JP`, so copy starts in Japanese. Run `control-jev browser select --label "言語" --value "en"`. The page shows `Language` and `I accept this whole checklist`. Restore with `--value "ja"` or `--value "system"`.
+- **Language.** The language select defaults to `システム`. Preview Chrome is `ja-JP`, so copy starts in Japanese. Run `control-jev browser select --label "言語" --value "en"`. The page shows `Language`, `Question text`, `The definition sent to Jev is English.`, and `Accept this whole checklist.` Restore with `--value "ja"` or `--value "system"`.
 - **Save.** Choose `保存`. Run `control-jev browser click --name "保存"`. Status `保存しました。` appears.
 - **Proof.** Capture the saved form. Run `control-jev browser screenshot --path .cursor/skills/verify-jev-page-checker/artifacts/settings/saved.png` and `control-jev browser snapshot --path .cursor/skills/verify-jev-page-checker/artifacts/settings/saved.aria.txt`. Both show `Settings`, the fourteen-question heading, and `保存しました。`
 
 ## Gotchas
 
 - Preview save does not write `chrome.storage` and does not call Jev. Assert the status text, not disk or network.
-- The approval checkbox label is the full sentence `このチェックリスト全体を承認する。判定は根拠であり、公開、送信、遮断の許可ではない。` `check --label` may use the leading clause.
+- The approval checkbox label is `このチェックリスト全体を承認する。` English locale uses `Accept this whole checklist.`
 - `fill --label "TypeSafe API キー"` targets a password input. The typed value is not echoed as visible text; do not screenshot-assert the key.
 - Changing `scene` remounts the bridge and drops unsaved and saved preview settings. Finish the recipe before a scene `goto`.
 - Definition edits require approving the **whole** list again. Do not look for a per-question ack control.

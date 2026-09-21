@@ -26,8 +26,10 @@ export function ChecklistView({ questions }: { questions: readonly Check[] }) {
   return (
     <section>
       <h2 className="page-title">{copy.questions(questions.length)}</h2>
-      <p className="help">{copy.wholeListAgain}</p>
-      {copy.checklistJaNote ? <p className="help">{copy.checklistJaNote}</p> : null}
+      <div className="question-text-card">
+        <h3>{copy.questionText}</h3>
+        <p>{copy.definitionLanguage}</p>
+      </div>
       {questions.map((check) => (
         <article className="checklist-item" key={check.id}>
           <h3>

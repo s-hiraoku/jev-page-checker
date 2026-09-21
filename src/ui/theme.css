@@ -697,6 +697,27 @@ a:hover {
   margin: 8px 0 0;
 }
 
+.question-text-card {
+  margin: 8px 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+
+.question-text-card h3 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.question-text-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 .checklist-item {
   border: 1px solid var(--line);
   border-top: 0;
