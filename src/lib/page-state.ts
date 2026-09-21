@@ -1,5 +1,3 @@
-import type { EntryType } from "@typesafe-ai/sdk";
-
 export type PageKind = "article" | "portal";
 
 export interface PageSnapshot {
@@ -31,11 +29,13 @@ export function snapshotFingerprint(snapshot: Pick<PageSnapshot, "url" | "text">
   return `${snapshot.url}\n${snapshot.text}`;
 }
 
+export type PageJevState = Omit<PageSnapshot, "extractedAt" | "textTruncated">;
+
 export function snapshotToState({
   extractedAt: _extractedAt,
   textTruncated: _textTruncated,
   ...state
-}: PageSnapshot): EntryType {
+}: PageSnapshot): PageJevState {
   return state;
 }
 

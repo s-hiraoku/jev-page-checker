@@ -1,13 +1,16 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { replayGateway, type JevAnswer, type JevGateway } from "./checkkit.js";
-import { PAGE_QUESTION_IDS, SITE_QUESTION_IDS, worstVerdict } from "./groups.js";
+import { replayGateway, parseDefinition, type JevAnswer, type JevGateway } from "./checkkit.js";
+import { bodyQuestionIds, siteQuestionIds, worstVerdict } from "./groups.js";
 import { bodyTokenBudget, JEV_ENGLISH_CHARS_PER_TOKEN } from "./jev-budget.js";
 import type { PageSnapshot } from "./page-state.js";
 import { checkSnapshot } from "./run-check.js";
 
 const definition = JSON.parse(readFileSync(new URL("../../fixtures/page-credibility.checker.json", import.meta.url), "utf8"));
+const parsed = parseDefinition(definition);
+const SITE_QUESTION_IDS = siteQuestionIds(parsed.questions);
+const PAGE_QUESTION_IDS = bodyQuestionIds(parsed.questions);
 
 function loadReplay(name: string) {
   return JSON.parse(readFileSync(new URL(`../../fixtures/replay/${name}`, import.meta.url), "utf8")) as {
@@ -158,4 +161,26 @@ test("a long listing still makes one call and skips body questions", async () =>
   const report = await checkSnapshot(snapshot, definition, gateway);
   assert.equal(gateway.calls, 1);
   assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "not_applicable");
+});
+
+test("checkSnapshot records window coverage and lane ids from the definition", async () => {
+  const short = await reportOf("page-credibility-pass.json");
+  assert.deepEqual(short.inspection?.siteQuestionIds, SITE_QUESTION_IDS);
+  assert.deepEqual(short.inspection?.bodyQuestionIds, PAGE_QUESTION_IDS);
+  assert.equal(short.inspection?.windowCount, 1);
+  assert.equal(short.inspection?.covered, true);
+  assert.equal(short.inspection?.unreadRemainder, false);
+
+  const truncated = await reportOf("page-credibility-pass.json", { textTruncated: true });
+  assert.equal(truncated.inspection?.unreadRemainder, true);
+
+  const pass = loadReplay("page-credibility-pass.json");
+  const long = await checkSnapshot(
+    snapshotOf("page-credibility-pass.json", { text: twoWindowText(pass.state.text) }),
+    definition,
+    replayGateway(pass.answers, pass.usage),
+  );
+  assert.ok((long.inspection?.windowCount ?? 0) > 1);
+  assert.equal(long.inspection?.unreadRemainder, false);
+  assert.equal(long.inspection?.covered, true);
 });

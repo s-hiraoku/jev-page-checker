@@ -1,18 +1,4 @@
-import type { ItemResult, Verdict } from "./checkkit.js";
-
-export const SITE_QUESTION_IDS = [
-  "identifiable_publisher",
-  "honest_identity",
-  "site_purpose",
-  "disclosed_incentives",
-] as const;
-export const PAGE_QUESTION_IDS = [
-  "evidence_for_claims",
-  "separates_fact_and_opinion",
-  "unsourced_specifics",
-  "self_consistent",
-  "certainty_matches_evidence",
-] as const;
+import type { ApplyWhen, ItemResult, ReportInspection, Verdict } from "./checkkit.js";
 
 const RANK: Record<Verdict, number> = {
   fail: 4,
@@ -21,6 +7,19 @@ const RANK: Record<Verdict, number> = {
   pass: 1,
   not_applicable: 0,
 };
+
+/** Body questions are those the definition gates on a single piece of writing. */
+export function isBodyQuestion(applyWhen: ApplyWhen | undefined): boolean {
+  return applyWhen !== undefined && applyWhen.op === "equals" && applyWhen.path === "hasArticle" && applyWhen.value === true;
+}
+
+export function bodyQuestionIds(questions: readonly { id: string; applyWhen?: ApplyWhen }[]): string[] {
+  return questions.filter((question) => isBodyQuestion(question.applyWhen)).map((question) => question.id);
+}
+
+export function siteQuestionIds(questions: readonly { id: string; applyWhen?: ApplyWhen }[]): string[] {
+  return questions.filter((question) => !isBodyQuestion(question.applyWhen)).map((question) => question.id);
+}
 
 export function worseVerdict(left: Verdict, right: Verdict): Verdict {
   return RANK[left] >= RANK[right] ? left : right;
@@ -35,23 +34,39 @@ export function worstVerdict(items: readonly { id: string; verdict: Verdict }[],
   return worst;
 }
 
-const PAGE_QUESTION_ID_SET: ReadonlySet<string> = new Set(PAGE_QUESTION_IDS);
-
-export function isPageQuestionId(id: string): boolean {
-  return PAGE_QUESTION_ID_SET.has(id);
+export function bodySendKind(inspection: ReportInspection | undefined): "unread" | "chunked" | "whole" {
+  if (inspection === undefined) return "whole";
+  if (inspection.unreadRemainder) return "unread";
+  if (inspection.windowCount > 1) return "chunked";
+  return "whole";
 }
 
 /** Prefix truncation is unread remainder. Body pass is not a completed inspection. */
-export function withholdBodyPassOnTruncation(items: readonly ItemResult[], truncated: boolean): ItemResult[] {
+export function withholdBodyPassOnTruncation(
+  items: readonly ItemResult[],
+  truncated: boolean,
+  bodyIds: readonly string[],
+): ItemResult[] {
   if (!truncated) return [...items];
+  const body = new Set(bodyIds);
   return items.map((item) => {
-    if (item.verdict !== "pass" || !PAGE_QUESTION_ID_SET.has(item.id)) return item;
+    if (item.verdict !== "pass" || !body.has(item.id)) return item;
     return {
       ...item,
       verdict: "review",
       reason: `extracted text was cut at the character limit; unread remainder cannot support pass (${item.reason})`,
     };
   });
+}
+
+/** A synthesis round that errors has not read the cross-window remainder. */
+export function softenSynthesisErrors(items: readonly ItemResult[], bodyIds: readonly string[]): ItemResult[] {
+  const body = new Set(bodyIds);
+  return items.map((item) =>
+    item.verdict === "error" && body.has(item.id)
+      ? { ...item, verdict: "review", reason: `synthesis error; unread cross-window remainder cannot support pass (${item.reason})` }
+      : item,
+  );
 }
 
 /** Later pass must not hide fail or review from another window. */

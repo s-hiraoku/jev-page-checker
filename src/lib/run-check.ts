@@ -12,12 +12,14 @@ import {
   type JevAnswer,
   type JevGateway,
 } from "./checkkit.js";
-import { isPageQuestionId, mergeConservativeItem, PAGE_QUESTION_IDS, withholdBodyPassOnTruncation } from "./groups.js";
+import {
+  bodyQuestionIds,
+  mergeConservativeItem,
+  siteQuestionIds,
+  softenSynthesisErrors,
+  withholdBodyPassOnTruncation,
+} from "./groups.js";
 import { snapshotToState, type PageSnapshot } from "./page-state.js";
-
-export function loadDefinition(raw: unknown) {
-  return parseDefinition(raw);
-}
 
 export function createLiveJev(apiKey: string): JevGateway {
   return liveGateway(
@@ -39,9 +41,9 @@ function withQuestions(definition: ApprovedDefinition, ids: readonly string[]): 
   return { ...definition, questions: definition.questions.filter((question) => ids.includes(question.id)) };
 }
 
-function findingLine(windowIndex: number, items: readonly ItemResult[]): string {
+function findingLine(windowIndex: number, items: readonly ItemResult[], bodyIds: ReadonlySet<string>): string {
   const body = items
-    .filter((item) => isPageQuestionId(item.id))
+    .filter((item) => bodyIds.has(item.id))
     .map((item) => `${item.id}=${item.verdict}${answerNote(item.answer)}`)
     .join("; ");
   return `Window ${windowIndex + 1}: ${body}`;
@@ -52,14 +54,6 @@ function answerNote(answer: JevAnswer | undefined): string {
   if (answer.type === "noul") return ` noul ${answer.noul}`;
   if (answer.type === "choice") return ` choice ${answer.choice}`;
   return ` score ${answer.score}`;
-}
-
-function softenSynthesisErrors(items: readonly ItemResult[]): ItemResult[] {
-  return items.map((item) =>
-    item.verdict === "error"
-      ? { ...item, verdict: "review", reason: `synthesis error; unread cross-window remainder cannot support pass (${item.reason})` }
-      : item,
-  );
 }
 
 function mergeReports(definition: ApprovedDefinition, rounds: readonly CheckReport[]): CheckReport {
@@ -78,42 +72,52 @@ function mergeReports(definition: ApprovedDefinition, rounds: readonly CheckRepo
   };
 }
 
-function stateFor(snapshot: PageSnapshot, text: string, extras: Record<string, EntryType> = {}): EntryType {
-  return Object.assign({}, snapshotToState({ ...snapshot, text }), extras);
+function stateForWindow(snapshot: PageSnapshot, text: string): EntryType {
+  return snapshotToState({ ...snapshot, text });
+}
+
+function stateForSynthesis(snapshot: PageSnapshot, packed: string, findings: readonly string[]): EntryType {
+  return {
+    ...snapshotToState({ ...snapshot, text: packed }),
+    inspection: "whole-article synthesis from overlapping windows",
+    chunkFindings: [...findings],
+  };
 }
 
 export async function checkSnapshot(snapshot: PageSnapshot, definitionRaw: unknown, jev: JevGateway): Promise<CheckReport> {
-  const definition = loadDefinition(definitionRaw);
+  const definition = parseDefinition(definitionRaw);
+  const siteIds = siteQuestionIds(definition.questions);
+  const bodyIds = bodyQuestionIds(definition.questions);
+  const bodyIdSet = new Set(bodyIds);
   const split = snapshot.hasArticle
     ? splitOverlappingChunks(snapshot.text)
     : { windows: [{ text: snapshot.text, start: 0, end: snapshot.text.length }], covered: true };
-  const first = await evaluate(definition, stateFor(snapshot, split.windows[0]?.text ?? ""), jev);
+  const first = await evaluate(definition, stateForWindow(snapshot, split.windows[0]?.text ?? ""), jev);
   const extraWindows = snapshot.hasArticle ? split.windows.slice(1) : [];
-  const bodyDefinition = withQuestions(definition, PAGE_QUESTION_IDS);
+  const bodyDefinition = withQuestions(definition, bodyIds);
   const extras =
     extraWindows.length === 0
       ? []
-      : await Promise.all(extraWindows.map((window) => evaluate(bodyDefinition, stateFor(snapshot, window.text), jev)));
+      : await Promise.all(extraWindows.map((window) => evaluate(bodyDefinition, stateForWindow(snapshot, window.text), jev)));
   const windowReports = [first, ...extras];
   let rounds = windowReports;
   if (snapshot.hasArticle && split.windows.length > 1) {
-    const packed = packSynthesisText(
-      snapshot.text,
-      split.windows,
-      windowReports.map((report, index) => findingLine(index, report.items)),
-      bodyTokenBudget(),
-    );
-    const synthesis = await evaluate(
-      bodyDefinition,
-      stateFor(snapshot, packed, {
-        inspection: "whole-article synthesis from overlapping windows",
-        chunkFindings: windowReports.map((report, index) => findingLine(index, report.items)),
-      }),
-      jev,
-    );
-    rounds = [...windowReports, { ...synthesis, items: softenSynthesisErrors(synthesis.items) }];
+    const findings = windowReports.map((report, index) => findingLine(index, report.items, bodyIdSet));
+    const packed = packSynthesisText(snapshot.text, split.windows, findings, bodyTokenBudget());
+    const synthesis = await evaluate(bodyDefinition, stateForSynthesis(snapshot, packed, findings), jev);
+    rounds = [...windowReports, { ...synthesis, items: softenSynthesisErrors(synthesis.items, bodyIds) }];
   }
   const merged = mergeReports(definition, rounds);
   const unread = snapshot.textTruncated === true || (snapshot.hasArticle && !split.covered);
-  return { ...merged, items: withholdBodyPassOnTruncation(merged.items, unread) };
+  return {
+    ...merged,
+    items: withholdBodyPassOnTruncation(merged.items, unread, bodyIds),
+    inspection: {
+      windowCount: split.windows.length,
+      covered: split.covered,
+      unreadRemainder: unread,
+      siteQuestionIds: siteIds,
+      bodyQuestionIds: bodyIds,
+    },
+  };
 }
