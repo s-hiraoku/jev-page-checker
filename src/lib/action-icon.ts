@@ -140,23 +140,34 @@ export function createIconImageData(size: number, site: LaneTone, page: LaneTone
   return image;
 }
 
-export async function applyActionIcon(tabId: number, view: SessionView): Promise<void> {
+function iconImageData(view: SessionView): Record<number, ImageData> {
   const model = actionIconModel(view);
   const imageData: Record<number, ImageData> = {};
   for (const size of [16, 32]) {
     imageData[size] = createIconImageData(size, model.site, model.page);
   }
-  // The toolbar button is the resident icon. Set it globally so Chrome actually
-  // replaces the packed default, then pin the same stamp to the tab.
-  await chrome.action.setIcon({ imageData });
-  await chrome.action.setTitle({ title: model.title });
-  await chrome.action.setBadgeText({ text: model.badge });
-  await chrome.action.setBadgeBackgroundColor({ color: model.badgeColor });
+  return imageData;
+}
+
+async function paintAction(details: { tabId?: number }, view: SessionView): Promise<void> {
+  const model = actionIconModel(view);
+  const imageData = iconImageData(view);
+  const tabId = details.tabId;
+  await chrome.action.setIcon(tabId === undefined ? { imageData } : { tabId, imageData });
+  await chrome.action.setTitle(tabId === undefined ? { title: model.title } : { tabId, title: model.title });
+  await chrome.action.setBadgeText(tabId === undefined ? { text: model.badge } : { tabId, text: model.badge });
+  await chrome.action.setBadgeBackgroundColor(
+    tabId === undefined ? { color: model.badgeColor } : { tabId, color: model.badgeColor },
+  );
+}
+
+export async function applyDefaultActionIcon(view: SessionView): Promise<void> {
+  await paintAction({}, view);
+}
+
+export async function applyActionIcon(tabId: number, view: SessionView): Promise<void> {
   try {
-    await chrome.action.setIcon({ tabId, imageData });
-    await chrome.action.setTitle({ tabId, title: model.title });
-    await chrome.action.setBadgeText({ tabId, text: model.badge });
-    await chrome.action.setBadgeBackgroundColor({ tabId, color: model.badgeColor });
+    await paintAction({ tabId }, view);
   } catch {
     return;
   }

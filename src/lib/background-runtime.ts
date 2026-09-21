@@ -1,5 +1,5 @@
 import { TypeSafeError } from "@typesafe-ai/sdk";
-import { applyActionIcon } from "./action-icon.js";
+import { applyActionIcon, applyDefaultActionIcon } from "./action-icon.js";
 import { parseDefinition, type ApprovedDefinition } from "./checkkit.js";
 import { unknownErrorMessage } from "./errors.js";
 import { isInspectableUrl, snapshotFingerprint, type PageSnapshot } from "./page-state.js";
@@ -7,6 +7,7 @@ import { checkSnapshot, createLiveJev } from "./run-check.js";
 import { DEFAULT_SETTINGS, parseSettings, setupGap, type ExtensionSettings } from "./settings.js";
 import type { ClientMessage, ExtractMessage } from "./messages.js";
 import { buildSessionPayload, type SessionPayload, type StoredRecord, type TabSession } from "./session.js";
+import { activeTabQuery, isWindowActiveTab, TabDebouncer } from "./window-session.js";
 
 const SETTINGS_KEY = "settings";
 const HISTORY_KEY = "history";
@@ -14,8 +15,8 @@ const HISTORY_LIMIT = 30;
 
 const tabs = new Map<number, TabSession>();
 const inflight = new Map<number, string>();
-let debounceTimer: ReturnType<typeof setTimeout> | undefined;
-let debounceTabId: number | undefined;
+const debounce = new TabDebouncer();
+let historyChain: Promise<void> = Promise.resolve();
 
 async function readSettings(): Promise<ExtensionSettings> {
   const stored = await chrome.storage.local.get(SETTINGS_KEY);
@@ -35,15 +36,36 @@ async function writeHistory(history: StoredRecord[]): Promise<void> {
   await chrome.storage.local.set({ [HISTORY_KEY]: history.slice(0, HISTORY_LIMIT) });
 }
 
+function appendHistory(record: StoredRecord): Promise<void> {
+  const next = historyChain.then(async () => {
+    const history = await readHistory();
+    await writeHistory([record, ...history.filter((item) => item.id !== record.id)]);
+  });
+  historyChain = next.then(
+    () => undefined,
+    () => undefined,
+  );
+  return next;
+}
+
 async function payload(definition: ApprovedDefinition, tabId: number | undefined): Promise<SessionPayload> {
   const settings = await readSettings();
   const history = await readHistory();
   return buildSessionPayload(definition, settings, history, tabId === undefined ? undefined : tabs.get(tabId));
 }
 
-async function activeTabId(): Promise<number | undefined> {
-  const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+async function tabIdInWindow(windowId?: number): Promise<number | undefined> {
+  const [tab] = await chrome.tabs.query(activeTabQuery(windowId));
   return tab?.id;
+}
+
+async function targetTabId(windowId: number | undefined, senderTabId: number | undefined): Promise<number | undefined> {
+  if (windowId !== undefined) {
+    const id = await tabIdInWindow(windowId);
+    if (id !== undefined) return id;
+  }
+  if (senderTabId !== undefined) return senderTabId;
+  return tabIdInWindow();
 }
 
 async function paint(definition: ApprovedDefinition, tabId: number | undefined): Promise<SessionPayload> {
@@ -58,22 +80,32 @@ async function paint(definition: ApprovedDefinition, tabId: number | undefined):
   return next;
 }
 
-async function notifyUi(session: SessionPayload): Promise<void> {
+async function notifyUi(session: SessionPayload | undefined, windowId?: number): Promise<void> {
   try {
-    await chrome.runtime.sendMessage({ type: "SESSION_UPDATED", session });
+    await chrome.runtime.sendMessage({ type: "SESSION_UPDATED", session, windowId });
   } catch {
     return;
   }
 }
 
-async function publish(definition: ApprovedDefinition, checkedTabId?: number): Promise<SessionPayload> {
-  const activeId = await activeTabId();
-  if (checkedTabId !== undefined && checkedTabId !== activeId) {
-    await paint(definition, checkedTabId);
-  }
-  const session = await paint(definition, activeId);
-  await notifyUi(session);
+async function publishForTab(definition: ApprovedDefinition, tabId: number): Promise<SessionPayload> {
+  const session = await paint(definition, tabId);
+  const tab = await chrome.tabs.get(tabId).catch(() => undefined);
+  if (tab?.windowId === undefined) return session;
+  const activeId = await tabIdInWindow(tab.windowId);
+  if (isWindowActiveTab(tabId, activeId)) await notifyUi(session, tab.windowId);
   return session;
+}
+
+async function paintActiveTabs(definition: ApprovedDefinition): Promise<void> {
+  const windows = await chrome.windows.getAll();
+  await Promise.all(
+    windows.map(async (win) => {
+      if (win.id === undefined) return;
+      const id = await tabIdInWindow(win.id);
+      if (id !== undefined) await paint(definition, id);
+    }),
+  );
 }
 
 async function extractTab(tabId: number, settings: ExtensionSettings): Promise<PageSnapshot> {
@@ -100,14 +132,14 @@ function errorMessage(error: unknown): string {
 async function checkTab(definition: ApprovedDefinition, tabId: number, force: boolean): Promise<void> {
   const settings = await readSettings();
   if (setupGap(settings, definition.version) !== null) {
-    await publish(definition, tabId);
+    await publishForTab(definition, tabId);
     return;
   }
   const tab = await chrome.tabs.get(tabId);
   const url = tab.url ?? "";
   if (!isInspectableUrl(url)) {
     tabs.set(tabId, { status: "unsupported", url });
-    await publish(definition, tabId);
+    await publishForTab(definition, tabId);
     return;
   }
   let snapshot: PageSnapshot;
@@ -115,7 +147,7 @@ async function checkTab(definition: ApprovedDefinition, tabId: number, force: bo
     snapshot = await extractTab(tabId, settings);
   } catch (error) {
     tabs.set(tabId, { status: "error", message: errorMessage(error) });
-    await publish(definition, tabId);
+    await publishForTab(definition, tabId);
     return;
   }
   const fingerprint = snapshotFingerprint(snapshot);
@@ -124,7 +156,7 @@ async function checkTab(definition: ApprovedDefinition, tabId: number, force: bo
   if (inflight.get(tabId) === fingerprint) return;
   inflight.set(tabId, fingerprint);
   tabs.set(tabId, { status: "checking", snapshot, fingerprint });
-  await publish(definition, tabId);
+  await publishForTab(definition, tabId);
   try {
     const report = await checkSnapshot(snapshot, definition, createLiveJev(settings.apiKey.trim()));
     const record: StoredRecord = {
@@ -135,39 +167,38 @@ async function checkTab(definition: ApprovedDefinition, tabId: number, force: bo
       createdAt: new Date().toISOString(),
     };
     tabs.set(tabId, { status: "ready", record, fingerprint });
-    const history = await readHistory();
-    await writeHistory([record, ...history.filter((item) => item.id !== record.id)]);
+    await appendHistory(record);
   } catch (error) {
     tabs.set(tabId, { status: "error", message: errorMessage(error), snapshot, fingerprint });
   } finally {
     if (inflight.get(tabId) === fingerprint) inflight.delete(tabId);
   }
-  await publish(definition, tabId);
+  await publishForTab(definition, tabId);
 }
 
 function schedule(definition: ApprovedDefinition, tabId: number, debounceMs: number): void {
-  debounceTabId = tabId;
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => {
-    if (debounceTabId !== undefined) void checkTab(definition, debounceTabId, false);
-  }, debounceMs);
+  debounce.schedule(tabId, debounceMs, (id) => {
+    void checkTab(definition, id, false);
+  });
 }
 
 export function startBackground(definitionRaw: unknown): void {
   const definition = parseDefinition(definitionRaw);
   void chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
-  void activeTabId().then((tabId) => paint(definition, tabId));
+  void applyDefaultActionIcon({ status: "idle", followTab: true }).catch(() => undefined);
+  void paintActiveTabs(definition);
 
   chrome.runtime.onInstalled.addListener(() => {
     void chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
+    void applyDefaultActionIcon({ status: "idle", followTab: true }).catch(() => undefined);
   });
 
-  chrome.tabs.onActivated.addListener(({ tabId }) => {
+  chrome.tabs.onActivated.addListener(({ tabId, windowId }) => {
     void (async () => {
       const settings = await readSettings();
-      await paint(definition, tabId);
+      const session = await paint(definition, tabId);
+      await notifyUi(session, windowId);
       if (settings.followTab) schedule(definition, tabId, settings.debounceMs);
-      else await notifyUi(await paint(definition, tabId));
     })();
   });
 
@@ -182,35 +213,39 @@ export function startBackground(definitionRaw: unknown): void {
   chrome.tabs.onRemoved.addListener((tabId) => {
     tabs.delete(tabId);
     inflight.delete(tabId);
+    debounce.cancel(tabId);
   });
 
   chrome.runtime.onMessage.addListener((message: ClientMessage, sender, sendResponse) => {
-    const tabId = sender.tab?.id;
+    const senderTabId = sender.tab?.id;
+    const windowId = "windowId" in message ? message.windowId : undefined;
     void (async () => {
       try {
         if (message.type === "GET_SESSION") {
-          sendResponse(await paint(definition, (await activeTabId()) ?? tabId));
+          sendResponse(await paint(definition, await targetTabId(windowId, senderTabId)));
           return;
         }
         if (message.type === "SAVE_SETTINGS") {
           const next = parseSettings(message.settings);
           const previous = await readSettings();
           await writeSettings({ ...DEFAULT_SETTINGS, ...previous, ...next, apiKey: next.apiKey, approver: next.approver });
-          sendResponse(await publish(definition));
+          sendResponse(await payload(definition, await targetTabId(windowId, senderTabId)));
+          await notifyUi(undefined);
           return;
         }
         if (message.type === "CHECK_NOW") {
-          const id = (await activeTabId()) ?? tabId;
+          const id = await targetTabId(windowId, senderTabId);
           if (id === undefined) throw new Error("対象のタブがありません。");
           await checkTab(definition, id, true);
           sendResponse(await payload(definition, id));
           return;
         }
         if (message.type === "OPEN_DETAILS") {
-          const current = await payload(definition, await activeTabId());
+          const idTab = await targetTabId(windowId, senderTabId);
+          const current = await payload(definition, idTab);
           const id = message.id ?? (current.view.status === "ready" ? current.view.record.id : undefined);
           const url = chrome.runtime.getURL(`/details.html${id ? `?id=${encodeURIComponent(id)}` : ""}`);
-          await chrome.tabs.create({ url });
+          await chrome.tabs.create(windowId === undefined ? { url } : { url, windowId });
           sendResponse({ ok: true });
           return;
         }
@@ -219,9 +254,9 @@ export function startBackground(definitionRaw: unknown): void {
           sendResponse({ ok: true });
           return;
         }
-        if (message.type === "PAGE_CHANGED" && tabId !== undefined) {
+        if (message.type === "PAGE_CHANGED" && senderTabId !== undefined) {
           const settings = await readSettings();
-          if (settings.followTab && settings.recheckOnChange) schedule(definition, tabId, settings.debounceMs);
+          if (settings.followTab && settings.recheckOnChange) schedule(definition, senderTabId, settings.debounceMs);
           sendResponse({ ok: true });
           return;
         }

@@ -20,8 +20,9 @@ export function useBridgeSession(bridge: Bridge) {
 
   useEffect(() => {
     void refresh();
-    return bridge.subscribe(() => {
-      void refresh();
+    return bridge.subscribe((next) => {
+      if (next) accept(next);
+      else void refresh();
     });
   }, [bridge, refresh]);
 
