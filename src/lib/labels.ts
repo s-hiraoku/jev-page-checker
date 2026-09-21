@@ -1,5 +1,9 @@
 import type { Check, Verdict } from "./checkkit.js";
 
+export const APP_NAME = "裏取り";
+export const APP_NAME_FULL = "Jev 裏取り";
+export const APP_MARK = "Jev";
+
 export const QUESTION_LABELS: Record<string, string> = {
   identifiable_publisher: "発行元が特定できる",
   honest_identity: "表示と実体の一致",

@@ -4,9 +4,9 @@ export default defineConfig({
   srcDir: "src",
   modules: ["@wxt-dev/module-react"],
   manifest: {
-    name: "Jev 信憑性チェッカー",
+    name: "Jev 裏取り",
     version: "0.0.1",
-    description: "表示中のページの発行元と本文を、承認済みの Jev チェックリストで検査する",
+    description: "いまの頁の発行元と本文を、承認済みの Jev チェックリストで裏取りする",
     homepage_url: "https://github.com/s-hiraoku/jev-page-checker",
     permissions: ["sidePanel", "storage", "tabs"],
     host_permissions: ["http://*/*", "https://*/*", "https://api.typesafe.ai/*"],
@@ -14,7 +14,7 @@ export default defineConfig({
       open_in_tab: true,
     },
     action: {
-      default_title: "このタブの信憑性を検査",
+      default_title: "このタブを裏取り",
       default_icon: {
         16: "icon-16.png",
         32: "icon-32.png",

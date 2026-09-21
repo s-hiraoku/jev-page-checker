@@ -1,23 +1,26 @@
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { PAGE_QUESTION_IDS, SITE_QUESTION_IDS, worstVerdict } from "../lib/groups.js";
 import { questionAxisLabel, questionLabel, VERDICT_LABELS } from "../lib/labels.js";
 import { polarPoint, radarAxes, type RadarAxis } from "../lib/radar-values.js";
 import type { ItemResult, Verdict } from "../lib/checkkit.js";
 
 const RINGS = [1 / 3, 2 / 3, 1];
-const GROW_MS = 800;
+const GROW_MS = 1100;
 
 function reducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-function easeInOut(t: number): number {
-  return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+/** Slow seed, then a readable rise so the shape change is obvious. */
+function readableEase(t: number): number {
+  if (t < 0.14) return (t / 0.14) * 0.1;
+  const u = (t - 0.14) / 0.86;
+  return 0.1 + 0.9 * (1 - (1 - u) * (1 - u));
 }
 
 function useGrow(durationMs: number): number {
   const [progress, setProgress] = useState(() => (reducedMotion() ? 1 : 0));
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (reducedMotion()) {
       setProgress(1);
       return;
@@ -27,7 +30,7 @@ function useGrow(durationMs: number): number {
     let frame = 0;
     const tick = (now: number) => {
       const t = Math.min(1, (now - started) / durationMs);
-      setProgress(easeInOut(t));
+      setProgress(readableEase(t));
       if (t < 1) frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
@@ -45,6 +48,18 @@ function pointsAttr(axes: readonly RadarAxis[], radius: number, valueOf: (axis: 
     .join(" ");
 }
 
+function perimeter(axes: readonly RadarAxis[], radius: number, valueOf: (axis: RadarAxis) => number): number {
+  const points = axes.map((axis, index) => polarPoint(index, axes.length, valueOf(axis), radius));
+  let length = 0;
+  for (let index = 0; index < points.length; index += 1) {
+    const from = points[index];
+    const to = points[(index + 1) % points.length];
+    if (from === undefined || to === undefined) continue;
+    length += Math.hypot(to.x - from.x, to.y - from.y);
+  }
+  return length;
+}
+
 function labelLayout(index: number, total: number, radius: number): { x: number; y: number; anchor: "start" | "middle" | "end" } {
   const point = polarPoint(index, total, 1, radius + 16);
   const unit = polarPoint(index, total, 1, 1);
@@ -60,7 +75,7 @@ function describeAxes(title: string, axes: readonly RadarAxis[]): string {
     const value = axis.value === null ? "対象外" : axis.value.toFixed(2);
     return `${axis.fullLabel} ${verdict} ${value}`;
   });
-  return `${title}の検査結果レーダー。${parts.join("。")}`;
+  return `${title}のレーダー。${parts.join("。")}`;
 }
 
 export function RadarChart({
@@ -83,13 +98,15 @@ export function RadarChart({
     return (
       <div className="radar-card">
         <h3>{title}</h3>
-        <p className="radar-empty">{title}の項目は対象外です</p>
+        <p className="radar-empty">{title}は対象外</p>
       </div>
     );
   }
 
+  const valueOf = (axis: RadarAxis) => (axis.value ?? 0) * grow;
   const grid = RINGS.map((ring) => pointsAttr(axes, radius, () => ring));
-  const plot = pointsAttr(axes, radius, (axis) => (axis.value ?? 0) * grow);
+  const plot = pointsAttr(axes, radius, valueOf);
+  const outline = Math.max(perimeter(axes, radius, valueOf), 1);
 
   return (
     <div className="radar-card">
@@ -111,9 +128,15 @@ export function RadarChart({
           })}
         </g>
         <g className="radar-plot">
-          <polygon className="radar-area" points={plot} />
+          <polygon className="radar-area" points={plot} style={{ opacity: 0.35 + 0.65 * grow }} />
+          <polygon
+            className="radar-outline"
+            points={plot}
+            pathLength={outline}
+            style={{ strokeDasharray: outline, strokeDashoffset: outline * (1 - grow) }}
+          />
           {axes.map((axis, index) => {
-            if (axis.value === null) return null;
+            if (axis.value === null || grow < 0.12) return null;
             const point = polarPoint(index, axes.length, axis.value * grow, radius);
             return <circle key={axis.id} className="radar-dot" cx={point.x} cy={point.y} r={compact ? 2.4 : 3} />;
           })}

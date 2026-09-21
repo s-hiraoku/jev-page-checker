@@ -6,9 +6,9 @@ import { SidePanelApp } from "../ui/SidePanelApp.js";
 import { createPreviewBridge } from "./mock.js";
 
 const SCENES = [
-  ["pass", "通過例"],
-  ["fail", "要警戒例"],
-  ["setup", "初期設定"],
+  ["pass", "通る頁"],
+  ["fail", "危ない頁"],
+  ["setup", "準備"],
 ] as const;
 
 function pageFromHash(): "side" | "options" | "details" {
@@ -63,8 +63,8 @@ export function PreviewApp() {
           </h1>
           <p style={{ maxWidth: 560, color: "#4b5563" }}>
             {scene === "fail"
-              ? "販売ページの例です。発行元も出典も無く、数字が本文の中で食い違っています。側面パネルはサイトと本文を分けて見ます。"
-              : "報道ページの例です。発行元、著者、検査メモへのリンクがあります。側面パネルは一つの点数にせず、質問ごとに判定します。"}
+              ? "販売ページの例。発行元も出典もなく、数字が食い違う。パネルはサイトと本文を分ける。"
+              : "報道ページの例。発行元と著者とメモへのリンクがある。点数は一つにしない。"}
           </p>
         </section>
         {panel}
@@ -83,13 +83,13 @@ export function PreviewApp() {
           </button>
         ))}
         <button className={page === "side" ? "btn" : "btn secondary"} type="button" onClick={() => { window.location.hash = "#side"; setPage("side"); }}>
-          側面パネル
+          パネル
         </button>
         <button className={page === "options" ? "btn" : "btn secondary"} type="button" onClick={() => { window.location.hash = "#options"; setPage("options"); }}>
           設定
         </button>
         <button className={page === "details" ? "btn" : "btn secondary"} type="button" onClick={() => { window.location.hash = "#details"; setPage("details"); }}>
-          詳細
+          記録
         </button>
       </nav>
       {panel}
