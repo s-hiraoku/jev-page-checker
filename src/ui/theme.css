@@ -8,8 +8,8 @@
   font-feature-settings: "kern" 1, "palt" 0;
   --font-body: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Yu Gothic", "Noto Sans CJK JP", "Noto Sans JP", "WenQuanYi Micro Hei", Meiryo, "Segoe UI", "SF Pro Text", sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", "Noto Sans Mono CJK JP", "WenQuanYi Micro Hei Mono", monospace;
-  --radius: 3px;
-  --radius-sm: 1px;
+  --radius: 12px;
+  --radius-sm: 8px;
 }
 
 :root,
@@ -27,13 +27,13 @@ html[data-theme="dark"] {
   --focus: #7a93c9;
   --btn: #e7eef4;
   --btn-ink: #12171d;
-  --pass: #6d9e74;
-  --pass-soft: #173022;
-  --review: #c4a05a;
-  --review-soft: #2f2814;
-  --fail: #c85a4e;
-  --fail-soft: #361816;
-  --error: #c88862;
+  --pass: #4fd6b0;
+  --pass-soft: #10352f;
+  --review: #f0a84a;
+  --review-soft: #3d2a0e;
+  --fail: #f25c6e;
+  --fail-soft: #3d1218;
+  --error: #e09060;
   --error-soft: #2f2018;
   --na: #84919e;
   --na-soft: #242b33;
@@ -56,13 +56,13 @@ html[data-theme="light"] {
   --focus: #3d5ea8;
   --btn: #18222c;
   --btn-ink: #eef2f6;
-  --pass: #2c6a46;
-  --pass-soft: #d4e6da;
-  --review: #8a5a12;
-  --review-soft: #efe4c8;
-  --fail: #a63d36;
-  --fail-soft: #f0d6d3;
-  --error: #9a4e28;
+  --pass: #0e9a7c;
+  --pass-soft: #c5f4e8;
+  --review: #c96a00;
+  --review-soft: #ffe3b0;
+  --fail: #d92d4a;
+  --fail-soft: #ffd2d6;
+  --error: #c45c28;
   --error-soft: #efe3d8;
   --na: #4a5664;
   --na-soft: #e1e6ec;
@@ -86,13 +86,13 @@ html[data-theme="light"] {
     --focus: #3d5ea8;
     --btn: #18222c;
     --btn-ink: #eef2f6;
-    --pass: #2c6a46;
-    --pass-soft: #d4e6da;
-    --review: #8a5a12;
-    --review-soft: #efe4c8;
-    --fail: #a63d36;
-    --fail-soft: #f0d6d3;
-    --error: #9a4e28;
+    --pass: #0e9a7c;
+    --pass-soft: #c5f4e8;
+    --review: #c96a00;
+    --review-soft: #ffe3b0;
+    --fail: #d92d4a;
+    --fail-soft: #ffd2d6;
+    --error: #c45c28;
     --error-soft: #efe3d8;
     --na: #4a5664;
     --na-soft: #e1e6ec;
@@ -268,7 +268,7 @@ a:hover {
   background: var(--input);
   border: 1px solid var(--line);
   border-left: 3px solid var(--line);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 8%, transparent);
 }
 
@@ -313,7 +313,7 @@ a:hover {
   min-width: 3.6em;
   padding: 1px 7px;
   border: 1px solid color-mix(in srgb, currentColor 52%, transparent);
-  background: color-mix(in srgb, currentColor 14%, var(--surface));
+  background: color-mix(in srgb, currentColor 20%, var(--surface));
   border-radius: var(--radius-sm);
   font-size: 12px;
   font-weight: 600;
