@@ -6,12 +6,11 @@ import { OptionsApp } from "../ui/OptionsApp.js";
 import { SidePanelApp } from "../ui/SidePanelApp.js";
 import { createPreviewBridge } from "./mock.js";
 
-const SCENES = [
+const FIXTURES = [
   ["pass", "Pass"],
   ["fail", "Fail"],
   ["truncated", "Truncated"],
   ["chunked", "Chunked"],
-  ["setup", "Setup"],
 ] as const;
 
 function pageFromHash(): "side" | "options" | "details" | "history" {
@@ -81,25 +80,32 @@ export function PreviewApp() {
 
   return (
     <div>
-      <nav className="preview-nav">
-        {SCENES.map(([id, label]) => (
-          <button key={id} className={scene === id ? "btn" : "btn secondary"} type="button" onClick={() => setScene(id)}>
-            {label}
+      <div className="preview-bar">
+        <nav className="preview-harness" aria-label="Preview fixtures">
+          {FIXTURES.map(([id, label]) => (
+            <button key={id} className={scene === id ? "btn" : "btn secondary"} type="button" onClick={() => setScene(id)}>
+              {label}
+            </button>
+          ))}
+        </nav>
+        <nav className="preview-chrome" aria-label="App views">
+          <button className={scene === "setup" ? "btn" : "btn secondary"} type="button" onClick={() => setScene("setup")}>
+            Setup
           </button>
-        ))}
-        <button className={page === "side" ? "btn" : "btn secondary"} type="button" onClick={() => { window.location.hash = "#side"; setPage("side"); }}>
-          Inspector
-        </button>
-        <button className={page === "options" ? "btn" : "btn secondary"} type="button" onClick={() => { window.location.hash = "#options"; setPage("options"); }}>
-          Settings
-        </button>
-        <button className={page === "details" ? "btn" : "btn secondary"} type="button" onClick={() => { window.location.hash = "#details"; setPage("details"); }}>
-          Report
-        </button>
-        <button className={page === "history" ? "btn" : "btn secondary"} type="button" onClick={() => { window.location.hash = "#history"; setPage("history"); }}>
-          History
-        </button>
-      </nav>
+          <button className={page === "side" ? "btn" : "btn secondary"} type="button" onClick={() => { window.location.hash = "#side"; setPage("side"); }}>
+            Inspector
+          </button>
+          <button className={page === "options" ? "btn" : "btn secondary"} type="button" onClick={() => { window.location.hash = "#options"; setPage("options"); }}>
+            Settings
+          </button>
+          <button className={page === "details" ? "btn" : "btn secondary"} type="button" onClick={() => { window.location.hash = "#details"; setPage("details"); }}>
+            Report
+          </button>
+          <button className={page === "history" ? "btn" : "btn secondary"} type="button" onClick={() => { window.location.hash = "#history"; setPage("history"); }}>
+            History
+          </button>
+        </nav>
+      </div>
       {panel}
     </div>
   );
