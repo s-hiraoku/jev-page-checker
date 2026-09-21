@@ -12,6 +12,18 @@ export const QUESTION_LABELS: Record<string, string> = {
   certainty_matches_evidence: "断定と根拠の釣り合い",
 };
 
+export const QUESTION_AXIS_LABELS: Record<string, string> = {
+  identifiable_publisher: "発行元",
+  honest_identity: "実体",
+  site_purpose: "目的",
+  disclosed_incentives: "利害",
+  evidence_for_claims: "根拠",
+  separates_fact_and_opinion: "事実/意見",
+  unsourced_specifics: "出典",
+  self_consistent: "一貫",
+  certainty_matches_evidence: "断定",
+};
+
 export const VERDICT_LABELS: Record<Verdict, string> = {
   pass: "通過",
   fail: "要警戒",
@@ -37,6 +49,10 @@ export const SPECIFIC_LABELS: Record<string, string> = {
 
 export function questionLabel(id: string): string {
   return QUESTION_LABELS[id] ?? id;
+}
+
+export function questionAxisLabel(id: string): string {
+  return QUESTION_AXIS_LABELS[id] ?? questionLabel(id);
 }
 
 export function choiceLabel(questionId: string, choice: string): string {
