@@ -173,18 +173,11 @@ a:hover {
 .app-mark {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   color: color-mix(in srgb, var(--header-ink) 62%, transparent);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
-}
-
-.app-mark::before {
-  content: "";
-  width: 2px;
-  height: 11px;
-  background: color-mix(in srgb, var(--header-ink) 72%, transparent);
 }
 
 .app-mark::after {
