@@ -191,16 +191,14 @@ a:hover {
   font-family: var(--font-display);
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.12em;
 }
 
 .app-title {
   font-family: var(--font-display);
   font-size: 22px;
   font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
   line-height: 1;
 }
 
@@ -209,8 +207,7 @@ a:hover {
   font-family: var(--font-display);
   font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
 }
 
@@ -240,8 +237,7 @@ a:hover {
   font-family: var(--font-display);
   font-size: 28px;
   font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
   line-height: 1.1;
 }
 
@@ -304,8 +300,7 @@ a:hover {
   font-family: var(--font-display);
   font-size: 28px;
   font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
   line-height: 0.95;
 }
@@ -330,8 +325,7 @@ a:hover {
   font-family: var(--font-display);
   font-size: 12px;
   font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   line-height: 1.35;
   text-align: center;
   font-variant-numeric: tabular-nums;
@@ -390,8 +384,7 @@ a:hover {
 
 .result-table thead th {
   font-family: var(--font-display);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0.06em;
   font-size: 12px;
 }
 
@@ -469,8 +462,7 @@ a:hover {
   font-family: var(--font-display);
   font-size: 14px;
   font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   border-radius: var(--radius);
 }
 
@@ -878,8 +870,7 @@ a:hover {
   font-family: var(--font-display);
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: #4a5a73;
 }
 
