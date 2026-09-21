@@ -5,6 +5,7 @@ import { DEFAULT_SETTINGS } from "../lib/settings.js";
 import type { StoredRecord } from "../lib/session.js";
 import { ItemList } from "./ItemList.js";
 import { Lane } from "./bits.js";
+import { ResultRadars } from "./RadarChart.js";
 
 export function ReportView({ record, compact = false }: { record: StoredRecord; compact?: boolean }) {
   const site = worstVerdict(record.report.items, SITE_QUESTION_IDS);
@@ -12,7 +13,7 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
   const windows = splitOverlappingChunks(record.snapshot.text, record.snapshot.textLimit ?? DEFAULT_SETTINGS.maxChars).windows;
   const chunked = record.snapshot.hasArticle && windows.length > 1 && !record.snapshot.textTruncated;
   return (
-    <div>
+    <div className="report">
       <div className="lanes">
         <Lane title="サイト" verdict={site} />
         <Lane title="本文" verdict={page} />
@@ -27,7 +28,8 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
           {TEXT_CHUNKED_NOTICE}（{windows.length} 窓）
         </p>
       ) : null}
-      <table className="meta-table" style={{ marginTop: 8 }}>
+      <ResultRadars key={record.id} items={record.report.items} compact={compact} />
+      <table className="meta-table">
         <tbody>
           <tr>
             <th>標題</th>

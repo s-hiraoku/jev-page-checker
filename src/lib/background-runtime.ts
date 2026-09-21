@@ -115,7 +115,7 @@ function errorMessage(error: unknown): string {
   if (error instanceof TypeSafeError) return "Jev への送信に失敗しました。キーとネットワークを確認してください。";
   if (error instanceof Error) {
     if (error.message.includes("Could not establish connection")) {
-      return "このページからは本文を取れません。再読み込みしてから検査してください。";
+      return "このページからは本文を取れません。再読み込みしてからもう一度。";
     }
     return error.message;
   }
@@ -234,7 +234,7 @@ export function startBackground(definitionRaw: unknown): void {
         }
         if (message.type === "CHECK_NOW") {
           const id = (await activeTabId()) ?? tabId;
-          if (id === undefined) throw new Error("検査するタブがありません。");
+          if (id === undefined) throw new Error("対象のタブがありません。");
           await checkTab(definitionRaw, id, true);
           sendResponse(await payload(definitionRaw, id));
           return;
