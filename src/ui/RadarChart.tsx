@@ -1,9 +1,36 @@
+import { useEffect, useState } from "react";
 import { PAGE_QUESTION_IDS, SITE_QUESTION_IDS, worstVerdict } from "../lib/groups.js";
 import { questionAxisLabel, questionLabel, VERDICT_LABELS } from "../lib/labels.js";
 import { polarPoint, radarAxes, type RadarAxis } from "../lib/radar-values.js";
 import type { ItemResult, Verdict } from "../lib/checkkit.js";
 
 const RINGS = [1 / 3, 2 / 3, 1];
+const GROW_MS = 640;
+
+function reducedMotion(): boolean {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function useGrow(durationMs: number): number {
+  const [progress, setProgress] = useState(() => (reducedMotion() ? 1 : 0));
+  useEffect(() => {
+    if (reducedMotion()) {
+      setProgress(1);
+      return;
+    }
+    setProgress(0);
+    const started = performance.now();
+    let frame = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - started) / durationMs);
+      setProgress(1 - (1 - t) ** 3);
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [durationMs]);
+  return progress;
+}
 
 function pointsAttr(axes: readonly RadarAxis[], radius: number, valueOf: (axis: RadarAxis) => number): string {
   return axes
@@ -46,6 +73,7 @@ export function RadarChart({
   const measured = axes.some((axis) => axis.value !== null);
   const radius = compact ? 52 : 78;
   const size = compact ? 200 : 260;
+  const grow = useGrow(GROW_MS);
 
   if (!measured) {
     return (
@@ -57,7 +85,7 @@ export function RadarChart({
   }
 
   const grid = RINGS.map((ring) => pointsAttr(axes, radius, () => ring));
-  const plot = pointsAttr(axes, radius, (axis) => axis.value ?? 0);
+  const plot = pointsAttr(axes, radius, (axis) => (axis.value ?? 0) * grow);
 
   return (
     <div className="radar-card">
@@ -82,7 +110,7 @@ export function RadarChart({
           <polygon className="radar-area" points={plot} />
           {axes.map((axis, index) => {
             if (axis.value === null) return null;
-            const point = polarPoint(index, axes.length, axis.value, radius);
+            const point = polarPoint(index, axes.length, axis.value * grow, radius);
             return <circle key={axis.id} className="radar-dot" cx={point.x} cy={point.y} r={compact ? 2.4 : 3} />;
           })}
         </g>
