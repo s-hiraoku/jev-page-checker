@@ -2,17 +2,19 @@ import { PAGE_QUESTION_IDS, SITE_QUESTION_IDS, worstVerdict } from "../lib/group
 import type { StoredRecord } from "../lib/session.js";
 import { ItemList } from "./ItemList.js";
 import { Lane } from "./bits.js";
+import { ResultRadars } from "./RadarChart.js";
 
 export function ReportView({ record, compact = false }: { record: StoredRecord; compact?: boolean }) {
   const site = worstVerdict(record.report.items, SITE_QUESTION_IDS);
   const page = worstVerdict(record.report.items, PAGE_QUESTION_IDS);
   return (
-    <div>
+    <div className="report">
       <div className="lanes">
         <Lane title="サイト" verdict={site} />
         <Lane title="本文" verdict={page} />
       </div>
-      <table className="meta-table" style={{ marginTop: 8 }}>
+      <ResultRadars key={record.id} items={record.report.items} compact={compact} />
+      <table className="meta-table">
         <tbody>
           <tr>
             <th>標題</th>

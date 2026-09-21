@@ -41,7 +41,7 @@ export function actionIconModel(view: SessionView): ActionIconModel {
       return {
         site: "idle",
         page: "idle",
-        title: view.followTab ? "タブを開くと検査します" : "まだ検査していません",
+        title: view.followTab ? "Follow tab" : "No audit yet",
         badge: "",
         badgeColor: "#345c8c",
       };
@@ -49,7 +49,7 @@ export function actionIconModel(view: SessionView): ActionIconModel {
       return {
         site: "checking",
         page: "checking",
-        title: "検査中…",
+        title: "Auditing…",
         badge: "…",
         badgeColor: "#246cb0",
       };
@@ -57,7 +57,7 @@ export function actionIconModel(view: SessionView): ActionIconModel {
       return {
         site: "unsupported",
         page: "unsupported",
-        title: "http(s) のページだけを検査します",
+        title: "http(s) のページだけ",
         badge: "",
         badgeColor: "#5a6a78",
       };
