@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Check } from "../lib/checkkit.js";
+import { unknownErrorMessage } from "../lib/errors.js";
 import type { ExtensionSettings } from "../lib/settings.js";
 import { ChecklistView } from "./ChecklistView.js";
 
@@ -28,7 +29,7 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
         setMessage(null);
         void onSave(draft)
           .then(() => setMessage("Saved."))
-          .catch((error: unknown) => setMessage(error instanceof Error ? error.message : String(error)))
+          .catch((error: unknown) => setMessage(unknownErrorMessage(error)))
           .finally(() => setBusy(false));
       }}
     >

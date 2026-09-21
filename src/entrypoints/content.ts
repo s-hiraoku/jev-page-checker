@@ -1,5 +1,7 @@
+import { unknownErrorMessage } from "../lib/errors.js";
 import { extractSnapshot } from "../lib/extract.js";
 import { snapshotFingerprint } from "../lib/page-state.js";
+import { isExtractMessage } from "../lib/messages.js";
 
 export default defineContentScript({
   matches: ["http://*/*", "https://*/*"],
@@ -7,20 +9,19 @@ export default defineContentScript({
   main() {
     let lastFingerprint = "";
     let timer: ReturnType<typeof setTimeout> | undefined;
-
     let lastMinWords = 40;
 
     const snapshotNow = (minWords: number) => extractSnapshot(document, location, minWords);
 
     chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-      if (message?.type !== "EXTRACT") return;
+      if (!isExtractMessage(message)) return;
       try {
         lastMinWords = message.minWords;
         const snapshot = snapshotNow(lastMinWords);
         lastFingerprint = snapshotFingerprint(snapshot);
         sendResponse(snapshot);
       } catch (error) {
-        sendResponse({ error: error instanceof Error ? error.message : String(error) });
+        sendResponse({ error: unknownErrorMessage(error) });
       }
       return true;
     });

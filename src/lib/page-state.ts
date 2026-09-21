@@ -31,29 +31,12 @@ export function snapshotFingerprint(snapshot: Pick<PageSnapshot, "url" | "text">
   return `${snapshot.url}\n${snapshot.text}`;
 }
 
-export function snapshotToState(snapshot: PageSnapshot): EntryType {
-  return {
-    url: snapshot.url,
-    hostname: snapshot.hostname,
-    protocol: snapshot.protocol,
-    title: snapshot.title,
-    metaDescription: snapshot.metaDescription,
-    author: snapshot.author,
-    publishedAt: snapshot.publishedAt,
-    siteName: snapshot.siteName,
-    language: snapshot.language,
-    isHttps: snapshot.isHttps,
-    hasAuthor: snapshot.hasAuthor,
-    hasPublishedAt: snapshot.hasPublishedAt,
-    hasBody: snapshot.hasBody,
-    hasArticle: snapshot.hasArticle,
-    pageKind: snapshot.pageKind,
-    linkCount: snapshot.linkCount,
-    wordCount: snapshot.wordCount,
-    citationCount: snapshot.citationCount,
-    outboundHosts: snapshot.outboundHosts,
-    text: snapshot.text,
-  };
+export function snapshotToState({
+  extractedAt: _extractedAt,
+  textTruncated: _textTruncated,
+  ...state
+}: PageSnapshot): EntryType {
+  return state;
 }
 
 export function isInspectableUrl(url: string): boolean {

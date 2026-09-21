@@ -1,5 +1,5 @@
 import type { Verdict } from "./checkkit.js";
-import { PAGE_QUESTION_IDS, SITE_QUESTION_IDS, worstVerdict } from "./groups.js";
+import { PAGE_QUESTION_IDS, SITE_QUESTION_IDS, worseVerdict, worstVerdict } from "./groups.js";
 import { VERDICT_LABELS } from "./labels.js";
 import type { SessionView } from "./session.js";
 
@@ -83,18 +83,8 @@ export function actionIconModel(view: SessionView): ActionIconModel {
   }
 }
 
-function worse(left: Verdict, right: Verdict): Verdict {
-  return worstVerdict(
-    [
-      { id: "a", verdict: left },
-      { id: "b", verdict: right },
-    ],
-    ["a", "b"],
-  );
-}
-
 function badgeFor(site: Verdict, page: Verdict): string {
-  switch (worse(site, page)) {
+  switch (worseVerdict(site, page)) {
     case "fail":
       return "!";
     case "error":
@@ -106,7 +96,7 @@ function badgeFor(site: Verdict, page: Verdict): string {
 }
 
 function badgeColorFor(site: Verdict, page: Verdict): string {
-  const tone = worse(site, page);
+  const tone = worseVerdict(site, page);
   const [r, g, b] = RGB[tone];
   return `#${[r, g, b].map((value) => value.toString(16).padStart(2, "0")).join("")}`;
 }
