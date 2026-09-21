@@ -4,4 +4,4 @@ node_modules/
 dist/
 .chrome-store-profile/
 __pycache__/
-
+.superdesign/
