@@ -6,6 +6,6 @@ import "../../ui/theme.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <SidePanelApp bridge={liveBridge()} />
+    <SidePanelApp bridge={liveBridge({ isolateWindow: true })} />
   </StrictMode>,
 );

@@ -1,6 +1,7 @@
 import type { ExtensionSettings } from "./settings.js";
-import type { ServerMessage } from "./messages.js";
+import { isSessionUpdated, type ServerMessage } from "./messages.js";
 import type { SessionPayload, StoredRecord } from "./session.js";
+import { sessionUpdateApplies } from "./window-session.js";
 
 export interface Bridge {
   getSession(): Promise<SessionPayload>;
@@ -8,12 +9,25 @@ export interface Bridge {
   checkNow(): Promise<SessionPayload>;
   openDetails(id?: string): Promise<void>;
   openOptions(): Promise<void>;
-  subscribe(onChange: () => void): () => void;
+  subscribe(onChange: (session?: SessionPayload) => void): () => void;
 }
 
-export function liveBridge(): Bridge {
+async function callerWindowId(): Promise<number | undefined> {
+  try {
+    const current = await chrome.windows.getCurrent();
+    return current.id;
+  } catch {
+    return undefined;
+  }
+}
+
+export function liveBridge(options?: { isolateWindow?: boolean }): Bridge {
+  const isolateWindow = options?.isolateWindow === true;
   const send = async <T>(message: object): Promise<T> => {
-    const reply = (await chrome.runtime.sendMessage(message)) as T | { error?: string };
+    const windowId = await callerWindowId();
+    const reply = (await chrome.runtime.sendMessage(
+      windowId === undefined ? message : { ...message, windowId },
+    )) as T | { error?: string };
     if (reply && typeof reply === "object" && "error" in reply && reply.error) throw new Error(reply.error);
     return reply as T;
   };
@@ -29,7 +43,11 @@ export function liveBridge(): Bridge {
     },
     subscribe: (onChange) => {
       const listener = (message: ServerMessage | { type?: string }) => {
-        if (message.type === "SESSION_UPDATED") onChange();
+        if (!isSessionUpdated(message)) return;
+        void callerWindowId().then((viewerWindowId) => {
+          if (!sessionUpdateApplies(message.windowId, viewerWindowId, isolateWindow)) return;
+          onChange(message.session);
+        });
       };
       chrome.runtime.onMessage.addListener(listener);
       return () => chrome.runtime.onMessage.removeListener(listener);
