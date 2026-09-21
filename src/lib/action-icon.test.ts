@@ -33,7 +33,7 @@ test("a ready report puts site on the title first and page second", () => {
   const model = actionIconModel(ready("review", "fail"));
   assert.equal(model.site, "review");
   assert.equal(model.page, "fail");
-  assert.equal(model.title, "サイト: Review / 本文: Alert");
+  assert.equal(model.title, "サイト Review、本文 Alert");
   assert.equal(model.badge, "!");
 });
 

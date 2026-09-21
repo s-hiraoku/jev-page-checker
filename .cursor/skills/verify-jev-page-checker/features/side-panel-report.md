@@ -23,11 +23,11 @@ Preconditions:
 - Preview is healthy at `http://127.0.0.1:4174`.
 - `control-jev doctor` reports `ok: true` for this run.
 
-- **Pass URL.** Open the sourced-news panel. Run `control-jev browser goto --path "/?scene=pass#side"`. The header reads `Audit` (with mark `Jev`) and `v5`. Lanes `サイト` and `本文` both show `Pass`. The table title is `City delays river bridge opening after inspection, officials say`. Group heads `サイト` and `本文` split the question lists. Each question row includes a rubric basis such as `identifiable as responsible`. The publisher row cites `Mina Ito · Example News`.
-- **Pass questions.** Assert question labels. Run `control-jev browser text --contains "発行元が特定できる"` and `control-jev browser text --contains "なりすましではない"` and `control-jev browser text --contains "主張の根拠"` and `control-jev browser text --contains "Mina Ito · Example News"` and `control-jev browser text --contains "identifiable as responsible"`. All appear in the grouped result tables.
+- **Pass URL.** Open the sourced-news panel. Run `control-jev browser goto --path "/?scene=pass#side"`. The header reads `Audit` (with mark `Jev`) and `v5`. Lanes `サイト` and `本文` both show `Pass`. The table title is `City delays river bridge opening after inspection, officials say`. Group heads `サイト` and `本文` split the question lists. Each question row includes a Japanese rubric basis such as `責任者として分かる`. The publisher row cites `Mina Ito · Example News`. Fact rows are on this panel too: `語数` `210 語`, `公開日` `2026-09-18`, `ページの形` `記事`. The `処理` row is absent.
+- **Pass questions.** Assert question labels. Run `control-jev browser text --contains "発行元が特定できる"` and `control-jev browser text --contains "なりすましではない"` and `control-jev browser text --contains "主張の根拠"` and `control-jev browser text --contains "Mina Ito · Example News"` and `control-jev browser text --contains "責任者として分かる"`. All appear in the grouped result tables. Do not assert `identifiable as responsible` on this default screen.
 - **Fail URL.** Open the sales-page panel. Run `control-jev browser goto --path "/?scene=fail#side"`. Both lanes show `Alert`. The title is `Doctors hate this: one pill reverses aging in 11 days`. The URL cell contains `http://deal-today.example/miracle-cure`.
 - **Scene buttons.** From the fail panel, choose `Pass`. Run `control-jev browser click --name "Pass"`. The title returns to the city-bridge story and both lanes read `Pass`.
-- **Toolbar.** On the ready panel, the buttons `Audit`, `Report`, `History`, and `Settings` are present. Run `control-jev browser text --contains "Audit"`. There is no lede about splitting lanes and no Follow tab footer.
+- **Toolbar.** On the ready panel, the buttons `Audit`, `Report`, `History`, and `Settings` are present. Run `control-jev browser text --contains "Audit"`. There is no lede about splitting lanes and no footer about following the tab.
 - **Proof.** Stay on the pass panel. Run `control-jev browser goto --path "/?scene=pass#side"`, `control-jev browser screenshot --path .cursor/skills/verify-jev-page-checker/artifacts/side-panel-report/pass-side.png`, and `control-jev browser snapshot --path .cursor/skills/verify-jev-page-checker/artifacts/side-panel-report/pass-side.aria.txt`. Both artifacts show the app name, both Pass lanes, and the bridge title.
 
 ## Gotchas
@@ -36,3 +36,4 @@ Preconditions:
 - Scene buttons change React state and do not write `?scene=` into the URL. After using them, assert visible title and lanes, not `browser url`.
 - Hash `#side` is the default. A leftover `#options` from the previous recipe will hide the panel until you goto `#side`.
 - Do not treat lane `Pass` as a live-site endorsement. This scene is `fixtures/replay/page-credibility-pass.json`.
+- Default preview language is Japanese. English basis text such as `identifiable as responsible` appears only after `言語` is English. A later `goto` that changes `scene` remounts the page and returns the language to Japanese.

@@ -24,32 +24,42 @@
     </style>
   </head>
   <body>
-    <p>最終更新: 2026-09-21</p>
+    <p>最終更新: 2026-09-22</p>
     <h1>プライバシーポリシー</h1>
     <p>「Jev Audit」は、表示中のウェブページの発行元と本文を、利用者が承認したチェックリストで見る Chrome 拡張です。運営者は <a href="https://github.com/s-hiraoku/jev-page-checker">s-hiraoku / jev-page-checker</a> です。</p>
 
     <h2>収集する情報</h2>
     <ul>
       <li>利用者が Settings に保存する TypeSafe API キー。</li>
-      <li>対象タブの URL、タイトル、メタ情報、本文、外部リンクのホスト。</li>
+      <li>対象タブの URL、タイトル、メタ情報、本文、外部リンクのホスト名。</li>
       <li>結果（判定、理由、使用量、時刻）。</li>
     </ul>
     <p>アカウント登録、広告識別子、位置情報、支払い情報は扱いません。</p>
 
     <h2>利用目的</h2>
-    <p>収集した情報は、表示中ページを Jev で Audit し、Inspector、Report、History に結果を出すためだけに使います。ページの遮断、広告、再販売、プロファイリングには使いません。</p>
+    <p>集めた情報は、表示中のページを Jev で Audit し、Inspector、Report、History に結果を出すためだけに使います。ページの遮断、広告、再販売、プロファイリングには使いません。</p>
 
     <h2>共有先</h2>
-    <p>利用者が Audit を実行したとき、本文とメタ情報を含む <code>state</code> を TypeSafe AI（<a href="https://api.typesafe.ai">https://api.typesafe.ai</a>）へ送ります。送信は利用者が保存した API キーで認証します。キーや本文を、この拡張の開発者サーバーへ送ることはありません。レポートの結果をもとに、公開・送信・遮断を自動では行いません。</p>
-    <p>TypeSafe 側の取り扱いは TypeSafe の契約とプライバシー方針に従います。</p>
+    <p>利用者が Audit を実行したとき、本文とメタ情報を含む <code>state</code> を TypeSafe AI（<a href="https://api.typesafe.ai">https://api.typesafe.ai</a>）へ送ります。長い本文は、同じ API へ複数回に分けて送ることがあります。送信は、利用者が保存した API キーで認証します。キーも本文も、この拡張の開発者のサーバーへは送りません。判定を理由に、公開、送信、遮断を自動で行うことはありません。Report の「この端末にファイルで残す」は、この端末への保存だけです。そのファイルはアップロードしません。</p>
+    <p>TypeSafe 側の取り扱いは、TypeSafe の契約とプライバシー方針に従います。</p>
 
     <h2>保存場所と期間</h2>
-    <p>API キー、承認記録、History は Chrome の <code>storage.local</code> に保存します。拡張を削除するか、利用者が保存内容を消すまで残ります。ログにキーは出しません。</p>
+    <p>API キー、承認記録、History は Chrome の <code>storage.local</code> に保存します。拡張を削除するか、利用者が保存内容を消すまで残ります。History の 1 件は、利用者がその記録を消したときに消えます。ログにキーは出しません。端末に残したレポートのファイルは、ブラウザのダウンロード先に残ります。拡張を削除しても、そのファイルは消えません。</p>
 
     <h2>利用者の選択</h2>
-    <p>チェックリスト全体を承認し、API キーを保存するまで Audit は走りません。Follow tab をオフにすれば、手動だけになります。拡張を削除すると、端末上の保存データは消えます。</p>
+    <p>チェックリスト全体を承認し、API キーを保存するまで Audit は始まりません。「タブに追従する」をオフにすると、必要なときだけ手動で Audit します。拡張を削除すると、端末上の拡張の保存データは消えます。</p>
 
     <h2>問い合わせ</h2>
     <p>質問は <a href="https://github.com/s-hiraoku/jev-page-checker/issues">GitHub Issues</a> へ送ってください。</p>
+
+    <h2 lang="en">Privacy policy</h2>
+    <p lang="en">Last updated: 2026-09-22. Jev Audit is a Chrome extension that checks the publisher and the body of the page you are viewing, using a checklist you have accepted. The operator is <a href="https://github.com/s-hiraoku/jev-page-checker">s-hiraoku / jev-page-checker</a>.</p>
+    <p lang="en">The extension stores the TypeSafe API key you save in Settings, the URL, title, metadata, body, and outbound host names of the tab being checked, and the result (verdict, reason, usage, and time). It does not handle account signup, advertising identifiers, location, or payment details.</p>
+    <p lang="en">That information is used only to audit the open page with Jev and to show the result in Inspector, Report, and History. It is not used to block pages, show ads, resell data, or build a profile.</p>
+    <p lang="en">When you run Audit, the extension sends a <code>state</code> that includes the body and metadata to TypeSafe AI (<a href="https://api.typesafe.ai">https://api.typesafe.ai</a>). A long body may be sent to that same API in more than one request. The call is authenticated with the API key you saved. The key and the body are not sent to a server run by the extension's developer. A verdict does not publish, forward, or block the page. "Save a file on this device" writes a file on this device. The extension does not upload that file.</p>
+    <p lang="en">TypeSafe's handling of the request follows TypeSafe's terms and privacy policy.</p>
+    <p lang="en">The API key, the checklist acceptance, and History stay in Chrome <code>storage.local</code> until you remove the extension or clear what you saved. Deleting one History record removes that record. The key is not written to logs. A report file you saved stays in the browser's download location. Removing the extension does not delete that file.</p>
+    <p lang="en">Audit does not start until you accept the whole checklist and save an API key. Turn off "Follow the tab" to run Audit only when you ask. Removing the extension deletes the data it stored on the device.</p>
+    <p lang="en">Questions: <a href="https://github.com/s-hiraoku/jev-page-checker/issues">GitHub Issues</a>.</p>
   </body>
 </html>

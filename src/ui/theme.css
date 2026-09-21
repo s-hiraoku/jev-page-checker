@@ -721,45 +721,72 @@ a:hover {
   font-weight: 600;
 }
 
-.checklist-item pre {
-  white-space: pre-wrap;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 1.45;
-  margin: 4px 0 0;
-  color: var(--muted);
+.checklist-criteria {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
 }
 
-.history a,
-.history button {
-  display: block;
-  width: 100%;
-  padding: 12px 14px;
+.checklist-criteria li {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.checklist-key {
+  display: inline-block;
+  margin-right: 8px;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.history-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
   border: 1px solid var(--line);
   border-top: 0;
-  border-radius: 0;
-  text-decoration: none;
-  text-align: left;
-  color: inherit;
   background: var(--surface);
 }
 
-.history a:first-child,
-.history button:first-child {
+.history-row:first-child {
   border-top: 1px solid var(--line);
   border-top-left-radius: var(--radius);
   border-top-right-radius: var(--radius);
 }
 
-.history a:last-child,
-.history button:last-child {
+.history-row:last-child {
   border-bottom-left-radius: var(--radius);
   border-bottom-right-radius: var(--radius);
 }
 
-.history a:hover,
-.history button:hover {
+.history-open {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 0;
+  text-align: left;
+  color: inherit;
+  background: transparent;
+}
+
+.history-delete {
+  align-self: center;
+  margin-right: 12px;
+  white-space: nowrap;
+}
+
+.history-open:hover {
   background: var(--hover);
+}
+
+.history-time {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .history button strong,

@@ -2,6 +2,10 @@ import type { Check, CheckReport } from "./checkkit.js";
 import type { PageSnapshot } from "./page-state.js";
 import { setupGap, type ExtensionSettings } from "./settings.js";
 
+export function withoutRecord(history: readonly StoredRecord[], id: string): StoredRecord[] {
+  return history.filter((item) => item.id !== id);
+}
+
 export interface StoredRecord {
   id: string;
   tabId: number;

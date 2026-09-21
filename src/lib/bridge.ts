@@ -10,6 +10,7 @@ export interface Bridge {
   openDetails(id?: string): Promise<void>;
   openHistory(): Promise<void>;
   openOptions(): Promise<void>;
+  deleteHistory(id: string): Promise<SessionPayload>;
   subscribe(onChange: (session?: SessionPayload) => void): () => void;
 }
 
@@ -45,6 +46,7 @@ export function liveBridge(options?: { isolateWindow?: boolean }): Bridge {
     openOptions: async () => {
       await send({ type: "OPEN_OPTIONS" });
     },
+    deleteHistory: (id) => send<SessionPayload>({ type: "DELETE_HISTORY", id }),
     subscribe: (onChange) => {
       const listener = (message: ServerMessage | { type?: string }) => {
         if (!isSessionUpdated(message)) return;

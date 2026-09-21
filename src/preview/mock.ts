@@ -3,14 +3,14 @@ import type { Bridge } from "../lib/bridge.js";
 import { JEV_ENGLISH_CHARS_PER_TOKEN, bodyTokenBudget } from "../lib/jev-budget.js";
 import { checkReplay, REPLAY_CLOCK, type ReplayFixture } from "../lib/replay.js";
 import { DEFAULT_SETTINGS, parseSettings, type ExtensionSettings } from "../lib/settings.js";
-import { buildSessionPayload, type SessionPayload, type StoredRecord } from "../lib/session.js";
+import { buildSessionPayload, withoutRecord, type SessionPayload, type StoredRecord } from "../lib/session.js";
 import definitionRaw from "../../fixtures/page-credibility.checker.json";
 import failReplay from "../../fixtures/replay/page-credibility-fail.json";
 import passReplay from "../../fixtures/replay/page-credibility-pass.json";
 
 const definition = parseDefinition(definitionRaw);
 
-async function recordFrom(replay: ReplayFixture, id: string): Promise<StoredRecord> {
+async function recordFrom(replay: ReplayFixture, id: string, createdAt: string): Promise<StoredRecord> {
   return {
     id,
     tabId: 1,
@@ -20,15 +20,19 @@ async function recordFrom(replay: ReplayFixture, id: string): Promise<StoredReco
       textTruncated: replay.state.textTruncated ?? false,
     },
     report: await checkReplay(definition, replay),
-    createdAt: REPLAY_CLOCK,
+    createdAt,
   };
 }
 
 export async function createPreviewBridge(scene: string): Promise<Bridge> {
   const passFile = passReplay as ReplayFixture;
-  const pass = await recordFrom(passFile, "preview-pass");
-  const fail = await recordFrom(failReplay as ReplayFixture, "preview-fail");
-  const truncated = await recordFrom({ ...passFile, state: { ...passFile.state, textTruncated: true } }, "preview-truncated");
+  const pass = await recordFrom(passFile, "preview-pass", "2026-09-20T08:00:00.000Z");
+  const fail = await recordFrom(failReplay as ReplayFixture, "preview-fail", "2026-09-20T09:30:00.000Z");
+  const truncated = await recordFrom(
+    { ...passFile, state: { ...passFile.state, textTruncated: true } },
+    "preview-truncated",
+    "2026-09-20T11:00:00.000Z",
+  );
   const chunked = await recordFrom(
     {
       ...passFile,
@@ -39,6 +43,7 @@ export async function createPreviewBridge(scene: string): Promise<Bridge> {
       },
     },
     "preview-chunked",
+    "2026-09-20T12:15:00.000Z",
   );
   let settings: ExtensionSettings = {
     ...DEFAULT_SETTINGS,
@@ -50,7 +55,7 @@ export async function createPreviewBridge(scene: string): Promise<Bridge> {
   const notify = () => {
     for (const listener of listeners) listener();
   };
-  const history = [pass, fail, truncated, chunked];
+  let history = [pass, fail, truncated, chunked];
 
   const payload = (): SessionPayload => {
     const parsed = parseSettings(settings);
@@ -86,6 +91,11 @@ export async function createPreviewBridge(scene: string): Promise<Bridge> {
     },
     openOptions: async () => {
       window.location.hash = "#options";
+    },
+    deleteHistory: async (id) => {
+      history = withoutRecord(history, id);
+      notify();
+      return payload();
     },
     subscribe: (onChange) => {
       listeners.add(onChange);

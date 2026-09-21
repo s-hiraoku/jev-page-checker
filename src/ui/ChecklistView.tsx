@@ -1,30 +1,23 @@
 import type { Check } from "../lib/checkkit.js";
-import { instructionText, questionLabel } from "../lib/labels.js";
+import { basisEntries, choiceLabel, instructionLabel, instructionText, questionLabel } from "../lib/labels.js";
+import type { Copy } from "../lib/copy.js";
+import type { ResolvedLocale } from "../lib/locale.js";
 import { useCopy, useLocale } from "./useLocale.js";
 
-function criteriaText(check: Check): string {
-  if (check.type === "noul") {
-    const criteria = check.criteria;
-    if (criteria === undefined || criteria === null) return "";
-    return [`true: ${JSON.stringify(criteria.true ?? "")}`, `false: ${JSON.stringify(criteria.false ?? "")}`].join("\n");
-  }
-  if (check.type === "choice") {
-    return Object.entries(check.criteria)
-      .map(([label, text]) => `${label} → ${check.options[label] ?? "review"}: ${JSON.stringify(text)}`)
-      .join("\n");
-  }
-  return check.criteria.map((text, index) => `${index}: ${JSON.stringify(text)}`).join("\n");
+function branchLabel(check: Check, key: string, locale: ResolvedLocale, copy: Copy): string {
+  if (check.type === "noul") return key === "true" ? copy.branchYes : copy.branchNo;
+  if (check.type === "score") return key;
+  return choiceLabel(check.id, key, locale);
 }
 
-function extras(check: Check): string {
-  const lines: string[] = [`type: ${check.type}`];
-  if (check.type === "noul" || check.type === "score") {
-    if (check.passAt !== undefined) lines.push(`passAt: ${check.passAt}`);
-    if (check.failAt !== undefined) lines.push(`failAt: ${check.failAt}`);
-  }
-  if (check.type !== "noul" && check.confidenceFloor !== undefined) lines.push(`confidenceFloor: ${check.confidenceFloor}`);
-  if (check.applyWhen !== undefined) lines.push(`applyWhen: ${JSON.stringify(check.applyWhen)}`);
-  return lines.join("\n");
+function thresholdText(check: Check, copy: Copy): string {
+  if (check.type === "noul") return copy.noulBand(check.passAt ?? 0.8, check.failAt ?? 0.2);
+  if (check.type === "score") return copy.scoreBand(check.passAt, check.failAt, check.confidenceFloor ?? 0.6);
+  return copy.choiceFloor(check.confidenceFloor ?? 0.6);
+}
+
+function asksWhenArticle(check: Check): boolean {
+  return check.applyWhen?.op === "equals" && check.applyWhen.path === "hasArticle" && check.applyWhen.value === true;
 }
 
 export function ChecklistView({ questions }: { questions: readonly Check[] }) {
@@ -34,17 +27,23 @@ export function ChecklistView({ questions }: { questions: readonly Check[] }) {
     <section>
       <h2 className="page-title">{copy.questions(questions.length)}</h2>
       <p className="help">{copy.wholeListAgain}</p>
+      {copy.checklistJaNote ? <p className="help">{copy.checklistJaNote}</p> : null}
       {questions.map((check) => (
         <article className="checklist-item" key={check.id}>
           <h3>
-            {questionLabel(check.id, locale)} <span className="url">({check.id})</span>
+            {questionLabel(check.id, locale)} <span className="url">{check.id}</span>
           </h3>
-          <p className="help">{instructionText(check)}</p>
-          <pre>
-            {extras(check)}
-            {"\n"}
-            {criteriaText(check)}
-          </pre>
+          <p className="help">{instructionLabel(check.id, locale, instructionText(check))}</p>
+          <p className="help">{thresholdText(check, copy)}</p>
+          {asksWhenArticle(check) ? <p className="help">{copy.articleOnly}</p> : null}
+          <ul className="checklist-criteria">
+            {basisEntries(check.id, locale).map((entry) => (
+              <li key={entry.key}>
+                <span className="checklist-key">{branchLabel(check, entry.key, locale, copy)}</span>
+                {entry.text}
+              </li>
+            ))}
+          </ul>
         </article>
       ))}
     </section>

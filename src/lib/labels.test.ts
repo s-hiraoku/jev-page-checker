@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { parseDefinition, type JevAnswer } from "./checkkit.js";
-import { basisKey, basisLabel } from "./labels.js";
+import { basisEntries, basisKey, basisLabel, instructionLabel } from "./labels.js";
 
 function choiceAnswer(choice: string, confidence = 1): JevAnswer {
   return { type: "choice", choice, confidence, probabilities: { [choice]: confidence } };
@@ -52,4 +52,17 @@ test("English basis labels stay the checker criteria, not a rewritten rubric", (
 
 test("basisLabel falls back to the stored English basis when the answer is missing", () => {
   assert.equal(basisLabel("identifiable_publisher", undefined, "ja", "stored"), "stored");
+});
+
+test("checklist instructions follow the locale and English stays the definition text", () => {
+  const definition = parseDefinition(JSON.parse(readFileSync("fixtures/page-credibility.checker.json", "utf8")));
+  for (const check of definition.questions) {
+    const source = typeof check.instructions === "string" ? check.instructions : "";
+    assert.equal(instructionLabel(check.id, "en", source), source);
+    const japanese = instructionLabel(check.id, "ja", source);
+    assert.notEqual(japanese, source);
+    assert.match(japanese, /\p{Script=Han}/u);
+    assert.ok(basisEntries(check.id, "ja").length > 0);
+    assert.ok(basisEntries(check.id, "en").length > 0);
+  }
 });
