@@ -1,6 +1,6 @@
 # Jev Audit
 
-表示中のタブを Inspector が追い、TypeSafe の Jev で発行元と本文を分けて Audit する Chrome 拡張です。React と Manifest V3 で動きます。結果は根拠です。ページの遮断、公開、外部への送信はしません。
+表示中のタブを Inspector が追い、TypeSafe の Jev で発行元と本文を分けて Audit する Chrome 拡張です。React と Manifest V3 で動きます。結果は根拠です。ページは遮断しません。公開もしません。送る先は、Audit のための Jev だけです。
 
 このリポジトリだけで完結します。jev-checkkit とは別です。
 
@@ -39,21 +39,51 @@ Inspector shows a site lane and a body lane. Report shows each question, facts a
 
 ## 質問
 
-定義は `fixtures/page-credibility.checker.json` です。Jev には意味だけを聞く。サイトの質問は 1 回にまとめ、主本文が Jev の入力枠（state と最長の質問で 32k トークン、1 リクエスト 64k）に収まるときは 1 回で送り、超えたら重ねて分割して本文 5 問を聞き、厳しめに合成する。特定サイト向けに合格線を動かさないこと。詳細は [`docs/judgement.md`](docs/judgement.md) です。
+定義は `fixtures/page-credibility.checker.json` です。Jev には意味だけを聞きます。サイトの質問は 1 回にまとめます。主本文が入力枠に収まるときは 1 回で送ります。入力枠は、state と最長の質問で 32,000 トークン、1 回のリクエストで 64,000 トークンです。超えたら重ねて分割し、本文の 5 問を聞き、厳しめにまとめます。特定のサイト向けに合格線は動かしません。詳細は [`docs/judgement.md`](docs/judgement.md) です。
 
 | id | レーン | 型 | 聞くこと |
 | --- | --- | --- | --- |
-| `identifiable_publisher` | サイト | noul | このページから発行元を名指しできるか。見出しのブランド風の語だけでは足りない。著者・byline・発行者 chrome は主本文の外にあっても数える |
-| `honest_identity` | サイト | noul | 表示がホストと一致するか。なりすましは Alert。批評であること自体はなりすましではない |
-| `site_purpose` | サイト | choice | 目的のラベル。報道・意見・一覧は Pass。販売（報道に見せたアフィリエイト含む）・風刺は Review。判別不能は Alert |
-| `disclosed_incentives` | サイト | noul | 販売や働きかけがあるとき、誰が得をするかを出しているか |
-| `evidence_for_claims` | 本文 | score | 確定として出した主張がこのページ上の根拠で支えられているか。仮説・未検証と明記した提案は未裏付け報道と同じ失敗にしない。記事でないと N/A |
-| `separates_fact_and_opinion` | 本文 | noul | 事実と意見が読み分けられるか。エッセイであること自体は失敗ではない |
-| `unsourced_specifics` | 本文 | choice | 出典のない具体値。宣伝の丸い数字も含む。未検証と書いた仮説の数値は `many` にしない。`none` は Pass、`some` は Review、`many` は Alert |
-| `self_consistent` | 本文 | noul | 同じ事実が食い違っていないか。反復は矛盾ではない |
-| `certainty_matches_evidence` | 本文 | noul | 断定の強さが根拠に見合っているか。仮説・未検証と明記した点は正しい不確かさ。健康・金・法はより強い根拠が要る |
+| `identifiable_publisher` | サイト | noul | このページから発行元を名指しできるか。見出しの中のブランド風の語だけでは足りない。著者、署名、発行者の表示は、主本文の外にあっても数える。 |
+| `honest_identity` | サイト | noul | 表示がホストと一致するか。なりすましは Alert である。批評であること自体はなりすましではない。 |
+| `site_purpose` | サイト | choice | 目的のラベルである。報道、意見、一覧は Pass。販売は、報道に見せたアフィリエイトを含めて Review。風刺も Review。判別できないときは Alert。 |
+| `disclosed_incentives` | サイト | noul | 販売や働きかけがあるとき、誰が得をするかを出しているか。売り込みが無ければ、それで通過する。 |
+| `evidence_for_claims` | 本文 | score | 確定として出した主張が、このページ上の根拠で支えられているか。仮説や未検証と書いた提案は、出典のない報道と同じ失敗にしない。記事でなければ N/A。 |
+| `separates_fact_and_opinion` | 本文 | noul | 事実と意見を読み分けられるか。エッセイであること自体は失敗ではない。 |
+| `unsourced_specifics` | 本文 | choice | 出典のない具体値があるか。宣伝の丸い数字も含む。未検証と書いた仮説の数値は `many` にしない。`none` は Pass、`some` は Review、`many` は Alert。 |
+| `self_consistent` | 本文 | noul | 同じ事実が食い違っていないか。同じ主張の繰り返しは矛盾ではない。 |
+| `certainty_matches_evidence` | 本文 | noul | 断定の強さが根拠に見合っているか。仮説や未検証と書いた点は、すでに不確かさとして書いてある。健康、金、身元、法には、より強い根拠が要る。 |
 
-サイトのレーンは、誰が責任者か、なりすましか、何のためのページか、隠し勧誘か、です。本文のレーンは、根拠、事実と意見、出典、矛盾、断定、です。意見であること自体は危険ではありません。リンクが多く、リンクあたりの本文が短い一覧は記事ではないので、本文の 5 問は走りません。パスが `/` だから一覧、有名なサイトだから通過、という例外はありません。noul の Pass は 0.8 以上です。choice と score の確信度の床は 0.6 です。迷ったら Review です。HTTPS、著者、日付、語数、リンク密度、外部ホスト、主本文が Jev の入力枠で切れたかは、コードが見ます。収まる主本文は 1 回で送ります。超えたら重ねて分割します。切れ残りがあるとき、本文の 5 問は Pass にしません。文字数の独自上限や、URL ごとの例外では直しません。判定は Pass、Review、Alert、N/A、Error の 5 つです。一つの信頼スコアにはしません。定義を変えたら、Settings でリスト全体を承認し直します。
+サイトのレーンは、誰が責任者か、なりすましか、何のためのページか、隠し勧誘か、を見ます。本文のレーンは、根拠、事実と意見、出典、矛盾、断定を見ます。意見であること自体は失敗ではありません。
+
+リンクが多く、リンクあたりの本文が短いページは一覧です。一覧では本文の 5 問は走りません。パスが `/` だから一覧、有名なサイトだから通過、という例外はありません。
+
+noul の Pass は 0.8 以上です。choice と score の確信度の床は 0.6 です。迷ったら Review です。判定は Pass、Review、Alert、N/A、Error の 5 つです。一つの信頼スコアにはしません。
+
+HTTPS、著者、日付、語数、リンク密度、外部ホスト、主本文が入力枠で切れたかは、コードが見ます。収まる主本文は 1 回で送ります。超えたら重ねて分割します。切れ残りがあるとき、本文の 5 問は Pass にしません。文字数の独自上限や、URL ごとの例外では直しません。定義を変えたら、Settings でリスト全体を承認し直します。
+
+### Questions
+
+The definition is `fixtures/page-credibility.checker.json`. Jev is asked for meaning only. The four site questions go in one request. A main body that fits the input window goes in one request. The window is 32,000 tokens for state plus the longest question, and 64,000 tokens per request. A longer body is split with overlap, the five body questions are asked, and the answers are combined strictly. The pass line is not moved for one site. See [`docs/judgement.md`](docs/judgement.md).
+
+| id | lane | type | question |
+| --- | --- | --- | --- |
+| `identifiable_publisher` | site | noul | Can a publisher be named from this page? A brand-like word in the headline is not enough. An author, byline, or publisher line counts even when it sits outside the main text. |
+| `honest_identity` | site | noul | Does the displayed identity match the host? Impersonation is Alert. Being a critique is not impersonation. |
+| `site_purpose` | site | choice | What the page is for. News, opinion, and a listing are Pass. A sale, including affiliate copy dressed as news, is Review. Satire is Review. If the purpose cannot be told, the verdict is Alert. |
+| `disclosed_incentives` | site | noul | When the page sells or pitches, does it say who benefits? A page with no pitch passes. |
+| `evidence_for_claims` | body | score | Are claims stated as fact supported by evidence on this page? A proposal marked as a hypothesis or as unverified is not the same failure as unsourced news. If the page is not an article, the verdict is N/A. |
+| `separates_fact_and_opinion` | body | noul | Can fact and opinion be told apart? An essay is not a failure by itself. |
+| `unsourced_specifics` | body | choice | Are there specific figures with no source, including round promotional numbers? A number marked as an unverified hypothesis is not `many`. `none` is Pass, `some` is Review, `many` is Alert. |
+| `self_consistent` | body | noul | Does the same fact disagree with itself? Repeating one claim is not a contradiction. |
+| `certainty_matches_evidence` | body | noul | Does the strength of the wording match the evidence? A point marked as a hypothesis or as unverified already states its uncertainty. Health, money, identity, and law need stronger evidence. |
+
+The site lane asks who is responsible, whether the page impersonates someone, what the page is for, and whether a pitch hides who benefits. The body lane asks about evidence, fact and opinion, sources, contradiction, and certainty. Opinion is not a failure by itself.
+
+A page with many links and little text per link is a listing. The five body questions do not run on a listing. There is no exception because the path is `/`, or because the site is famous.
+
+Noul passes at 0.8 or above. The confidence floor for choice and score is 0.6. An uncertain result is Review. The verdicts are Pass, Review, Alert, N/A, and Error. There is no single trust score.
+
+The code judges HTTPS, author, date, word count, link density, outbound hosts, and whether the main text was cut by the input window. A body that fits is sent once. A longer body is split with overlap. If any remainder is unread, the five body questions do not pass. The fix is not a private character cap, and not an exception for one URL. If the definition changes, accept the whole list again in Settings.
 
 ## Chrome ウェブストア
 

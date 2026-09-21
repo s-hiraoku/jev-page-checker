@@ -39,7 +39,7 @@ Each feature file starts with an H1 and one paragraph. It then uses exactly four
 
 - [Side panel report](./side-panel-report.md) covers pass and fail lanes, grouped question rows, and the inspect toolbar.
 - [Setup gate](./setup-gate.md) covers the approval block and the jump to settings.
-- [Settings](./settings.md) covers the checklist, API key, follow-tab toggle, appearance theme, language, whole-list checkbox approval, and save.
+- [Settings](./settings.md) covers the checklist, API key, the `タブに追従する` checkbox, appearance theme, language, whole-list checkbox approval, and save.
 - [Details report](./details-report.md) covers the full report and sent body.
 - [History](./history.md) covers the separate History page.
 - [Store layout](./store-layout.md) covers the `store=1` article-plus-panel screenshot layout.

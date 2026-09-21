@@ -30,7 +30,7 @@ Preconditions:
 - **URL entry.** Open settings on the setup scene. Run `control-jev browser goto --path "/?scene=setup#options"`. Meta `Settings · v5` and `質問 9` are visible. A checklist article contains `発行元が特定できる` and `identifiable_publisher`.
 - **Toolbar entry.** Go to the setup panel and choose `Settings`. Run `control-jev browser goto --path "/?scene=setup#side"` and `control-jev browser click --name "Settings"`. The form appears again.
 - **Approve and key.** Tick the whole list and enter a key. There is no 承認者の名前 field. Run `control-jev browser check --label "このチェックリスト全体を承認する"` and `control-jev browser fill --label "TypeSafe API キー" --value "sk-preview"`.
-- **Follow tab.** Leave tracking on. Run `control-jev browser text --contains "タブに追従する"`. The checkbox is checked by default.
+- **タブに追従する.** Leave tracking on. Run `control-jev browser text --contains "タブに追従する"`. The checkbox is checked by default. English locale uses `Follow the tab`.
 - **Theme.** The appearance select defaults to `システム`. Run `control-jev browser text --contains "テーマ"` and `control-jev browser select --label "テーマ" --value "light"`. Then `control-jev browser attr --selector "html" --name "data-theme"` prints `light`. Repeat with `--value "dark"` then `--value "system"` to restore the default.
 - **Language.** The language select defaults to `システム`. Preview Chrome is `ja-JP`, so copy starts in Japanese. Run `control-jev browser select --label "言語" --value "en"`. The page shows `Language` and `I accept this whole checklist`. Restore with `--value "ja"` or `--value "system"`.
 - **Save.** Choose `保存`. Run `control-jev browser click --name "保存"`. Status `保存しました。` appears.

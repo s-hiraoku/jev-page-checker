@@ -85,7 +85,7 @@ Stable handles (accessible names / labels from the real UI, not test ids):
 - App chrome: heading-equivalent `Audit` (mark `Jev` + name `Audit` from `labels.ts`), meta `v5` on the panel / `Report · v5` / `History · v5` / `Settings · v5`
 - Preview fixture row: `Pass`, `Fail`, `Truncated`, `Chunked`. Product chrome row: `Setup`, `Inspector`, `Settings`, `Report`, `History`. They are not one toolbar.
 - Side panel buttons: `Audit`, `Report`, `History`, `Settings` (gated panel uses the same `Settings` button)
-- Side panel copy: `サイト`, `本文`, `Pass`, `Alert`, `Review`, `N/A`. Ready Inspector has no `一つの点数にはしない` lede and no `Follow tab on` footer.
+- Side panel copy: `サイト`, `本文`, `Pass`, `Alert`, `Review`, `N/A`. Ready Inspector has no score lede and no footer about following the tab. Default basis text is Japanese, for example `責任者として分かる`.
 - Pass title: `City delays river bridge opening after inspection, officials say`
 - Fail title: `Doctors hate this: one pill reverses aging in 11 days`
 - Setup gate: `先に、チェックリスト全体を承認してください。`

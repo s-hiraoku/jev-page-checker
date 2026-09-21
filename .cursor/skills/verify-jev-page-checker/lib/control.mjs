@@ -364,10 +364,10 @@ control-jev browser goto --path "/?scene=pass#side"
 control-jev browser click --name "Settings"
 control-jev browser select --label "テーマ" --value "light"
 control-jev browser attr --selector "html" --name "data-theme"
-control-jev browser check --label "上のチェックリスト全体を承認する"
-control-jev browser uncheck --label "Follow tab"
+control-jev browser check --label "このチェックリスト全体を承認する"
+control-jev browser uncheck --label "タブに追従する"
 control-jev browser text --contains "Pass"
-control-jev browser wait --contains "Saved."
+control-jev browser wait --contains "保存しました。"
 control-jev browser url
 control-jev browser screenshot --path artifacts/side.png
 control-jev browser snapshot --path artifacts/side.aria.txt
