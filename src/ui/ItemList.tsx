@@ -81,6 +81,7 @@ function ResultTable({
               <th scope="row">
                 {questionLabel(item.id, locale)}
                 {basis ? <p className="reason">{basis}</p> : null}
+                {item.cite ? <p className="cite">{item.cite}</p> : null}
                 {span ? <p className="cite">{span}</p> : null}
                 {showReason ? <p className="reason">{item.reason}</p> : null}
               </th>

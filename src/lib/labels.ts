@@ -16,6 +16,11 @@ const QUESTION_LABELS: Record<ResolvedLocale, Record<string, string>> = {
     unsourced_specifics: "出典のない具体値",
     self_consistent: "本文の内部矛盾",
     certainty_matches_evidence: "断定と根拠の釣り合い",
+    evidence_for_claims_cite: "主張の根拠を支える文",
+    separates_fact_and_opinion_cite: "事実と意見を分ける文",
+    unsourced_specifics_cite: "出典のない具体の文",
+    self_consistent_cite: "食い違いの文",
+    certainty_matches_evidence_cite: "断定を支える文",
   },
   en: {
     identifiable_publisher: "Publisher is identifiable",
@@ -27,6 +32,11 @@ const QUESTION_LABELS: Record<ResolvedLocale, Record<string, string>> = {
     unsourced_specifics: "Unsourced specifics",
     self_consistent: "Internal consistency",
     certainty_matches_evidence: "Certainty matches evidence",
+    evidence_for_claims_cite: "Sentence behind the evidence",
+    separates_fact_and_opinion_cite: "Sentence behind fact and opinion",
+    unsourced_specifics_cite: "Sentence behind unsourced specifics",
+    self_consistent_cite: "Sentence behind a contradiction",
+    certainty_matches_evidence_cite: "Sentence behind the certainty",
   },
 };
 
@@ -103,8 +113,22 @@ export function questionAxisLabel(id: string, locale: ResolvedLocale = "ja"): st
   return QUESTION_AXIS_LABELS[locale][id] ?? questionLabel(id, locale);
 }
 
+const DISCLOSURE_LABELS: Record<ResolvedLocale, Record<string, string>> = {
+  ja: {
+    no_pitch: "勧誘はない",
+    named_beneficiary: "受益者を明示",
+    hidden_beneficiary: "誰が得をするかを隠している",
+  },
+  en: {
+    no_pitch: "No pitch",
+    named_beneficiary: "Beneficiary named",
+    hidden_beneficiary: "Beneficiary hidden",
+  },
+};
+
 export function choiceLabel(questionId: string, choice: string, locale: ResolvedLocale = "ja"): string {
   if (questionId === "site_purpose") return PURPOSE_LABELS[locale][choice] ?? choice;
+  if (questionId === "disclosed_incentives") return DISCLOSURE_LABELS[locale][choice] ?? choice;
   if (questionId === "unsourced_specifics") return SPECIFIC_LABELS[locale][choice] ?? choice;
   return choice;
 }
@@ -128,8 +152,9 @@ const BASIS_LABELS: Record<ResolvedLocale, Record<string, Record<string, string>
       unclear: "Purpose cannot be determined, or incompatible purposes are mixed without labeling them.",
     },
     disclosed_incentives: {
-      true: "There is no sales or advocacy pitch, or a pitch is present and the beneficiary or sponsor is named.",
-      false: "The page pushes a product, donation, or political outcome while hiding who benefits.",
+      no_pitch: "There is no sales or advocacy pitch.",
+      named_beneficiary: "A pitch is present and the beneficiary or sponsor is named.",
+      hidden_beneficiary: "The page pushes a product, donation, or political outcome while hiding who benefits.",
     },
     evidence_for_claims: {
       "0": "Established factual claims are made with little or no supporting evidence, data, or sources on the page.",
@@ -172,8 +197,9 @@ const BASIS_LABELS: Record<ResolvedLocale, Record<string, Record<string, string>
       unclear: "目的が分からない。または相容れない目的が、区別されずに混ざっている。",
     },
     disclosed_incentives: {
-      true: "販売や勧誘がない。または勧誘があり、受益者やスポンサーが明示されている。",
-      false: "商品、寄付、政治的結果を推し進めつつ、誰が得をするかを隠している。",
+      no_pitch: "販売や勧誘はない。",
+      named_beneficiary: "勧誘があり、誰が得をするかが書いてある。",
+      hidden_beneficiary: "商品、寄付、政治的な結果を推し進めつつ、誰が得をするかを隠している。",
     },
     evidence_for_claims: {
       "0": "確定した事実主張に、ページ上の根拠・データ・出典がほとんどない。",
@@ -230,7 +256,7 @@ const INSTRUCTION_JA: Record<string, string> = {
   site_purpose:
     "ページの形、タイトル、見えている本文から、このページの主な目的は何か。ページの形は、クライアントが構造から付けたラベルです。一覧は行き先の並び、記事は一つの文章です。ホストの評判は使いません。目的は人気や品質の点数ではありません。意見、解説、批評は意見・分析です。報道に見えて、販売、商品の順位付け、見込み客の獲得が目的なら販売です。相容れない目的が、区別されずに混ざっていれば判別できません。",
   disclosed_incentives:
-    "販売、資金集め、または得をする主体への働きかけがあるとき、その関係を出しているか。明らかな店、または勧誘の無い文章は通過です。アフィリエイト、提供枠、健康・金・法の勧誘で、誰が対価を得ているかを隠している場合は失敗です。誰が宣伝の対価を得ているか読者に分からなければ、商品名を出しても開示ではありません。",
+    "販売、資金集め、または得をする主体への働きかけがあるとき、どれに当たるか。no_pitch は販売や勧誘がない。named_beneficiary は勧誘があり、誰が得をするかが書いてある。hidden_beneficiary は商品、寄付、政治的な結果を推し進めつつ、誰が得をするかを隠している。明らかな店は no_pitch です。誰が宣伝の対価を得ているか読者に分からなければ、商品名は named_beneficiary ではありません。",
   evidence_for_claims:
     "見えている本文は、確定として出した事実主張を、どの程度支えているか。数えるのは、このページで読者が確認できる根拠だけです。名指しの出典、データ、文書、方法、または著者が自分の仕事だと示して指しているものです。設計の提案、作業仮説、未検証、実験が必要、まだ計測していない、と本文が記している点は、確定した事実主張ではありません。明確に提案だと分かるものを、出典の無い報道断定と同じ点数にしません。提案に公式リンクや計測が無くても、いちばん上の段にはしません。名前の無い「専門家によると」や、中身の無い宣伝文句は低い点数です。特定の引用形式は求めません。ホストが有名だから主張を認めません。",
   separates_fact_and_opinion:
@@ -243,8 +269,27 @@ const INSTRUCTION_JA: Record<string, string> = {
     "断定の強さは、ページが実際に示している根拠に見合っているか。強い主張には強い根拠が要ります。個人の結果だと記したもの、不確かだと和らげた点は通過です。仮説、未検証、実験が必要と記した主張は、正しい不確かさです。確定事実として扱いません。健康、金、身元、法について確定したように聞こえる主張には、ページ上の確定した根拠が要ります。争点がある主張、または根拠が薄い主張を確定事実として述べている場合は失敗です。",
 };
 
+const CITE_INSTRUCTION_JA =
+  "このページから切った文が選択肢です。各ラベルの説明がその文です。この問を一番支えている文を一つ選んでください。一本に決まらなければ none です。新しい文は書かないでください。";
+
+const CITE_NONE_EN = "No single sentence carries this question.";
+const CITE_NONE_JA = "この問を支える文は一本に決まらない。";
+const CITE_IDS = [
+  "evidence_for_claims_cite",
+  "separates_fact_and_opinion_cite",
+  "unsourced_specifics_cite",
+  "self_consistent_cite",
+  "certainty_matches_evidence_cite",
+] as const;
+
+for (const id of CITE_IDS) {
+  BASIS_LABELS.en[id] = { none: CITE_NONE_EN };
+  BASIS_LABELS.ja[id] = { none: CITE_NONE_JA };
+}
+
 export function instructionLabel(id: string, locale: ResolvedLocale, fallback: string): string {
   if (locale !== "ja") return fallback;
+  if (id.endsWith("_cite")) return CITE_INSTRUCTION_JA;
   return INSTRUCTION_JA[id] ?? fallback;
 }
 

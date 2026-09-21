@@ -60,12 +60,46 @@ function scriptedGateway(answersList: Record<string, JevAnswer>[]): JevGateway &
 
 test("a sourced news article passes site safety and body scrutiny", async () => {
   const report = await reportOf("page-credibility-pass.json");
-  assert.equal(report.definition.version, 5);
+  assert.equal(report.definition.version, 6);
   assert.equal(report.items.every((item) => item.verdict === "pass"), true);
   assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
   assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "pass");
   assert.match(report.items.find((item) => item.id === "identifiable_publisher")?.basis ?? "", /identifiable as responsible/);
   assert.match(report.items.find((item) => item.id === "evidence_for_claims")?.basis ?? "", /presented as established/);
+  assert.match(report.items.find((item) => item.id === "evidence_for_claims")?.cite ?? "", /12 September/);
+  assert.equal(report.items.some((item) => item.id.endsWith("_cite")), false);
+});
+
+test("a cite below 0.6 or none is omitted and the parent chip stays", async () => {
+  const replay = loadReplay("page-credibility-pass.json");
+  const snapshot = snapshotOf("page-credibility-pass.json");
+  const low = {
+    ...replay.answers,
+    evidence_for_claims_cite: {
+      type: "choice" as const,
+      choice: "s2",
+      confidence: 0.2,
+      probabilities: { s2: 0.2, none: 0.8 },
+    },
+  };
+  const lowReport = await checkSnapshot(snapshot, definition, replayGateway(low, replay.usage));
+  const lowEvidence = lowReport.items.find((item) => item.id === "evidence_for_claims");
+  assert.equal(lowEvidence?.verdict, "pass");
+  assert.equal(lowEvidence?.cite, undefined);
+
+  const none = {
+    ...replay.answers,
+    evidence_for_claims_cite: {
+      type: "choice" as const,
+      choice: "none",
+      confidence: 0.91,
+      probabilities: { none: 0.91, s2: 0.09 },
+    },
+  };
+  const noneReport = await checkSnapshot(snapshot, definition, replayGateway(none, replay.usage));
+  const noneEvidence = noneReport.items.find((item) => item.id === "evidence_for_claims");
+  assert.equal(noneEvidence?.verdict, "pass");
+  assert.equal(noneEvidence?.cite, undefined);
 });
 
 test("a miracle-cure sales page fails site safety and body scrutiny", async () => {
@@ -76,6 +110,7 @@ test("a miracle-cure sales page fails site safety and body scrutiny", async () =
   assert.equal(report.items.find((item) => item.id === "unsourced_specifics")?.verdict, "fail");
   assert.match(report.items.find((item) => item.id === "identifiable_publisher")?.basis ?? "", /missing, anonymous/);
   assert.match(report.items.find((item) => item.id === "evidence_for_claims")?.basis ?? "", /little or no supporting evidence/);
+  assert.match(report.items.find((item) => item.id === "evidence_for_claims")?.cite ?? "", /11 days/);
 });
 
 test("a listing skips body questions because there is no single text to scrutinize", async () => {

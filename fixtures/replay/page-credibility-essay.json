@@ -39,7 +39,12 @@
         "unclear": 0.01
       }
     },
-    "disclosed_incentives": { "type": "noul", "noul": 0.88 },
+    "disclosed_incentives": {
+      "type": "choice",
+      "choice": "no_pitch",
+      "confidence": 0.88,
+      "probabilities": { "no_pitch": 0.88, "named_beneficiary": 0.07, "hidden_beneficiary": 0.05 }
+    },
     "evidence_for_claims": {
       "type": "score",
       "score": 1.7,

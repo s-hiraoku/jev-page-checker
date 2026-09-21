@@ -148,6 +148,9 @@ function parseCheck(raw: unknown, field: string): Check {
     instructions: requireEntry(raw.instructions, `${field}.instructions`),
     applyWhen: raw.applyWhen === undefined ? undefined : parseApplyWhen(raw.applyWhen, `${field}.applyWhen`),
   };
+  if (raw.citeFor !== undefined && raw.type !== "choice") {
+    throw malformed(`${field}.citeFor`, "set only on a choice question");
+  }
   switch (raw.type) {
     case "noul":
       return {
@@ -163,6 +166,7 @@ function parseCheck(raw: unknown, field: string): Check {
         criteria: parseChoiceCriteria(raw.criteria, `${field}.criteria`),
         options: parseOptions(raw.options, `${field}.options`),
         confidenceFloor: optionalNumber(raw.confidenceFloor, `${field}.confidenceFloor`),
+        citeFor: raw.citeFor === undefined ? undefined : (requireString(raw.citeFor, `${field}.citeFor`) as QuestionId),
       };
     case "score": {
       const criteria = raw.criteria;

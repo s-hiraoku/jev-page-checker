@@ -1,8 +1,9 @@
-import type { EntryType, JsonValue } from "@typesafe-ai/sdk";
+import type { ChoiceCriteria, EntryType, JsonValue } from "@typesafe-ai/sdk";
 import { jsonEqual } from "./equal.js";
 import { buildRequest, type JevGateway, type JevReply } from "./jev.js";
 import { startTimer } from "./report.js";
-import type { ApprovedDefinition, Check, CheckReport, ItemResult, JevAnswer } from "./types.js";
+import { extractSpans, type PageSpan } from "./spans.js";
+import type { ApprovedDefinition, Check, CheckReport, ChoiceCheck, ItemResult, JevAnswer } from "./types.js";
 
 const NOUL_DEFAULTS = { passAt: 0.8, failAt: 0.2 };
 
@@ -99,10 +100,49 @@ function judge(check: Check, answer: JevAnswer): Judgement {
   }
 }
 
+const SYNTHESIS_MARK = "whole-article synthesis from overlapping windows";
+
+function isCite(check: Check): check is ChoiceCheck {
+  return check.type === "choice" && check.citeFor !== undefined;
+}
+
+function isSynthesis(state: EntryType): boolean {
+  return typeof state === "object" && state !== null && !Array.isArray(state) && state.inspection === SYNTHESIS_MARK;
+}
+
+function stateText(state: EntryType): string {
+  if (typeof state === "object" && state !== null && !Array.isArray(state) && typeof state.text === "string") return state.text;
+  return "";
+}
+
+function expandCite(check: ChoiceCheck, spans: readonly PageSpan[]): ChoiceCheck {
+  const criteria: ChoiceCriteria = { ...check.criteria };
+  const options = { ...check.options };
+  for (const span of spans) {
+    criteria[span.id] = span.text;
+    options[span.id] = "pass";
+  }
+  return { ...check, criteria, options };
+}
+
+function selectedCite(
+  check: ChoiceCheck,
+  answer: JevAnswer | undefined,
+  spans: readonly PageSpan[],
+): string | undefined {
+  if (answer === undefined || answer.type !== "choice" || answer.choice === "none") return undefined;
+  const floor = check.confidenceFloor ?? 0.6;
+  if (answer.confidence < floor) return undefined;
+  return spans.find((span) => span.id === answer.choice)?.text;
+}
+
 export async function evaluate(definition: ApprovedDefinition, state: EntryType, jev: JevGateway): Promise<CheckReport> {
   const wall = startTimer();
-  const skips = definition.questions.map((check) => skipReason(check, state));
-  const asked = definition.questions.filter((_, index) => skips[index] === undefined);
+  const verdictQuestions = definition.questions.filter((check) => !isCite(check));
+  const citeQuestions = definition.questions.filter(isCite);
+  const spans = isSynthesis(state) ? [] : extractSpans(stateText(state));
+  const citeAsked = spans.length === 0 ? [] : citeQuestions.filter((check) => skipReason(check, state) === undefined).map((check) => expandCite(check, spans));
+  const asked = [...verdictQuestions.filter((check) => skipReason(check, state) === undefined), ...citeAsked];
   let reply: JevReply = { answers: {}, usage: { input_tokens: 0, output_tokens: 0 } };
   let jevMs = 0;
   if (asked.length > 0) {
@@ -110,16 +150,24 @@ export async function evaluate(definition: ApprovedDefinition, state: EntryType,
     reply = await jev.ask(buildRequest(state, asked));
     jevMs = jevTimer();
   }
-  const items = definition.questions.map((check, index): ItemResult => {
-    const skip = skips[index];
+  const cites = new Map<string, string>();
+  for (const check of citeQuestions) {
+    const parent = check.citeFor;
+    const text = parent === undefined ? undefined : selectedCite(check, reply.answers[check.id], spans);
+    if (parent !== undefined && text !== undefined) cites.set(parent, text);
+  }
+  const items = verdictQuestions.map((check): ItemResult => {
+    const skip = skipReason(check, state);
     if (skip !== undefined) return { id: check.id, verdict: "not_applicable", reason: skip };
     const answer = reply.answers[check.id];
     if (answer === undefined) return { id: check.id, verdict: "error", reason: `no answer for "${check.id}"` };
+    const cite = cites.get(check.id);
     return {
       id: check.id,
       ...judge(check, answer),
       answer,
       basis: answerBasis(check, answer) || undefined,
+      ...(cite === undefined ? {} : { cite }),
     };
   });
   return {

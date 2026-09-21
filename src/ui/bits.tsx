@@ -34,9 +34,11 @@ export function AnswerView({ id, answer }: { id: string; answer?: JevAnswer }) {
     return <p className="numeric">{answer.noul.toFixed(2)}</p>;
   }
   if (answer.type === "choice") {
+    const label = id === "site_purpose" || id === "disclosed_incentives" ? "" : `${choiceLabel(id, answer.choice, locale)}　`;
     return (
       <p className="numeric">
-        {choiceLabel(id, answer.choice, locale)}　{answer.confidence.toFixed(2)}
+        {label}
+        {answer.confidence.toFixed(2)}
       </p>
     );
   }

@@ -39,7 +39,18 @@
         "unclear": 0.01
       }
     },
-    "disclosed_incentives": { "type": "noul", "noul": 0.11 },
+    "disclosed_incentives": {
+      "type": "choice",
+      "choice": "hidden_beneficiary",
+      "confidence": 0.9,
+      "probabilities": { "no_pitch": 0.04, "named_beneficiary": 0.06, "hidden_beneficiary": 0.9 }
+    },
+    "evidence_for_claims_cite": {
+      "type": "choice",
+      "choice": "s1",
+      "confidence": 0.88,
+      "probabilities": { "s1": 0.88, "none": 0.12 }
+    },
     "evidence_for_claims": {
       "type": "score",
       "score": 0.12,

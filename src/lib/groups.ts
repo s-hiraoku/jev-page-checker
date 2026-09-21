@@ -13,12 +13,24 @@ export function isBodyQuestion(applyWhen: ApplyWhen | undefined): boolean {
   return applyWhen !== undefined && applyWhen.op === "equals" && applyWhen.path === "hasArticle" && applyWhen.value === true;
 }
 
-export function bodyQuestionIds(questions: readonly { id: string; applyWhen?: ApplyWhen }[]): string[] {
-  return questions.filter((question) => isBodyQuestion(question.applyWhen)).map((question) => question.id);
+export function isCiteQuestion(question: { id: string; citeFor?: string }): boolean {
+  return question.citeFor !== undefined;
 }
 
-export function siteQuestionIds(questions: readonly { id: string; applyWhen?: ApplyWhen }[]): string[] {
-  return questions.filter((question) => !isBodyQuestion(question.applyWhen)).map((question) => question.id);
+export function bodyQuestionIds(
+  questions: readonly { id: string; applyWhen?: ApplyWhen; citeFor?: string }[],
+): string[] {
+  return questions.filter((question) => isBodyQuestion(question.applyWhen) && !isCiteQuestion(question)).map((question) => question.id);
+}
+
+export function citeQuestionIds(questions: readonly { id: string; citeFor?: string }[]): string[] {
+  return questions.filter((question) => isCiteQuestion(question)).map((question) => question.id);
+}
+
+export function siteQuestionIds(
+  questions: readonly { id: string; applyWhen?: ApplyWhen; citeFor?: string }[],
+): string[] {
+  return questions.filter((question) => !isBodyQuestion(question.applyWhen) && !isCiteQuestion(question)).map((question) => question.id);
 }
 
 export function worseVerdict(left: Verdict, right: Verdict): Verdict {

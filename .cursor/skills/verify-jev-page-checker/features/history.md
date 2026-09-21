@@ -23,7 +23,7 @@ Preconditions:
 - Preview is healthy at `http://127.0.0.1:4174`.
 - `control-jev doctor` reports `ok: true`.
 
-- **URL entry.** Open History on the pass scene. Run `control-jev browser goto --path "/?scene=pass#history"`. Meta `History · v5` is visible. The heading is `History`, not `履歴`. Both seeded titles are listed.
+- **URL entry.** Open History on the pass scene. Run `control-jev browser goto --path "/?scene=pass#history"`. Meta `History · v6` is visible. The heading is `History`, not `履歴`. Both seeded titles are listed.
 - **Panel entry.** From the pass panel, choose `History`. Run `control-jev browser goto --path "/?scene=pass#side"` and `control-jev browser click --name "History"`. `control-jev browser url` includes `#history`.
 - **Open a report.** On History, choose the fail title. Run `control-jev browser click --name "Doctors hate this: one pill reverses aging in 11 days"`. After it loads, expect the fail title as the current Report and `#details` in the URL.
 - **Proof.** Capture the History view. Run `control-jev browser goto --path "/?scene=pass#history"`, `control-jev browser screenshot --path .cursor/skills/verify-jev-page-checker/artifacts/history/pass-history.png`, and `control-jev browser snapshot --path .cursor/skills/verify-jev-page-checker/artifacts/history/pass-history.aria.txt`. Both show `History` and the bridge title.
