@@ -5,7 +5,7 @@
 ## Store listing
 
 - **Name:** Jev Audit
-- **Summary (132 文字以内):** いまの頁の発行元と本文を、Jev のチェックリストで分けて Audit します。判定は根拠であり、ページの遮断や送信はしません。
+- **Summary (132 文字以内):** いまのページの発行元と本文を、Jev のチェックリストで分けて Audit します。判定は根拠であり、ページの遮断や送信はしません。
 - **Category:** Productivity
 - **Language:** 日本語
 - **Official URL:** https://github.com/s-hiraoku/jev-page-checker
@@ -83,7 +83,7 @@ Jev Audit は、いま見ているページの発行元と本文を、承認済�
 2. TypeSafe API キーを入れる。審査用キーが必要な場合は GitHub Issues で連絡する。
 3. https の記事ページを開き、ツールバーアイコンで Inspector を出す。
 4. サイト / 本文 の 2 レーンと、質問ごとの判定（Pass / Review / Alert / N/A / Error）が出ることを確認する。
-5. Report を開き、タイトルと送った文が見えること、公開や送信のボタンが無いことを確認する。
-6. History を開き、過去の Audit が一覧になることを確認する。
+5. Report を開き、タイトル、公開日、ページの形、外部ホスト、送った文が見えること。外部へ送るボタンは無いこと。端末内にファイルで残すボタンはあること。
+6. History を開き、過去の Audit が時刻つきで並ぶこと。1 件だけ消せることを確認する。
 
 キー無しでも `npm run preview` で replay 済みの画面を確認できる。

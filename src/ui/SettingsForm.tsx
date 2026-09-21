@@ -39,7 +39,7 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
           setBusy(true);
           setMessage(null);
           void onSave(draft)
-            .then(() => setMessage("Saved."))
+            .then(() => setMessage("saved"))
             .catch((error: unknown) => setMessage(unknownErrorMessage(error)))
             .finally(() => setBusy(false));
         }}
@@ -124,7 +124,7 @@ function SettingsFields({
         <legend>{copy.behavior}</legend>
         <label className="toggle">
           <input type="checkbox" checked={draft.followTab} onChange={(event) => update("followTab", event.target.checked)} />
-          Follow tab
+          {copy.followTab}
         </label>
         <label className="toggle">
           <input
@@ -162,9 +162,9 @@ function SettingsFields({
 
       <div className="toolbar">
         <button className="btn" type="submit" disabled={busy}>
-          Save
+          {copy.save}
         </button>
-        {message ? <p className="help">{message}</p> : null}
+        {message ? <p className="help">{message === "saved" ? copy.saved : message}</p> : null}
       </div>
     </form>
   );

@@ -8,7 +8,7 @@ import { isInspectableUrl, snapshotFingerprint, type PageSnapshot } from "./page
 import { checkSnapshot, createLiveJev } from "./run-check.js";
 import { DEFAULT_SETTINGS, parseSettings, setupGap, type ExtensionSettings } from "./settings.js";
 import type { ClientMessage, ExtractMessage } from "./messages.js";
-import { buildSessionPayload, type SessionPayload, type StoredRecord, type TabSession } from "./session.js";
+import { buildSessionPayload, withoutRecord, type SessionPayload, type StoredRecord, type TabSession } from "./session.js";
 import { activeTabQuery, isWindowActiveTab, TabDebouncer } from "./window-session.js";
 
 const SETTINGS_KEY = "settings";
@@ -41,7 +41,7 @@ async function writeHistory(history: StoredRecord[]): Promise<void> {
 function appendHistory(record: StoredRecord): Promise<void> {
   const next = historyChain.then(async () => {
     const history = await readHistory();
-    await writeHistory([record, ...history.filter((item) => item.id !== record.id)]);
+    await writeHistory([record, ...withoutRecord(history, record.id)]);
   });
   historyChain = next.then(
     () => undefined,
@@ -264,6 +264,14 @@ export function startBackground(definitionRaw: unknown): void {
           const url = chrome.runtime.getURL("/history.html");
           await chrome.tabs.create(windowId === undefined ? { url } : { url, windowId });
           sendResponse({ ok: true });
+          return;
+        }
+        if (message.type === "DELETE_HISTORY") {
+          const history = await readHistory();
+          await writeHistory(withoutRecord(history, message.id));
+          const session = await payload(definition, await targetTabId(windowId, senderTabId));
+          sendResponse(session);
+          await notifyUi(undefined);
           return;
         }
         if (message.type === "OPEN_OPTIONS") {

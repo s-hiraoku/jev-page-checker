@@ -1,8 +1,8 @@
 # Jev Audit
 
-表示中のタブを Inspector が追跡し、TypeSafe の Jev でサイトの発行元と本文を Audit する Chrome 拡張です。React + Manifest V3 です。レポートは判断材料だけで、ページの遮断・公開・外部送信はしません。
+表示中のタブを Inspector が追い、TypeSafe の Jev で発行元と本文を分けて Audit する Chrome 拡張です。React と Manifest V3 で動きます。結果は根拠です。ページの遮断、公開、外部への送信はしません。
 
-jev-checkkit とは別リポジトリです。この拡張だけで完結します。
+このリポジトリだけで完結します。jev-checkkit とは別です。
 
 ## 動かし方
 
@@ -16,12 +16,26 @@ npm run build
 
 Chrome で `chrome://extensions` を開き、デベロッパーモードをオンにして `.output/chrome-mv3` を読み込みます。ツールバーのアイコンで Inspector が開きます。
 
-1. Settings でチェックリスト全文を確認し、リスト全体を承認する。テーマと言語は未設定なら端末に合わせる。
-2. TypeSafe の API キーを保存する。キーは拡張のストレージにだけ置き、Jev への送信以外には使いません。
-3. Follow tab をオンのままにしておくと、タブ切替と読み込み完了のたびにやり直します。
-4. Inspector はサイトと本文を別レーンで出し、Report で質問ごとと送った文を見ます。過去の Audit は History です。Chrome ツールバーの常駐アイコンも同じ分け方で、上段がサイト、下段が本文です。判定が変わると色とバッジが差し替わります。
+1. Settings でチェックリストを読み、リスト全体を承認します。テーマと言語の「システム」は、端末の設定に合わせます。
+2. TypeSafe の API キーを保存します。キーは拡張のストレージにだけ置き、Jev への問い合わせ以外には使いません。
+3. 「タブに追従する」をオンにしておくと、タブの切り替えと読み込み完了のたびにやり直します。
+4. Inspector はサイトと本文を別レーンで出します。Report では質問ごと、抽出した事実、Jev に送った文を見ます。Report から、その結果を端末内のファイルに残せます。過去の Audit は History で、時刻つきで並び、1 件ずつ消せます。ツールバーのアイコンも同じ分け方で、上段がサイト、下段が本文です。判定が変わると色とバッジが変わります。
 
-画面だけ見る場合は `npm run preview` です。手元のストア提出用 zip は `npm run zip` で `.output/` に出ます。中身のルートに `manifest.json` があり、親フォルダは挟みません。`v*` タグを push すると CI が同じ zip を GitHub Release に付けます。main と pull request ではテスト・型検査・ビルドのあと、同じ zip を Actions の成果物にも残します。掲載文と審査用の記入例は [`store/listing.md`](store/listing.md)、プライバシーポリシーは [`docs/privacy.html`](docs/privacy.html) です。Chrome ウェブストアにはその zip をそのまま上げてください。展開してフォルダごと固め直すと、ストアはマニフェスト無しと見なします。
+画面だけ見るときは `npm run preview` です。ストア提出用の zip は `npm run zip` で `.output/` に出ます。zip のルートは `manifest.json` です。親フォルダは挟みません。`v*` タグを push すると、CI が同じ zip を GitHub Release に付けます。main と pull request では、テスト、型検査、ビルドのあと、同じ zip を Actions の成果物にも残します。掲載文は [`store/listing.md`](store/listing.md)、プライバシーポリシーは [`docs/privacy.html`](docs/privacy.html) です。Chrome ウェブストアには、その zip をそのまま上げてください。展開してフォルダごと固め直すと、ストアはマニフェストが無いと見なします。
+
+## English
+
+Jev Audit is a Chrome extension. Inspector follows the tab you are reading. TypeSafe Jev checks the publisher and, when the page is one piece of writing, the body. The result is evidence. The extension does not block the page, publish it, or send it anywhere except to Jev for that check.
+
+The repo is self-contained. It is not jev-checkkit.
+
+You need Node 26 or newer. `npm install`, `npm test`, and `npm run build` produce `.output/chrome-mv3`. Load that folder from `chrome://extensions` with developer mode on. The toolbar icon opens Inspector.
+
+In Settings, read the checklist and accept the whole list. System theme and system language follow the device. Save a TypeSafe API key. The key stays in extension storage and is used only to call Jev. Follow the tab reruns the check when you switch tabs or a page finishes loading.
+
+Inspector shows a site lane and a body lane. Report shows each question, facts already extracted from the page, and the text sent to Jev. You can save that report as a file on the device. History lists past Audits with the time of each check, and you can delete one record. The toolbar icon uses the same split. The top half is the site lane. The bottom half is the body lane.
+
+`npm run preview` shows the screens without a key. `npm run zip` writes the store zip under `.output/`. `manifest.json` is at the zip root. Pushing a `v*` tag makes CI attach that zip to a GitHub Release.
 
 ## 質問
 
@@ -39,7 +53,7 @@ Chrome で `chrome://extensions` を開き、デベロッパーモードをオ�
 | `self_consistent` | 本文 | noul | 同じ事実が食い違っていないか。反復は矛盾ではない |
 | `certainty_matches_evidence` | 本文 | noul | 断定の強さが根拠に見合っているか。仮説・未検証と明記した点は正しい不確かさ。健康・金・法はより強い根拠が要る |
 
-サイトレーンは「誰か・なりすましか・何のためのページか・隠し勧誘か」です。本文レーンは「根拠・事実と意見・出典・矛盾・断定」です。意見であること自体は危険ではありません。一覧（リンクが多く、リンクあたりの本文が短い）は記事ではないので本文 5 問は走りません。パスが `/` だからポータル、特定の有名サイトだから通過、といった例外はありません。noul の Pass は 0.8、choice / score の確信度の床は 0.6 で、迷ったら Review です。コード側で見るのは HTTPS、著者・日付メタ、語数、リンク密度、外部ホスト、主本文が Jev の入力枠で切れたかです。収まる主本文は 1 回、超えたら重ねて分割し、切れ残りがあるとき本文 5 問（根拠・出典・矛盾・断定）は Pass にしません。アプリ側の 1 万〜2 万文字キャップや URL ごとの例外では直しません。判定は Pass / Review / Alert / N/A / Error の 5 種類で、一つの信頼スコアにはしません。定義を変えたら Settings でリスト全体を再承認します。
+サイトのレーンは、誰が責任者か、なりすましか、何のためのページか、隠し勧誘か、です。本文のレーンは、根拠、事実と意見、出典、矛盾、断定、です。意見であること自体は危険ではありません。リンクが多く、リンクあたりの本文が短い一覧は記事ではないので、本文の 5 問は走りません。パスが `/` だから一覧、有名なサイトだから通過、という例外はありません。noul の Pass は 0.8 以上です。choice と score の確信度の床は 0.6 です。迷ったら Review です。HTTPS、著者、日付、語数、リンク密度、外部ホスト、主本文が Jev の入力枠で切れたかは、コードが見ます。収まる主本文は 1 回で送ります。超えたら重ねて分割します。切れ残りがあるとき、本文の 5 問は Pass にしません。文字数の独自上限や、URL ごとの例外では直しません。判定は Pass、Review、Alert、N/A、Error の 5 つです。一つの信頼スコアにはしません。定義を変えたら、Settings でリスト全体を承認し直します。
 
 ## Chrome ウェブストア
 

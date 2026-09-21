@@ -62,7 +62,7 @@ All browser actions go through `control-jev browser`. The daemon keeps one page,
 ```bash
 .cursor/skills/verify-jev-page-checker/bin/control-jev browser goto --path "/?scene=pass#side"
 .cursor/skills/verify-jev-page-checker/bin/control-jev browser click --name "Settings"
-.cursor/skills/verify-jev-page-checker/bin/control-jev browser check --label "上のチェックリスト全体を承認する"
+.cursor/skills/verify-jev-page-checker/bin/control-jev browser check --label "このチェックリスト全体を承認する"
 .cursor/skills/verify-jev-page-checker/bin/control-jev browser text --contains "Pass"
 .cursor/skills/verify-jev-page-checker/bin/control-jev browser screenshot --path .cursor/skills/verify-jev-page-checker/artifacts/side.png
 .cursor/skills/verify-jev-page-checker/bin/control-jev browser snapshot --path .cursor/skills/verify-jev-page-checker/artifacts/side.aria.txt
@@ -88,16 +88,16 @@ Stable handles (accessible names / labels from the real UI, not test ids):
 - Side panel copy: `サイト`, `本文`, `Pass`, `Alert`, `Review`, `N/A`. Ready Inspector has no `一つの点数にはしない` lede and no `Follow tab on` footer.
 - Pass title: `City delays river bridge opening after inspection, officials say`
 - Fail title: `Doctors hate this: one pill reverses aging in 11 days`
-- Setup gate: `チェックリスト全体の承認が先。`
-- Settings labels: `TypeSafe API キー`, `テーマ`, `言語`, `Follow tab`, `本文が変わったらやり直す`, `やり直しまでの待ち（ミリ秒）`, `本文とみなす最小語数`, `上のチェックリスト全体を承認する。判定は根拠であり、公開・送信・遮断の許可ではない。` There is no 承認者の名前 field.
+- Setup gate: `先に、チェックリスト全体を承認してください。`
+- Settings labels: `TypeSafe API キー`, `テーマ`, `言語`, `タブに追従する`, `本文が変わったらやり直す`, `やり直すまでの待ち時間（ミリ秒）`, `本文とみなす最小の語数`, `このチェックリスト全体を承認する。判定は根拠であり、公開、送信、遮断の許可ではない。` There is no 承認者の名前 field.
 - Theme options: `システム` (default), `ライト`, `ダーク`
 - Locale options: `システム` (default), `日本語`, `English`. Preview daemon locale is `ja-JP`, so system copy is Japanese.
 - Language options: `システム` (default), `日本語`, `English`
-- Settings actions: button `Save`, status `Saved.`, heading `質問 9`
+- Settings actions: button `保存`, status `保存しました。`, heading `質問 9`. English locale uses button `Save` and status `Saved.`
 - Details: meta `Report · v5`, panel head `送った文`, title label `タイトル`. No history list.
-- History: meta `History · v5`, heading `History` (not `履歴`), row names are snapshot titles
+- History: meta `History · v5`, heading `History` (not `履歴`), row names are snapshot titles, each row shows `Audit した時刻`, and each row has `この記録を消す`
 
-`click --name` matches a **button** exactly. `fill --label` matches the wrapping `<label>` text exactly. `check --label` is a substring match so the long approval sentence can be shortened to `上のチェックリスト全体を承認する`.
+`click --name` matches a **button** exactly. `fill --label` matches the wrapping `<label>` text exactly. `check --label` is a substring match so the long approval sentence can be shortened to `このチェックリスト全体を承認する`.
 
 ## Evidence
 
@@ -107,7 +107,7 @@ Standards:
 
 - Drive the preview the way a user does: nav buttons, labeled fields, report tables. Do not call `checkSnapshot`, `saveSettings`, or `replayGateway` from a scratch script and call that a UI proof.
 - Capture the **action and the resulting state**. A final screenshot is not enough. Pair it with an ARIA snapshot and a `text --contains` assertion from before/after.
-- Preview has no disk or network side effect for settings or checks. The observable result is the next screen: `Saved.`, a hash of `#options` / `#details` / `#history`, lane labels, question rows. Do not claim chrome.storage or Jev were touched.
+- Preview has no disk or network side effect for settings or checks. The observable result is the next screen: `保存しました。`, a hash of `#options` / `#details` / `#history`, lane labels, question rows. Do not claim chrome.storage or Jev were touched. Saving a report file uses a local download only.
 - When proving a replay scene, assert the fixture title **and** the lane verdicts. Do not treat a green chip as a live-site pass.
 - Mocks are allowed only at the existing boundary: `createPreviewBridge` / `replayGateway`. Do not add a new fake inside the React trees to make a proof pass.
 - Judgement thresholds stay as in `docs/judgement.md`. Do not retune a scene so one URL looks better.

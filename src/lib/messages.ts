@@ -6,6 +6,7 @@ export type ClientMessage =
   | { type: "SAVE_SETTINGS"; settings: unknown; windowId?: number }
   | { type: "OPEN_DETAILS"; id?: string; windowId?: number }
   | { type: "OPEN_HISTORY"; windowId?: number }
+  | { type: "DELETE_HISTORY"; id: string; windowId?: number }
   | { type: "OPEN_OPTIONS" }
   | { type: "PAGE_CHANGED"; fingerprint: string };
 

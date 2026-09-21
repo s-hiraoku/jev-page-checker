@@ -44,7 +44,7 @@ export function actionIconModel(view: SessionView, locale: ResolvedLocale = "ja"
       return {
         site: "idle",
         page: "idle",
-        title: view.followTab ? "Follow tab" : "No audit yet",
+        title: view.followTab ? copy.iconIdleFollow : copy.iconIdleManual,
         badge: "",
         badgeColor: "#345c8c",
       };
@@ -52,7 +52,7 @@ export function actionIconModel(view: SessionView, locale: ResolvedLocale = "ja"
       return {
         site: "checking",
         page: "checking",
-        title: "Auditing…",
+        title: copy.auditing,
         badge: "…",
         badgeColor: "#246cb0",
       };

@@ -1,9 +1,19 @@
+import type { Copy } from "../lib/copy.js";
 import { bodySendKind, worstVerdict } from "../lib/groups.js";
+import type { PageKind } from "../lib/page-state.js";
 import type { StoredRecord } from "../lib/session.js";
 import { ItemList } from "./ItemList.js";
 import { Lane } from "./bits.js";
 import { ResultRadars } from "./RadarChart.js";
 import { useCopy } from "./useLocale.js";
+
+function kindLabel(kind: PageKind, copy: Copy): string {
+  return kind === "portal" ? copy.kindListing : copy.kindArticle;
+}
+
+function hostLine(hosts: readonly string[], copy: Copy): string {
+  return hosts.length === 0 ? copy.noHosts : hosts.join(", ");
+}
 
 export function ReportView({ record, compact = false }: { record: StoredRecord; compact?: boolean }) {
   const copy = useCopy();
@@ -13,8 +23,7 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
   const site = worstVerdict(record.report.items, siteIds);
   const page = worstVerdict(record.report.items, bodyIds);
   const sendKind = bodySendKind(inspection);
-  const leftover =
-    sendKind === "unread" ? ` / ${copy.leftover}` : sendKind === "chunked" ? ` / ${copy.windows(inspection?.windowCount ?? 0)}` : "";
+  const snapshot = record.snapshot;
   return (
     <div className="report">
       <div className="lanes">
@@ -48,25 +57,40 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
             <th>URL</th>
             <td className="url">{record.snapshot.url}</td>
           </tr>
+          <tr>
+            <th>{copy.wordCountLabel}</th>
+            <td>
+              {snapshot.wordCount} {copy.words}
+            </td>
+          </tr>
+          <tr>
+            <th>{copy.https}</th>
+            <td>{snapshot.isHttps ? copy.present : copy.absent}</td>
+          </tr>
+          <tr>
+            <th>{copy.author}</th>
+            <td>{snapshot.hasAuthor ? copy.present : copy.absent}</td>
+          </tr>
+          <tr>
+            <th>{copy.published}</th>
+            <td>{snapshot.publishedAt || copy.absent}</td>
+          </tr>
+          <tr>
+            <th>{copy.pageKindLabel}</th>
+            <td>{kindLabel(snapshot.pageKind, copy)}</td>
+          </tr>
+          <tr>
+            <th>{copy.hosts}</th>
+            <td>{hostLine(snapshot.outboundHosts, copy)}</td>
+          </tr>
           {compact ? null : (
-            <>
-              <tr>
-                <th>{copy.extract}</th>
-                <td>
-                  {record.snapshot.wordCount} {copy.words} / {copy.outboundHosts} {record.snapshot.citationCount} / HTTPS{" "}
-                  {record.snapshot.isHttps ? copy.present : copy.absent} / {copy.author}{" "}
-                  {record.snapshot.hasAuthor ? copy.present : copy.absent}
-                  {leftover}
-                </td>
-              </tr>
-              <tr>
-                <th>{copy.processing}</th>
-                <td>
-                  Jev {record.report.timing.jevMs} ms / {copy.input} {record.report.usage.input_tokens} / {copy.output}{" "}
-                  {record.report.usage.output_tokens}
-                </td>
-              </tr>
-            </>
+            <tr>
+              <th>{copy.processing}</th>
+              <td>
+                Jev {record.report.timing.jevMs} ms / {copy.input} {record.report.usage.input_tokens} / {copy.output}{" "}
+                {record.report.usage.output_tokens}
+              </td>
+            </tr>
           )}
         </tbody>
       </table>

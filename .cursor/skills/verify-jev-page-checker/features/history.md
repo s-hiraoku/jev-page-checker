@@ -5,7 +5,8 @@ History is the list of past Audits. It is its own page, not part of Report. Prev
 ## Sub-features
 
 - `history-open` opens the History page from the panel `History` button, the preview `History` button, or `#history`.
-- `history-list` lists seeded titles and URLs.
+- `history-list` lists seeded titles, URLs, and the audited time.
+- `history-delete` removes one seeded row. The row button is `この記録を消す`.
 - `history-open-report` opens Report for a chosen row via `openDetails`.
 
 ## How to get to it (user POV)
@@ -30,7 +31,8 @@ Preconditions:
 ## Gotchas
 
 - Report no longer lists history. If a recipe still looks for history links on `#details`, it is stale.
-- History `<button>` names are the snapshot title. `click --name` matches that accessible name.
+- The open control's accessible name is the snapshot title. `click --name` matches that name.
+- Delete is a separate button. Its accessible name is `この記録を消す` plus the title, because several rows would otherwise share one name.
 - Preview product chrome and the Inspector toolbar both use the chrome word `History`. `click --name "History"` is then two buttons; use `goto --path "/?scene=pass#history"` for URL entry, or the toolbar button inside `main`. Fixture buttons sit in a separate row.
 - Empty History (`まだ履歴がありません`) is not reachable in preview because history is always seeded. Do not claim that empty state was verified here.
 - Preview hash routing keeps the current in-memory bridge. Changing `scene` remounts it.
