@@ -89,7 +89,7 @@ Stable handles (accessible names / labels from the real UI, not test ids):
 - Pass title: `City delays river bridge opening after inspection, officials say`
 - Fail title: `Doctors hate this: one pill reverses aging in 11 days`
 - Setup gate: `先に、チェックリスト全体を承認してください。`
-- Settings labels: `TypeSafe API キー`, `テーマ`, `言語`, `タブに追従する`, `本文が変わったらやり直す`, `やり直すまでの待ち時間（ミリ秒）`, `本文とみなす最小の語数`, `このチェックリスト全体を承認する。判定は根拠であり、公開、送信、遮断の許可ではない。` There is no 承認者の名前 field.
+- Settings labels: `TypeSafe API キー`, `テーマ`, `言語`, `タブに追従する`, `本文が変わったらやり直す`, `やり直すまでの待ち時間（ミリ秒）`, `本文とみなす最小の語数`, `このチェックリスト全体を承認する。` The checklist heading is `質問 14`, then a card labeled `質問内容` with `Jev に送る定義は英語です。` There is no 承認者の名前 field.
 - Theme options: `システム` (default), `ライト`, `ダーク`
 - Locale options: `システム` (default), `日本語`, `English`. Preview daemon locale is `ja-JP`, so system copy is Japanese.
 - Language options: `システム` (default), `日本語`, `English`
@@ -97,7 +97,7 @@ Stable handles (accessible names / labels from the real UI, not test ids):
 - Details: meta `Report · v6`, panel head `送った文`, title label `タイトル`. No history list. The pass body row `主張の根拠` includes the page sentence with `12 September`.
 - History: meta `History · v6`, heading `History` (not `履歴`), row names are snapshot titles, each row shows `Audit した時刻`, and each row has `この記録を消す`
 
-`click --name` matches a **button** exactly. `fill --label` matches the wrapping `<label>` text exactly. `check --label` is a substring match so the long approval sentence can be shortened to `このチェックリスト全体を承認する`.
+`click --name` matches a **button** exactly. `fill --label` matches the wrapping `<label>` text exactly. `check --label` is a substring match. The approval checkbox label is `このチェックリスト全体を承認する。`
 
 ## Evidence
 
