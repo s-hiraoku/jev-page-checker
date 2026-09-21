@@ -12,7 +12,7 @@
 
 - Open `/?scene=pass&store=1#side`.
 - Open `/?scene=fail&store=1#side`.
-- `#options` and `#details` with `store=1` still render those pages, without the article column.
+- `#options`, `#details`, and `#history` with `store=1` still render those pages, without the article column.
 
 ## Driving it with control-jev
 
