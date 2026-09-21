@@ -47,7 +47,7 @@ export function PreviewApp() {
     <>
       {bridge === null ? <p className="shell">Building preview…</p> : null}
       {bridge !== null && page === "side" ? (
-        <div style={{ maxWidth: 380, minHeight: "100vh", borderLeft: store ? "1px solid var(--line)" : undefined }}>
+        <div className={store ? "preview-frame store-panel" : "preview-frame"}>
           <SidePanelApp bridge={bridge} />
         </div>
       ) : null}
@@ -59,13 +59,13 @@ export function PreviewApp() {
 
   if (store && page === "side") {
     return (
-      <div style={{ display: "flex", minHeight: "100vh", background: "#eceff3" }}>
-        <section style={{ flex: 1, padding: 32, color: "#111827" }}>
-          <p style={{ margin: 0, fontSize: 12, color: "#4b5563" }}>{scene === "fail" ? "販売ページの例" : "報道ページの例"}</p>
-          <h1 style={{ fontSize: 22, margin: "8px 0 16px" }}>
+      <div className="store-layout">
+        <section className="store-article">
+          <p className="kicker">{scene === "fail" ? "販売ページの例" : "報道ページの例"}</p>
+          <h1>
             {scene === "fail" ? "Doctors hate this: one pill reverses aging in 11 days" : "City delays river bridge opening after inspection"}
           </h1>
-          <p style={{ maxWidth: 560, color: "#4b5563" }}>
+          <p>
             {scene === "fail"
               ? "販売ページの例。発行元も出典もなく、数字が食い違う。Inspector はサイトと本文を分ける。"
               : "報道ページの例。発行元と著者とメモへのリンクがある。点数は一つにしない。"}

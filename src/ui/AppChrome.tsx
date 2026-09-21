@@ -21,8 +21,10 @@ export function AppChrome({
   const resolved = useResolvedLocale(locale);
   return (
     <LocaleProvider locale={resolved}>
-      <AppHeader meta={meta} />
-      <main className={wide ? "shell wide" : "shell"}>{children}</main>
+      <div className={wide ? "app wide" : "app"}>
+        <AppHeader meta={meta} />
+        <main className="shell">{children}</main>
+      </div>
     </LocaleProvider>
   );
 }

@@ -92,8 +92,8 @@ export function RadarChart({
 }) {
   const copy = useCopy();
   const measured = axes.some((axis) => axis.value !== null);
-  const radius = compact ? 52 : 78;
-  const size = compact ? 200 : 260;
+  const radius = compact ? 48 : 78;
+  const size = compact ? 232 : 280;
   const grow = useGrow(GROW_MS);
 
   if (!measured) {

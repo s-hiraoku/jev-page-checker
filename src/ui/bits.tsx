@@ -7,7 +7,7 @@ export function AppHeader({ meta }: { meta?: string }) {
     <header className="app-header">
       <div className="app-name">
         <span className="app-mark">{APP_MARK}</span>
-        {APP_NAME}
+        <span className="app-title">{APP_NAME}</span>
       </div>
       {meta ? <div className="app-meta">{meta}</div> : null}
     </header>
@@ -20,7 +20,7 @@ export function VerdictChip({ verdict }: { verdict: Verdict }) {
 
 export function Lane({ title, verdict }: { title: string; verdict: Verdict }) {
   return (
-    <div className="lane">
+    <div className={`lane lane-${verdict}`}>
       <strong>{title}</strong>
       <div className={`verdict verdict-${verdict}`}>{VERDICT_LABELS[verdict]}</div>
     </div>
