@@ -60,7 +60,7 @@ function scriptedGateway(answersList: Record<string, JevAnswer>[]): JevGateway &
 
 test("a sourced news article passes site safety and body scrutiny", async () => {
   const report = await reportOf("page-credibility-pass.json");
-  assert.equal(report.definition.version, 7);
+  assert.equal(report.definition.version, 8);
   assert.equal(report.items.every((item) => item.verdict === "pass"), true);
   assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
   assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "pass");
@@ -70,7 +70,18 @@ test("a sourced news article passes site safety and body scrutiny", async () => 
   assert.match(report.items.find((item) => item.id === "separates_fact_and_opinion")?.cite ?? "", /does not add costs/);
   assert.match(report.items.find((item) => item.id === "unsourced_specifics")?.cite ?? "", /photograph of the south pier/);
   assert.match(report.items.find((item) => item.id === "self_consistent")?.cite ?? "", /hairline cracks/);
-  assert.match(report.items.find((item) => item.id === "certainty_matches_evidence")?.cite ?? "", /does not add costs/);
+  assert.match(report.items.find((item) => item.id === "certainty_matches_evidence")?.cite ?? "", /opening date/);
+  assert.notEqual(
+    report.items.find((item) => item.id === "separates_fact_and_opinion")?.cite,
+    report.items.find((item) => item.id === "certainty_matches_evidence")?.cite,
+  );
+  assert.match(report.items.find((item) => item.id === "identifiable_publisher")?.cite ?? "", /Mina Ito/);
+  assert.match(report.items.find((item) => item.id === "honest_identity")?.cite ?? "", /Example News/);
+  assert.match(report.items.find((item) => item.id === "site_purpose")?.cite ?? "", /City delays river bridge/);
+  assert.match(report.items.find((item) => item.id === "disclosed_incentives")?.cite ?? "", /postponed the opening/);
+  for (const id of SITE_QUESTION_IDS) {
+    assert.ok((report.items.find((item) => item.id === id)?.cite ?? "").length > 0, id);
+  }
   assert.equal(report.items.some((item) => item.id.endsWith("_cite")), false);
 });
 
@@ -138,7 +149,7 @@ test("Review and Alert rows show the causing sentence, not the Pass sentence", a
 test("each cite question asks for the sentence that bears on that question", () => {
   const cites = parsed.questions.filter((question) => question.type === "choice" && question.citeFor !== undefined);
   const texts = cites.map((question) => (typeof question.instructions === "string" ? question.instructions : ""));
-  assert.equal(new Set(texts).size, 5);
+  assert.equal(new Set(texts).size, 9);
   for (const text of texts) {
     assert.match(text, /causes the failure/);
     assert.equal(text.includes("most carries"), false);
@@ -161,8 +172,20 @@ test("a miracle-cure sales page fails site safety and body scrutiny", async () =
   assert.match(report.items.find((item) => item.id === "evidence_for_claims")?.cite ?? "", /11 days/);
   assert.match(report.items.find((item) => item.id === "separates_fact_and_opinion")?.cite ?? "", /hiding it/);
   assert.match(report.items.find((item) => item.id === "unsourced_specifics")?.cite ?? "", /94 percent/);
+  assert.notEqual(
+    report.items.find((item) => item.id === "evidence_for_claims")?.cite,
+    report.items.find((item) => item.id === "unsourced_specifics")?.cite,
+  );
   assert.match(report.items.find((item) => item.id === "self_consistent")?.cite ?? "", /three days/);
   assert.match(report.items.find((item) => item.id === "certainty_matches_evidence")?.cite ?? "", /six-month supply/);
+  assert.match(report.items.find((item) => item.id === "identifiable_publisher")?.cite ?? "", /manufacturer is named/);
+  assert.equal(report.items.find((item) => item.id === "site_purpose")?.verdict, "review");
+  assert.match(report.items.find((item) => item.id === "site_purpose")?.cite ?? "", /six-month supply/);
+  assert.equal(report.items.find((item) => item.id === "disclosed_incentives")?.verdict, "fail");
+  assert.match(report.items.find((item) => item.id === "disclosed_incentives")?.cite ?? "", /Order now/);
+  for (const id of [...SITE_QUESTION_IDS, ...PAGE_QUESTION_IDS]) {
+    assert.ok((report.items.find((item) => item.id === id)?.cite ?? "").length > 0, id);
+  }
 });
 
 test("a listing skips body questions because there is no single text to scrutinize", async () => {

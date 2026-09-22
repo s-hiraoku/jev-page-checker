@@ -2,7 +2,7 @@ import type { ChoiceCriteria, EntryType, JsonValue } from "@typesafe-ai/sdk";
 import { jsonEqual } from "./equal.js";
 import { buildRequest, type JevGateway, type JevReply } from "./jev.js";
 import { startTimer } from "./report.js";
-import { extractSpans, type PageSpan } from "./spans.js";
+import { extractSiteSpans, extractSpans, type PageSpan } from "./spans.js";
 import type { ApprovedDefinition, Check, CheckReport, ChoiceCheck, ItemResult, JevAnswer, Verdict } from "./types.js";
 
 const NOUL_DEFAULTS = { passAt: 0.8, failAt: 0.2 };
@@ -111,8 +111,30 @@ function isSynthesis(state: EntryType): boolean {
 }
 
 function stateText(state: EntryType): string {
-  if (typeof state === "object" && state !== null && !Array.isArray(state) && typeof state.text === "string") return state.text;
-  return "";
+  return stateField(state, "text");
+}
+
+function stateField(state: EntryType, key: string): string {
+  if (typeof state !== "object" || state === null || Array.isArray(state)) return "";
+  const value = state[key];
+  return typeof value === "string" ? value : "";
+}
+
+function citesBody(check: ChoiceCheck): boolean {
+  const when = check.applyWhen;
+  return when?.op === "equals" && when.path === "hasArticle" && when.value === true;
+}
+
+/** Body cites use the main text. Site cites add the chrome fields. Same cut either way. */
+function spansForCite(check: ChoiceCheck, state: EntryType, bodySpans: readonly PageSpan[]): readonly PageSpan[] {
+  if (citesBody(check)) return bodySpans;
+  return extractSiteSpans({
+    title: stateField(state, "title"),
+    siteName: stateField(state, "siteName"),
+    author: stateField(state, "author"),
+    metaDescription: stateField(state, "metaDescription"),
+    text: stateText(state),
+  });
 }
 
 function expandCite(check: ChoiceCheck, spans: readonly PageSpan[]): ChoiceCheck {
@@ -157,16 +179,15 @@ function followUpCite(check: ChoiceCheck, spans: readonly PageSpan[]): ChoiceChe
 function assignCites(
   checks: readonly ChoiceCheck[],
   answers: Readonly<Record<string, JevAnswer | undefined>>,
-  spans: readonly PageSpan[],
+  spansByCite: ReadonlyMap<string, readonly PageSpan[]>,
   verdicts: ReadonlyMap<string, Verdict>,
 ): Map<string, string> {
   const cites = new Map<string, string>();
-  if (spans.length === 0) return cites;
   const chosen = new Map<string, PageSpan>();
   for (const check of checks) {
     const parent = check.citeFor;
     if (parent === undefined) continue;
-    const span = explicitSpan(answers[check.id], spans);
+    const span = explicitSpan(answers[check.id], spansByCite.get(check.id) ?? []);
     if (span !== undefined) chosen.set(parent, span);
   }
   const passTexts = new Set<string>();
@@ -189,6 +210,7 @@ function assignCites(
   for (const check of checks) {
     const parent = check.citeFor;
     if (parent === undefined || cites.has(parent) || !isAlertVerdict(verdicts.get(parent))) continue;
+    const spans = spansByCite.get(check.id) ?? [];
     const used = new Set(cites.values());
     const span =
       spans.find((item) => !passTexts.has(item.text) && !used.has(item.text)) ??
@@ -200,8 +222,9 @@ function assignCites(
   for (const check of checks) {
     const parent = check.citeFor;
     if (parent === undefined || cites.has(parent) || verdicts.get(parent) !== "pass") continue;
+    const spans = spansByCite.get(check.id) ?? [];
     const used = new Set(cites.values());
-    const span = spans.find((item) => !used.has(item.text));
+    const span = spans.find((item) => !used.has(item.text)) ?? chosen.get(parent);
     if (span !== undefined) cites.set(parent, span.text);
   }
   return cites;
@@ -229,24 +252,23 @@ function parentVerdicts(
 function citesNeedingCause(
   checks: readonly ChoiceCheck[],
   answers: Readonly<Record<string, JevAnswer | undefined>>,
-  spans: readonly PageSpan[],
+  spansByCite: ReadonlyMap<string, readonly PageSpan[]>,
   verdicts: ReadonlyMap<string, Verdict>,
 ): ChoiceCheck[] {
-  if (spans.length === 0) return [];
   const passTexts = new Set<string>();
   for (const check of checks) {
     const parent = check.citeFor;
     if (parent === undefined || verdicts.get(parent) !== "pass") continue;
-    const span = explicitSpan(answers[check.id], spans);
+    const span = explicitSpan(answers[check.id], spansByCite.get(check.id) ?? []);
     if (span !== undefined) passTexts.add(span.text);
   }
-  const nonPass = spans.some((span) => !passTexts.has(span.text));
   return checks.filter((check) => {
     const parent = check.citeFor;
-    if (parent === undefined || !isAlertVerdict(verdicts.get(parent))) return false;
+    const spans = spansByCite.get(check.id) ?? [];
+    if (parent === undefined || spans.length === 0 || !isAlertVerdict(verdicts.get(parent))) return false;
     const span = explicitSpan(answers[check.id], spans);
     if (span === undefined) return true;
-    return passTexts.has(span.text) && nonPass;
+    return passTexts.has(span.text) && spans.some((item) => !passTexts.has(item.text));
   });
 }
 
@@ -255,9 +277,15 @@ export async function evaluate(definition: ApprovedDefinition, state: EntryType,
   const verdictQuestions = definition.questions.filter((check) => !isCite(check));
   const citeQuestions = definition.questions.filter(isCite);
   const synthesis = isSynthesis(state);
-  const spans = synthesis ? [] : extractSpans(stateText(state));
+  const bodySpans = synthesis ? [] : extractSpans(stateText(state));
   const applicableCites = synthesis ? [] : citeQuestions.filter((check) => skipReason(check, state) === undefined);
-  const citeAsked = spans.length === 0 ? [] : applicableCites.map((check) => expandCite(check, spans));
+  const spansByCite = new Map<string, readonly PageSpan[]>(
+    applicableCites.map((check) => [check.id, spansForCite(check, state, bodySpans)]),
+  );
+  const citeAsked = applicableCites.flatMap((check) => {
+    const spans = spansByCite.get(check.id) ?? [];
+    return spans.length === 0 ? [] : [expandCite(check, spans)];
+  });
   const asked = [...verdictQuestions.filter((check) => skipReason(check, state) === undefined), ...citeAsked];
   let reply: JevReply = { answers: {}, usage: { input_tokens: 0, output_tokens: 0 } };
   let jevMs = 0;
@@ -268,19 +296,26 @@ export async function evaluate(definition: ApprovedDefinition, state: EntryType,
   }
   const answers: Record<string, JevAnswer | undefined> = { ...reply.answers };
   const verdicts = parentVerdicts(verdictQuestions, state, answers);
-  const retry = citesNeedingCause(applicableCites, answers, spans, verdicts);
+  const retry = citesNeedingCause(applicableCites, answers, spansByCite, verdicts);
   if (retry.length > 0) {
     const passTexts = new Set<string>();
     for (const check of applicableCites) {
       const parent = check.citeFor;
       if (parent === undefined || verdicts.get(parent) !== "pass") continue;
-      const span = explicitSpan(answers[check.id], spans);
+      const span = explicitSpan(answers[check.id], spansByCite.get(check.id) ?? []);
       if (span !== undefined) passTexts.add(span.text);
     }
-    const offer = spans.filter((span) => !passTexts.has(span.text));
-    const askSpans = offer.length > 0 ? offer : spans;
     const jevTimer = startTimer();
-    const second = await jev.ask(buildRequest(state, retry.map((check) => followUpCite(check, askSpans))));
+    const second = await jev.ask(
+      buildRequest(
+        state,
+        retry.map((check) => {
+          const spans = spansByCite.get(check.id) ?? [];
+          const offer = spans.filter((span) => !passTexts.has(span.text));
+          return followUpCite(check, offer.length > 0 ? offer : spans);
+        }),
+      ),
+    );
     jevMs += jevTimer();
     reply = {
       ...reply,
@@ -294,7 +329,7 @@ export async function evaluate(definition: ApprovedDefinition, state: EntryType,
       if (answer !== undefined) answers[check.id] = answer;
     }
   }
-  const cites = assignCites(applicableCites, answers, spans, verdicts);
+  const cites = assignCites(applicableCites, answers, spansByCite, verdicts);
   const items = verdictQuestions.map((check): ItemResult => {
     const skip = skipReason(check, state);
     if (skip !== undefined) return { id: check.id, verdict: "not_applicable", reason: skip };

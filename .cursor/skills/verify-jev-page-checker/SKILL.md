@@ -82,20 +82,20 @@ Prefer URL entry points over nav buttons when starting a recipe. Scene is a quer
 
 Stable handles (accessible names / labels from the real UI, not test ids):
 
-- App chrome: heading-equivalent `Audit` (mark `Jev` + name `Audit` from `labels.ts`), meta `v7` on the panel / `Report · v7` / `History · v7` / `Settings · v7`
+- App chrome: heading-equivalent `Audit` (mark `Jev` + name `Audit` from `labels.ts`), meta `v8` on the panel / `Report · v8` / `History · v8` / `Settings · v8`
 - Preview fixture row: `Pass`, `Fail`, `Truncated`, `Chunked`. Product chrome row: `Setup`, `Inspector`, `Settings`, `Report`, `History`. They are not one toolbar.
 - Side panel buttons: `Audit`, `Report`, `History`, `Settings` (gated panel uses the same `Settings` button)
-- Side panel copy: `サイト`, `本文`, `Pass`, `Alert`, `Review`, `N/A`. Ready Inspector has no score lede and no footer about following the tab. Default basis text is Japanese, for example `責任者として分かる`.
+- Side panel copy: `サイト`, `本文`, `Pass`, `Alert`, `Review`, `N/A`. Ready Inspector has no score lede and no footer about following the tab. Each item has a compact table labeled `判定`, `基準`, and `文`. The criterion cell is the matched branch, for example `責任者として分かる`.
 - Pass title: `City delays river bridge opening after inspection, officials say`
 - Fail title: `Doctors hate this: one pill reverses aging in 11 days`
 - Setup gate: `先に、チェックリスト全体を承認してください。`
-- Settings labels: `TypeSafe API キー`, `テーマ`, `言語`, `タブに追従する`, `本文が変わったらやり直す`, `やり直すまでの待ち時間（ミリ秒）`, `本文とみなす最小の語数`, `このチェックリスト全体を承認する。` The checklist heading is `質問 14`, then a card labeled `質問内容` with `Jev に送る定義は英語です。` There is no 承認者の名前 field.
+- Settings labels: `TypeSafe API キー`, `テーマ`, `言語`, `タブに追従する`, `本文が変わったらやり直す`, `やり直すまでの待ち時間（ミリ秒）`, `本文とみなす最小の語数`, `このチェックリスト全体を承認する。` The checklist heading is `質問 18`, then a card labeled `質問内容` with `Jev に送る定義は英語です。` There is no 承認者の名前 field.
 - Theme options: `システム` (default), `ライト`, `ダーク`
 - Locale options: `システム` (default), `日本語`, `English`. Preview daemon locale is `ja-JP`, so system copy is Japanese.
 - Language options: `システム` (default), `日本語`, `English`
-- Settings actions: button `保存`, status `保存しました。`, heading `質問 14`. English locale uses button `Save` and status `Saved.` Cite questions include the note `選択肢は、このページから切った文です。Review と Alert の行には、その判定の原因になった文を出します。確信度が低くても、none でも隠しません。Pass の行と同じ文にはしません。この選択は判定のチップを動かしません。`
-- Details: meta `Report · v7`, panel head `送った文`, title label `タイトル`. No history list. The pass body row `主張の根拠` includes the page sentence with `12 September`.
-- History: meta `History · v7`, heading `History` (not `履歴`), row names are snapshot titles, each row shows `Audit した時刻`, and each row has `この記録を消す`
+- Settings actions: button `保存`, status `保存しました。`, heading `質問 18`. English locale uses button `Save` and status `Saved.` Cite questions include the note `選択肢は、このページから切った文です。サイトの問も本文の問も、その判定の原因になった文を出します。Review と Alert の行は空にしません。この選択は判定のチップを動かしません。`
+- Details: meta `Report · v8`, panel head `送った文`, title label `タイトル`. No history list. The pass body row `主張の根拠` includes the page sentence with `12 September`.
+- History: meta `History · v8`, heading `History` (not `履歴`), row names are snapshot titles, each row shows `Audit した時刻`, and each row has `この記録を消す`
 
 `click --name` matches a **button** exactly. `fill --label` matches the wrapping `<label>` text exactly. `check --label` is a substring match. The approval checkbox label is `このチェックリスト全体を承認する。`
 

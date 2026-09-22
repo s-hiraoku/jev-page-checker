@@ -21,6 +21,10 @@ const QUESTION_LABELS: Record<ResolvedLocale, Record<string, string>> = {
     unsourced_specifics_cite: "出典のない具体の文",
     self_consistent_cite: "食い違いの文",
     certainty_matches_evidence_cite: "断定を支える文",
+    identifiable_publisher_cite: "発行元を示す文",
+    honest_identity_cite: "なりすましを示す文",
+    site_purpose_cite: "目的を示す文",
+    disclosed_incentives_cite: "利害を示す文",
   },
   en: {
     identifiable_publisher: "Publisher is identifiable",
@@ -37,6 +41,10 @@ const QUESTION_LABELS: Record<ResolvedLocale, Record<string, string>> = {
     unsourced_specifics_cite: "Sentence behind unsourced specifics",
     self_consistent_cite: "Sentence behind a contradiction",
     certainty_matches_evidence_cite: "Sentence behind the certainty",
+    identifiable_publisher_cite: "Sentence behind the publisher",
+    honest_identity_cite: "Sentence behind identity",
+    site_purpose_cite: "Sentence behind the purpose",
+    disclosed_incentives_cite: "Sentence behind the pitch",
   },
 };
 
@@ -244,6 +252,22 @@ export function basisLabel(
   return BASIS_LABELS[locale][id]?.[key] ?? BASIS_LABELS.en[id]?.[key] ?? fallback;
 }
 
+/** Compact readout: the verdict beside the criterion for the branch the parent answer took. */
+export function evidenceReadout(
+  id: string,
+  answer: JevAnswer | undefined,
+  verdict: Verdict,
+  locale: ResolvedLocale,
+  sentence: string,
+  fallback = "",
+): { verdict: string; criterion: string; sentence: string } {
+  return {
+    verdict: VERDICT_LABELS[verdict],
+    criterion: basisLabel(id, answer, locale, fallback),
+    sentence: sentence.trim(),
+  };
+}
+
 export function instructionText(check: { instructions: unknown }): string {
   return typeof check.instructions === "string" ? check.instructions : JSON.stringify(check.instructions);
 }
@@ -280,6 +304,14 @@ const CITE_INSTRUCTION_JA: Record<string, string> = {
     "このページから切った文が選択肢です。各ラベルの説明がその文です。本文の内部矛盾に関わる文を一つ選んでください。同じ事実について別の文と食い違う数字、日付、結果の文、または後で取り消している主張の文です。食い違いが無ければ、別の文も述べている事実の文です。いちばん具体的な段落だから、という理由では選ばないでください。この問が通過しないときは、通過する部分を支える文ではなく、失敗の原因になっている文を選んでください。同じ事実に触れる文が無ければ none です。新しい文は書かないでください。",
   certainty_matches_evidence_cite:
     "このページから切った文が選択肢です。各ラベルの説明がその文です。断定の強さに関わる文を一つ選んでください。断定、和らげ、仮説、個人の結果のいずれかの文です。言い切りの強さと、その文の中の根拠がずれている文があればそれを優先します。数字があるという理由だけでは選ばないでください。この問が通過しないときは、通過する部分を支える文ではなく、失敗の原因になっている文を選んでください。断定の強さが問題になる文が無ければ none です。新しい文は書かないでください。",
+  identifiable_publisher_cite:
+    "ラベルは、ページに出ているタイトル、サイト名、著者、説明、そのあとに本文から切った文です。各ラベルの説明がその文字列です。責任者の名前が分かるもの、または責任者がいないと分かるものを一つ選んでください。この問が通過しないときは、通過する部分を支えるものではなく、失敗の原因になっているものを選んでください。責任者に関わるものが無ければ none です。新しい文は書かないでください。",
+  honest_identity_cite:
+    "ラベルは、ページに出ているタイトル、サイト名、著者、説明、そのあとに本文から切った文です。各ラベルの説明がその文字列です。自分として話しているか、別の主体を名乗っているかが分かるものを一つ選んでください。この問が通過しないときは、通過する部分を支えるものではなく、失敗の原因になっているものを選んでください。身元に関わるものが無ければ none です。新しい文は書かないでください。",
+  site_purpose_cite:
+    "ラベルは、ページに出ているタイトル、サイト名、著者、説明、そのあとに本文から切った文です。各ラベルの説明がその文字列です。このページが何のためにあるかが分かるものを一つ選んでください。この問が通過しないときは、通過する部分を支えるものではなく、失敗の原因になっているものを選んでください。目的に関わるものが無ければ none です。新しい文は書かないでください。",
+  disclosed_incentives_cite:
+    "ラベルは、ページに出ているタイトル、サイト名、著者、説明、そのあとに本文から切った文です。各ラベルの説明がその文字列です。勧誘、得をする主体の名前、または勧誘がないことが分かるものを一つ選んでください。この問が通過しないときは、通過する部分を支えるものではなく、失敗の原因になっているものを選んでください。勧誘に関わるものが無ければ none です。新しい文は書かないでください。",
 };
 
 const CITE_NONE_EN = "No single sentence carries this question.";
@@ -290,6 +322,10 @@ const CITE_IDS = [
   "unsourced_specifics_cite",
   "self_consistent_cite",
   "certainty_matches_evidence_cite",
+  "identifiable_publisher_cite",
+  "honest_identity_cite",
+  "site_purpose_cite",
+  "disclosed_incentives_cite",
 ] as const;
 
 for (const id of CITE_IDS) {

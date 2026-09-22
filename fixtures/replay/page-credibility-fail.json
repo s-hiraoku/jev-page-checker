@@ -45,6 +45,30 @@
       "confidence": 0.9,
       "probabilities": { "no_pitch": 0.04, "named_beneficiary": 0.06, "hidden_beneficiary": 0.9 }
     },
+    "identifiable_publisher_cite": {
+      "type": "choice",
+      "choice": "s8",
+      "confidence": 0.9,
+      "probabilities": { "s8": 0.9, "none": 0.1 }
+    },
+    "honest_identity_cite": {
+      "type": "choice",
+      "choice": "s2",
+      "confidence": 0.86,
+      "probabilities": { "s2": 0.86, "none": 0.14 }
+    },
+    "site_purpose_cite": {
+      "type": "choice",
+      "choice": "s7",
+      "confidence": 0.88,
+      "probabilities": { "s7": 0.88, "none": 0.12 }
+    },
+    "disclosed_incentives_cite": {
+      "type": "choice",
+      "choice": "s3",
+      "confidence": 0.91,
+      "probabilities": { "s3": 0.91, "none": 0.09 }
+    },
     "evidence_for_claims_cite": {
       "type": "choice",
       "choice": "s1",
@@ -53,27 +77,27 @@
     },
     "separates_fact_and_opinion_cite": {
       "type": "choice",
-      "choice": "s5",
+      "choice": "s6",
       "confidence": 0.83,
-      "probabilities": { "s5": 0.83, "none": 0.17 }
+      "probabilities": { "s6": 0.83, "none": 0.17 }
     },
     "unsourced_specifics_cite": {
       "type": "choice",
-      "choice": "s1",
+      "choice": "s2",
       "confidence": 0.9,
-      "probabilities": { "s1": 0.9, "none": 0.1 }
+      "probabilities": { "s2": 0.9, "none": 0.1 }
     },
     "self_consistent_cite": {
       "type": "choice",
-      "choice": "s2",
+      "choice": "s3",
       "confidence": 0.86,
-      "probabilities": { "s2": 0.86, "none": 0.14 }
+      "probabilities": { "s3": 0.86, "none": 0.14 }
     },
     "certainty_matches_evidence_cite": {
       "type": "choice",
-      "choice": "s3",
+      "choice": "s4",
       "confidence": 0.82,
-      "probabilities": { "s3": 0.82, "none": 0.18 }
+      "probabilities": { "s4": 0.82, "none": 0.18 }
     },
     "evidence_for_claims": {
       "type": "score",

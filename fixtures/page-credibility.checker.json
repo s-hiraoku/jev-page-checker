@@ -1,8 +1,8 @@
 {
   "id": "page-credibility",
-  "version": 7,
+  "version": 8,
   "subject": "Site safety of the current page (who is responsible, whether it impersonates another party, what it is for, whether a pitch is disclosed) and, when the page is one piece of writing, scrutiny of that writing. A listing is not an article. A purpose of opinion is not a safety failure. The report is evidence, not a reputation score for a familiar site.",
-  "approval": { "status": "approved", "at": "2026-09-21T23:50:00Z", "by": "fixture" },
+  "approval": { "status": "approved", "at": "2026-09-22T01:30:00Z", "by": "fixture" },
   "questions": [
     {
       "id": "identifiable_publisher",
@@ -171,6 +171,38 @@
       "criteria": { "none": "No single sentence carries this question." },
       "options": { "none": "pass" },
       "applyWhen": { "path": "hasArticle", "op": "equals", "value": true }
+    },
+    {
+      "id": "identifiable_publisher_cite",
+      "type": "choice",
+      "citeFor": "identifiable_publisher",
+      "instructions": "Labels are the title, site name, author, and description as shown on the page, then sentences cut from the page text. The description of each label is that text. Choose the one label that names who is responsible, or that shows the responsible party is missing. If this question does not pass, choose the label that causes the failure, not a label that only supports a passing part of the page. Choose none only when no label bears on who is responsible. Do not write a new sentence.",
+      "criteria": { "none": "No single sentence carries this question." },
+      "options": { "none": "pass" }
+    },
+    {
+      "id": "honest_identity_cite",
+      "type": "choice",
+      "citeFor": "honest_identity",
+      "instructions": "Labels are the title, site name, author, and description as shown on the page, then sentences cut from the page text. The description of each label is that text. Choose the one label that shows whether the page is speaking as itself or as someone else. If this question does not pass, choose the label that causes the failure, not a label that only supports a passing part of the page. Choose none only when no label bears on identity. Do not write a new sentence.",
+      "criteria": { "none": "No single sentence carries this question." },
+      "options": { "none": "pass" }
+    },
+    {
+      "id": "site_purpose_cite",
+      "type": "choice",
+      "citeFor": "site_purpose",
+      "instructions": "Labels are the title, site name, author, and description as shown on the page, then sentences cut from the page text. The description of each label is that text. Choose the one label that shows what the page is for. If this question does not pass, choose the label that causes the failure, not a label that only supports a passing part of the page. Choose none only when no label bears on purpose. Do not write a new sentence.",
+      "criteria": { "none": "No single sentence carries this question." },
+      "options": { "none": "pass" }
+    },
+    {
+      "id": "disclosed_incentives_cite",
+      "type": "choice",
+      "citeFor": "disclosed_incentives",
+      "instructions": "Labels are the title, site name, author, and description as shown on the page, then sentences cut from the page text. The description of each label is that text. Choose the one label that shows a pitch, a named beneficiary, or that there is no pitch. If this question does not pass, choose the label that causes the failure, not a label that only supports a passing part of the page. Choose none only when no label bears on a pitch. Do not write a new sentence.",
+      "criteria": { "none": "No single sentence carries this question." },
+      "options": { "none": "pass" }
     }
   ]
 }

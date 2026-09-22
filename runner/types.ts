@@ -74,7 +74,7 @@ export interface ItemResult {
   reason: string;
   basis?: string;
   answer?: JevAnswer;
-  /** Page sentence for this question. Review and Alert rows keep the sentence that caused that verdict. */
+  /** Page span for this question. It does not vote. Review and Alert keep a span when one was cut. */
   cite?: string;
 }
 

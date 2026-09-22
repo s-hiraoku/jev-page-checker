@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { parseDefinition, type JevAnswer } from "./checkkit.js";
-import { basisEntries, basisKey, basisLabel, instructionLabel } from "./labels.js";
+import { basisEntries, basisKey, basisLabel, evidenceReadout, instructionLabel } from "./labels.js";
 
 function choiceAnswer(choice: string, confidence = 1): JevAnswer {
   return { type: "choice", choice, confidence, probabilities: { [choice]: confidence } };
@@ -48,6 +48,15 @@ test("English basis labels stay the checker criteria, not a rewritten rubric", (
       });
     }
   }
+});
+
+test("evidenceReadout pairs the verdict with the matched criterion only", () => {
+  const fail = { type: "noul" as const, noul: 0.1 };
+  const readout = evidenceReadout("identifiable_publisher", fail, "fail", "ja", "No study, author, or manufacturer is named.");
+  assert.equal(readout.verdict, "Alert");
+  assert.match(readout.criterion, /責任者がいない/);
+  assert.equal(readout.criterion.includes("責任者として分かる"), false);
+  assert.match(readout.sentence, /manufacturer is named/);
 });
 
 test("basisLabel falls back to the stored English basis when the answer is missing", () => {
