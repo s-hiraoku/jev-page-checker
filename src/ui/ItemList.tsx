@@ -48,33 +48,25 @@ function ResultTable({ items }: { items: readonly ItemResult[] }) {
       </thead>
       <tbody>
         {items.map((item) => {
-          const readout = evidenceReadout(item.id, item.answer, item.verdict, locale, item.cite ?? "", item.basis?.trim() ?? "");
+          const readout = evidenceReadout(item.id, item.verdict, locale, item.cite ?? "");
           const showReason =
             item.reason.length > 0 &&
-            (readout.criterion.length === 0 ||
-              item.reason.includes("cannot support pass") ||
-              item.reason.includes("synthesis error"));
+            (item.reason.includes("cannot support pass") || item.reason.includes("synthesis error"));
           return (
             <tr key={item.id}>
               <th scope="row">
                 {questionLabel(item.id, locale)}
                 <table className="evidence-table">
                   <tbody>
-                    <tr>
-                      <th scope="row">{copy.verdict}</th>
-                      <td>
-                        <VerdictChip verdict={item.verdict} />
-                      </td>
-                    </tr>
-                    {readout.criterion ? (
+                    {readout.remark ? (
                       <tr>
-                        <th scope="row">{copy.criterion}</th>
-                        <td>{readout.criterion}</td>
+                        <th scope="row">{copy.remark}</th>
+                        <td>{readout.remark}</td>
                       </tr>
                     ) : null}
                     {readout.sentence ? (
                       <tr>
-                        <th scope="row">{copy.sentence}</th>
+                        <th scope="row">{copy.grounds}</th>
                         <td>{readout.sentence}</td>
                       </tr>
                     ) : null}

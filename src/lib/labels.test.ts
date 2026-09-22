@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { parseDefinition, type JevAnswer } from "./checkkit.js";
-import { basisEntries, basisKey, basisLabel, evidenceReadout, instructionLabel } from "./labels.js";
+import { parseDefinition, type JevAnswer, type Verdict } from "./checkkit.js";
+import { REMARK_IDS, basisEntries, basisKey, basisLabel, evidenceReadout, instructionLabel, verdictRemark } from "./labels.js";
 
 function choiceAnswer(choice: string, confidence = 1): JevAnswer {
   return { type: "choice", choice, confidence, probabilities: { [choice]: confidence } };
@@ -50,13 +50,30 @@ test("English basis labels stay the checker criteria, not a rewritten rubric", (
   }
 });
 
-test("evidenceReadout pairs the verdict with the matched criterion only", () => {
-  const fail = { type: "noul" as const, noul: 0.1 };
-  const readout = evidenceReadout("identifiable_publisher", fail, "fail", "ja", "No study, author, or manufacturer is named.");
+test("evidenceReadout states a short remark for that question and that verdict", () => {
+  const readout = evidenceReadout(
+    "identifiable_publisher",
+    "fail",
+    "ja",
+    "No study, author, or manufacturer is named.",
+  );
   assert.equal(readout.verdict, "Alert");
-  assert.match(readout.criterion, /責任者がいない/);
-  assert.equal(readout.criterion.includes("責任者として分かる"), false);
+  assert.equal(readout.remark, "責任者が、分からない。");
+  assert.equal(readout.remark.includes("責任者として分かる"), false);
+  assert.equal(readout.remark.includes("匿名"), false);
   assert.match(readout.sentence, /manufacturer is named/);
+
+  const verdicts: Verdict[] = ["pass", "review", "fail", "error", "not_applicable"];
+  for (const id of REMARK_IDS) {
+    const paragraphs = [...basisEntries(id, "ja"), ...basisEntries(id, "en")].map((entry) => entry.text);
+    for (const verdict of verdicts) {
+      for (const locale of ["ja", "en"] as const) {
+        const remark = verdictRemark(id, verdict, locale);
+        assert.ok(remark.length > 0, `${id} ${verdict} ${locale}`);
+        assert.equal(paragraphs.includes(remark), false, `${id} ${verdict} ${locale}`);
+      }
+    }
+  }
 });
 
 test("basisLabel falls back to the stored English basis when the answer is missing", () => {

@@ -674,7 +674,7 @@ a:hover {
 }
 
 .result-table .evidence-table th {
-  width: 3em;
+  width: 4.5em;
   padding-right: 8px;
   color: var(--muted);
   font-weight: 600;

@@ -30,11 +30,11 @@ export function reportDocument(record: StoredRecord, locale: ResolvedLocale): st
     "",
   ];
   for (const item of record.report.items) {
-    const readout = evidenceReadout(item.id, item.answer, item.verdict, locale, item.cite ?? "", item.basis?.trim() ?? "");
+    const readout = evidenceReadout(item.id, item.verdict, locale, item.cite ?? "");
     lines.push(questionLabel(item.id, locale));
     lines.push(`${copy.verdict}: ${readout.verdict}`);
-    if (readout.criterion) lines.push(`${copy.criterion}: ${readout.criterion}`);
-    if (readout.sentence) lines.push(`${copy.sentence}: ${readout.sentence}`);
+    if (readout.remark) lines.push(`${copy.remark}: ${readout.remark}`);
+    if (readout.sentence) lines.push(`${copy.grounds}: ${readout.sentence}`);
     lines.push("");
   }
   lines.push(snapshot.text);

@@ -41,7 +41,7 @@ test("a saved report file names the host and includes extracted facts", () => {
   assert.match(reportDocument(record, "en"), /Page kind: Article/);
 });
 
-test("a saved report lists the verdict, the matched criterion, and the sentence", () => {
+test("a saved report lists the verdict, the remark, and the page sentence", () => {
   const item: ItemResult = {
     id: "identifiable_publisher" as ItemResult["id"],
     verdict: "fail",
@@ -67,7 +67,12 @@ test("a saved report lists the verdict, the matched criterion, and the sentence"
   const text = reportDocument(record, "ja");
   assert.match(text, /発行元が特定できる/);
   assert.match(text, /判定: Alert/);
-  assert.match(text, /基準: 責任者がいない/);
-  assert.match(text, /文: No study, author, or manufacturer is named\./);
+  assert.match(text, /寸評: 責任者が、分からない。/);
+  assert.match(text, /本文: No study, author, or manufacturer is named\./);
   assert.equal(text.includes("責任者として分かる"), false);
+  assert.equal(text.includes("基準:"), false);
+  const english = reportDocument(record, "en");
+  assert.match(english, /Verdict: Alert/);
+  assert.match(english, /Remark: No responsible party can be named\./);
+  assert.match(english, /Body: No study, author, or manufacturer is named\./);
 });

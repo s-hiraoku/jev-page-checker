@@ -252,18 +252,166 @@ export function basisLabel(
   return BASIS_LABELS[locale][id]?.[key] ?? BASIS_LABELS.en[id]?.[key] ?? fallback;
 }
 
-/** Compact readout: the verdict beside the criterion for the branch the parent answer took. */
+export const REMARK_IDS = [
+  "identifiable_publisher",
+  "honest_identity",
+  "site_purpose",
+  "disclosed_incentives",
+  "evidence_for_claims",
+  "separates_fact_and_opinion",
+  "unsourced_specifics",
+  "self_consistent",
+  "certainty_matches_evidence",
+] as const;
+
+const VERDICT_REMARKS: Record<ResolvedLocale, Record<string, Record<Verdict, string>>> = {
+  ja: {
+    identifiable_publisher: {
+      pass: "責任者を、名指しできる。",
+      review: "責任者は、決めきれない。",
+      fail: "責任者が、分からない。",
+      error: "責任者を、判定できなかった。",
+      not_applicable: "この問は、聞いていない。",
+    },
+    honest_identity: {
+      pass: "名乗りとホストが、一致する。",
+      review: "なりすましか、決めきれない。",
+      fail: "別の主体を、名乗っている。",
+      error: "なりすましを、判定できなかった。",
+      not_applicable: "この問は、聞いていない。",
+    },
+    site_purpose: {
+      pass: "主な目的は、報道か意見か一覧である。",
+      review: "主な目的は、販売か娯楽である。",
+      fail: "主な目的が、分からない。",
+      error: "目的を、判定できなかった。",
+      not_applicable: "この問は、聞いていない。",
+    },
+    disclosed_incentives: {
+      pass: "勧誘がないか、受益者が書いてある。",
+      review: "利害を、決めきれない。",
+      fail: "誰が得をするかを、隠している。",
+      error: "利害を、判定できなかった。",
+      not_applicable: "この問は、聞いていない。",
+    },
+    evidence_for_claims: {
+      pass: "主な事実主張に、ページ上の支えがある。",
+      review: "支えは、一部か、まだ決めきれない。",
+      fail: "主な事実主張に、支えがほとんどない。",
+      error: "根拠を、判定できなかった。",
+      not_applicable: "記事がないので、この問は聞いていない。",
+    },
+    separates_fact_and_opinion: {
+      pass: "事実と判断を、読み分けられる。",
+      review: "事実と判断の切り分けを、決めきれない。",
+      fail: "判断が事実のように、または事実が好みのように書かれている。",
+      error: "切り分けを、判定できなかった。",
+      not_applicable: "記事がないので、この問は聞いていない。",
+    },
+    unsourced_specifics: {
+      pass: "具体は、出典があるか、出典を要しない。",
+      review: "出典のない具体は、中核ではない。",
+      fail: "記事を支える具体に、出典がない。",
+      error: "出典を、判定できなかった。",
+      not_applicable: "記事がないので、この問は聞いていない。",
+    },
+    self_consistent: {
+      pass: "同じ事実で、食い違っていない。",
+      review: "食い違いか、決めきれない。",
+      fail: "同じ事実に、食い違いがある。",
+      error: "食い違いを、判定できなかった。",
+      not_applicable: "記事がないので、この問は聞いていない。",
+    },
+    certainty_matches_evidence: {
+      pass: "断定の強さは、示された支えに見合う。",
+      review: "断定と支えの釣り合いを、決めきれない。",
+      fail: "断定が、示された支えより強い。",
+      error: "断定を、判定できなかった。",
+      not_applicable: "記事がないので、この問は聞いていない。",
+    },
+  },
+  en: {
+    identifiable_publisher: {
+      pass: "A responsible party can be named.",
+      review: "The responsible party is not settled.",
+      fail: "No responsible party can be named.",
+      error: "The publisher check did not finish.",
+      not_applicable: "This question was not asked.",
+    },
+    honest_identity: {
+      pass: "The name matches the host.",
+      review: "Impersonation is not settled.",
+      fail: "The page claims to be someone else.",
+      error: "The identity check did not finish.",
+      not_applicable: "This question was not asked.",
+    },
+    site_purpose: {
+      pass: "The purpose reads as news, opinion, or a listing.",
+      review: "The purpose reads as a pitch or as entertainment.",
+      fail: "The purpose cannot be read.",
+      error: "The purpose check did not finish.",
+      not_applicable: "This question was not asked.",
+    },
+    disclosed_incentives: {
+      pass: "There is no pitch, or the beneficiary is named.",
+      review: "The pitch is not settled.",
+      fail: "The page hides who benefits.",
+      error: "The incentive check did not finish.",
+      not_applicable: "This question was not asked.",
+    },
+    evidence_for_claims: {
+      pass: "The main claims have support on the page.",
+      review: "Support is partial, or not settled.",
+      fail: "The main claims have almost no support.",
+      error: "The evidence check did not finish.",
+      not_applicable: "Not asked. This page is not one piece of writing.",
+    },
+    separates_fact_and_opinion: {
+      pass: "Facts and judgments can be told apart.",
+      review: "The split is not settled.",
+      fail: "A judgment is written as fact, or a fact as mere taste.",
+      error: "The split check did not finish.",
+      not_applicable: "Not asked. This page is not one piece of writing.",
+    },
+    unsourced_specifics: {
+      pass: "Particulars are sourced, or none are invented.",
+      review: "Unsourced particulars are not the core.",
+      fail: "Load-bearing particulars have no source.",
+      error: "The source check did not finish.",
+      not_applicable: "Not asked. This page is not one piece of writing.",
+    },
+    self_consistent: {
+      pass: "The same fact is not contradicted.",
+      review: "A contradiction is not settled.",
+      fail: "The same fact is stated two ways.",
+      error: "The consistency check did not finish.",
+      not_applicable: "Not asked. This page is not one piece of writing.",
+    },
+    certainty_matches_evidence: {
+      pass: "The tone matches the support on the page.",
+      review: "The match between tone and support is not settled.",
+      fail: "The tone is stronger than the support.",
+      error: "The certainty check did not finish.",
+      not_applicable: "Not asked. This page is not one piece of writing.",
+    },
+  },
+};
+
+/** Short client remark for this question and this verdict. The same sentence for every URL. */
+export function verdictRemark(id: string, verdict: Verdict, locale: ResolvedLocale = "ja"): string {
+  return VERDICT_REMARKS[locale][id]?.[verdict] ?? "";
+}
+
+/** Item readout. The remark is not the criterion paragraph, and it does not repeat the chip. */
 export function evidenceReadout(
   id: string,
-  answer: JevAnswer | undefined,
   verdict: Verdict,
   locale: ResolvedLocale,
   sentence: string,
-  fallback = "",
-): { verdict: string; criterion: string; sentence: string } {
+): { verdict: string; remark: string; sentence: string } {
   return {
     verdict: VERDICT_LABELS[verdict],
-    criterion: basisLabel(id, answer, locale, fallback),
+    remark: verdictRemark(id, verdict, locale),
     sentence: sentence.trim(),
   };
 }
