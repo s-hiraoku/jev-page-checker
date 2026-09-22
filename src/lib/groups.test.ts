@@ -110,3 +110,22 @@ test("mergeConservativeItem keeps fail over a later pass", () => {
   assert.equal(mergeConservativeItem([fail, pass]).verdict, "fail");
   assert.equal(mergeConservativeItem([pass, { ...pass, verdict: "review", reason: "between" }]).verdict, "review");
 });
+
+test("mergeConservativeItem keeps a page sentence when the stricter window has none", () => {
+  const cited: ItemResult = {
+    id: "evidence_for_claims" as ItemResult["id"],
+    verdict: "pass",
+    reason: "score 1.8 is at or above passAt 1.5",
+    cite: "The bureau posted the memo.",
+  };
+  const bare: ItemResult = {
+    id: "evidence_for_claims" as ItemResult["id"],
+    verdict: "fail",
+    reason: "score 0.2 is at or below failAt 0.5",
+  };
+  assert.equal(mergeConservativeItem([cited, bare]).verdict, "fail");
+  assert.equal(mergeConservativeItem([cited, bare]).cite, "The bureau posted the memo.");
+  const caused: ItemResult = { ...bare, cite: "A conflicting date." };
+  assert.equal(mergeConservativeItem([caused, cited]).verdict, "fail");
+  assert.equal(mergeConservativeItem([caused, cited]).cite, "A conflicting date.");
+});

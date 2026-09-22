@@ -89,9 +89,11 @@ export function mergeConservativeItem(versions: readonly ItemResult[]): ItemResu
   for (const item of versions.slice(1)) {
     if (RANK[item.verdict] > RANK[picked.verdict]) picked = item;
   }
-  if (versions.length === 1) return picked;
+  const cite = picked.cite ?? versions.find((item) => item.cite !== undefined)?.cite;
+  const withCite = cite !== undefined && picked.cite === undefined ? { ...picked, cite } : picked;
+  if (versions.length === 1) return withCite;
   return {
-    ...picked,
+    ...withCite,
     reason: `${picked.reason} (conservative merge of ${versions.length} windows)`,
   };
 }

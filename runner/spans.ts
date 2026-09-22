@@ -13,10 +13,13 @@ function scoreSentence(sentence: string): number {
   return score;
 }
 
-/** Sentences cut from the page text. The rule is the same for every URL. */
+/**
+ * Sentences cut from the page text. The rule is the same for every URL.
+ * English stops need a following space. Fullwidth stops end a sentence without one.
+ */
 export function extractSpans(text: string): PageSpan[] {
   const sentences = text
-    .split(/(?<=[.!?。！？])\s+/)
+    .split(/(?<=[.!?])\s+|(?<=[。！？．])/)
     .map((sentence) => sentence.trim())
     .filter((sentence) => [...sentence].length >= MIN_CHARS);
   const ranked = sentences

@@ -1,8 +1,8 @@
 {
   "id": "page-credibility",
-  "version": 6,
+  "version": 7,
   "subject": "Site safety of the current page (who is responsible, whether it impersonates another party, what it is for, whether a pitch is disclosed) and, when the page is one piece of writing, scrutiny of that writing. A listing is not an article. A purpose of opinion is not a safety failure. The report is evidence, not a reputation score for a familiar site.",
-  "approval": { "status": "approved", "at": "2026-09-21T00:00:00Z", "by": "fixture" },
+  "approval": { "status": "approved", "at": "2026-09-21T23:50:00Z", "by": "fixture" },
   "questions": [
     {
       "id": "identifiable_publisher",
@@ -131,50 +131,45 @@
       "id": "evidence_for_claims_cite",
       "type": "choice",
       "citeFor": "evidence_for_claims",
-      "instructions": "Sentences cut from this page are labeled s1, s2, and so on. The description of each label is that sentence. Choose the single sentence that most carries evidence_for_claims. Choose none when no single sentence carries it. Do not write a new sentence.",
+      "instructions": "Sentences cut from this page are labeled s1, s2, and so on. The description of each label is that sentence. Choose the one sentence that bears on evidence for an established factual claim: a named source, a document, data, a method, or work the author presents as their own. Do not choose a sentence merely because it is the most specific paragraph on the page. Choose none only when no labeled sentence bears on that evidence. If the writing fails this question, choose the sentence that causes the failure, not a sentence that only supports a passing part of the page. Do not write a new sentence.",
       "criteria": { "none": "No single sentence carries this question." },
       "options": { "none": "pass" },
-      "confidenceFloor": 0.6,
       "applyWhen": { "path": "hasArticle", "op": "equals", "value": true }
     },
     {
       "id": "separates_fact_and_opinion_cite",
       "type": "choice",
       "citeFor": "separates_fact_and_opinion",
-      "instructions": "Sentences cut from this page are labeled s1, s2, and so on. The description of each label is that sentence. Choose the single sentence that most carries separates_fact_and_opinion. Choose none when no single sentence carries it. Do not write a new sentence.",
+      "instructions": "Sentences cut from this page are labeled s1, s2, and so on. The description of each label is that sentence. Choose the one sentence that bears on separating fact and opinion: a fact beside the author's judgment, a judgment written as a measured fact, or a measured fact written as mere taste. Do not choose a sentence merely because it states a number or a source. Choose none only when no labeled sentence bears on that separation. If the writing fails this question, choose the sentence that causes the failure, not a sentence that only supports a passing part of the page. Do not write a new sentence.",
       "criteria": { "none": "No single sentence carries this question." },
       "options": { "none": "pass" },
-      "confidenceFloor": 0.6,
       "applyWhen": { "path": "hasArticle", "op": "equals", "value": true }
     },
     {
       "id": "unsourced_specifics_cite",
       "type": "choice",
       "citeFor": "unsourced_specifics",
-      "instructions": "Sentences cut from this page are labeled s1, s2, and so on. The description of each label is that sentence. Choose the single sentence that most carries unsourced_specifics. Choose none when no single sentence carries it. Do not write a new sentence.",
+      "instructions": "Sentences cut from this page are labeled s1, s2, and so on. The description of each label is that sentence. Choose the one sentence that bears on a specific number, date, quotation, or named event. Prefer a particular given as established fact without a checkable source when one is present; otherwise the sentence that holds the load-bearing particular. Do not choose a sentence that only names a source and contains no particular. Choose none only when no labeled sentence bears on a particular. If the writing fails this question, choose the sentence that causes the failure, not a sentence that only supports a passing part of the page. Do not write a new sentence.",
       "criteria": { "none": "No single sentence carries this question." },
       "options": { "none": "pass" },
-      "confidenceFloor": 0.6,
       "applyWhen": { "path": "hasArticle", "op": "equals", "value": true }
     },
     {
       "id": "self_consistent_cite",
       "type": "choice",
       "citeFor": "self_consistent",
-      "instructions": "Sentences cut from this page are labeled s1, s2, and so on. The description of each label is that sentence. Choose the single sentence that most carries self_consistent. Choose none when no single sentence carries it. Do not write a new sentence.",
+      "instructions": "Sentences cut from this page are labeled s1, s2, and so on. The description of each label is that sentence. Choose the one sentence that bears on internal consistency: a number, date, or outcome that conflicts with another sentence on the same fact, or a claim the page later takes back. If nothing conflicts, choose the sentence that states a fact another sentence also states. Do not choose a sentence only because it is the most concrete paragraph. Choose none only when no labeled sentence is about the same fact as another. If the writing fails this question, choose the sentence that causes the failure, not a sentence that only supports a passing part of the page. Do not write a new sentence.",
       "criteria": { "none": "No single sentence carries this question." },
       "options": { "none": "pass" },
-      "confidenceFloor": 0.6,
       "applyWhen": { "path": "hasArticle", "op": "equals", "value": true }
     },
     {
       "id": "certainty_matches_evidence_cite",
       "type": "choice",
       "citeFor": "certainty_matches_evidence",
-      "instructions": "Sentences cut from this page are labeled s1, s2, and so on. The description of each label is that sentence. Choose the single sentence that most carries certainty_matches_evidence. Choose none when no single sentence carries it. Do not write a new sentence.",
+      "instructions": "Sentences cut from this page are labeled s1, s2, and so on. The description of each label is that sentence. Choose the one sentence whose certainty bears on this question: settled wording, a hedge, a hypothesis, or a personal result. Prefer the sentence where the strength of the wording and the evidence in it come apart, when one does. Do not choose a sentence only because it contains a number. Choose none only when no labeled sentence's certainty is at issue. If the writing fails this question, choose the sentence that causes the failure, not a sentence that only supports a passing part of the page. Do not write a new sentence.",
       "criteria": { "none": "No single sentence carries this question." },
       "options": { "none": "pass" },
-      "confidenceFloor": 0.6,
       "applyWhen": { "path": "hasArticle", "op": "equals", "value": true }
     }
   ]

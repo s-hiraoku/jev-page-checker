@@ -20,7 +20,7 @@
 
 - サイトでは、誰が責任者か、なりすましか、何のためのページか、隠し勧誘かを聞く。
 - 本文は、一本の文章があるときだけ聞く。聞くのは、根拠、事実と意見、出典、矛盾、断定である。
-- 本文の各問では、ページから切った文のうち一本を Jev に選ばせる。選ばれた文を根拠として出す。Jev に文を書かせない。none、または確信度 0.6 未満のときは出さない。この選択は合否を動かさない。切り方はどの URL でも同じである。
+- 本文の各問では、その問に関わるページの文を一本選ばせる。Review または Alert の行には、その判定の原因になった文を出す。確信度が 0.6 未満でも隠さない。none のとき、または Pass の行と同じ文しか選ばれないときは、ページに別の文があれば Review と Alert にはその別の文を付ける。この付け足しは表示だけであり、合否のチップは親の回答のままである。Pass の行にも文を出してよい。Jev に文を書かせない。切り方はどの URL でも同じである。
 - 利害の開示は三択である。勧誘がない、または受益者が書いてある、は Pass。隠しているは Alert。確信度の床は 0.6 である。
 - 本文の精査は、抜き出した主本文の全体を見る。Jev の入力枠は、state と最長の質問で 32,000 トークン、1 回のリクエストで 64,000 トークンである。これは公式の Models の値である。収まるときは 1 回で送る。超えたら重ねて分割し、厳しめにまとめる。切れ残りがあるときだけ、本文は通過にしない。上限はどの URL でも同じである。サイト全体は見ない。
 - 一覧は、リンク密度などのページ構造で見る。ホストもパスも見ない。
@@ -51,7 +51,7 @@ What the check may do:
 
 - Site questions ask who is responsible, whether the page impersonates someone, what the page is for, and whether a pitch hides who benefits.
 - Body questions run only when there is one piece of writing. They ask about evidence, fact and opinion, sources, contradiction, and certainty.
-- For each body question, Jev selects one sentence cut from the page. The report shows that sentence. Jev does not write it. none, or confidence below 0.6, shows no sentence. The selection does not change the verdict. The cut is the same for every URL.
+- For each body question, Jev is asked for the sentence cut from the page that bears on that question. A Review or Alert row shows the sentence that caused that verdict. Confidence below 0.6 does not hide it. When the choice is none, or only the sentence already shown on a Pass row, and the page has another sentence, the Review or Alert row shows that other sentence. The attachment is display-only. The verdict chip stays on the parent answer. A Pass row may also show a sentence. Jev does not write the sentence. The cut is the same for every URL.
 - Disclosure is a three-way choice. No pitch, and a named beneficiary, pass. Hiding who benefits is Alert. The confidence floor is 0.6.
 - Body review covers the extracted main text. Jev's input window is 32,000 tokens for state plus the longest question, and 64,000 tokens per request. Those are the official Models limits. A body that fits is sent once. A longer body is split with overlap and combined strictly. If any remainder is unread, the body does not pass. The limit is the same for every URL. The checker does not read the whole site.
 - A listing is recognized from page structure, such as link density. Host and path are not inputs.
