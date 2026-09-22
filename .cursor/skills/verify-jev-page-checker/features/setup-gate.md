@@ -22,7 +22,7 @@ Preconditions:
 - `control-jev doctor` reports `ok: true`.
 
 - **Gate URL.** Open the setup panel. Run `control-jev browser goto --path "/?scene=setup#side"`. The notice reads `先に、チェックリスト全体を承認してください。` There is no result table and no `サイト` / `本文` lane pair for a current report.
-- **Open settings.** Choose `Settings`. Run `control-jev browser click --name "Settings"`. The hash becomes `#options`, meta `Settings · v6` is visible, and `質問 14` is visible.
+- **Open settings.** Choose `Settings`. Run `control-jev browser click --name "Settings"`. The hash becomes `#options`, meta `Settings · v7` is visible, and `質問 14` is visible.
 - **Nav entry.** Return to the gate from the preview chrome. Run `control-jev browser click --name "Setup"` then `control-jev browser click --name "Inspector"`. The approval notice is back.
 - **Proof.** Capture the blocked panel. Run `control-jev browser goto --path "/?scene=setup#side"`, `control-jev browser screenshot --path .cursor/skills/verify-jev-page-checker/artifacts/setup-gate/blocked.png`, and `control-jev browser snapshot --path .cursor/skills/verify-jev-page-checker/artifacts/setup-gate/blocked.aria.txt`. Both show the approval sentence and `Settings`, not lane verdicts.
 

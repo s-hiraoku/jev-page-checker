@@ -3,7 +3,7 @@ import { jsonEqual } from "./equal.js";
 import { buildRequest, type JevGateway, type JevReply } from "./jev.js";
 import { startTimer } from "./report.js";
 import { extractSpans, type PageSpan } from "./spans.js";
-import type { ApprovedDefinition, Check, CheckReport, ChoiceCheck, ItemResult, JevAnswer } from "./types.js";
+import type { ApprovedDefinition, Check, CheckReport, ChoiceCheck, ItemResult, JevAnswer, Verdict } from "./types.js";
 
 const NOUL_DEFAULTS = { passAt: 0.8, failAt: 0.2 };
 
@@ -125,23 +125,139 @@ function expandCite(check: ChoiceCheck, spans: readonly PageSpan[]): ChoiceCheck
   return { ...check, criteria, options };
 }
 
-function selectedCite(
-  check: ChoiceCheck,
-  answer: JevAnswer | undefined,
-  spans: readonly PageSpan[],
-): string | undefined {
+function explicitSpan(answer: JevAnswer | undefined, spans: readonly PageSpan[]): PageSpan | undefined {
   if (answer === undefined || answer.type !== "choice" || answer.choice === "none") return undefined;
-  const floor = check.confidenceFloor ?? 0.6;
-  if (answer.confidence < floor) return undefined;
-  return spans.find((span) => span.id === answer.choice)?.text;
+  return spans.find((span) => span.id === answer.choice);
+}
+
+function isAlertVerdict(verdict: Verdict | undefined): boolean {
+  return verdict === "review" || verdict === "fail";
+}
+
+const CAUSE_ASK =
+  " The verdict on this question is Review or Alert. Choose the labeled sentence that caused that verdict. Do not choose a sentence that only supports a passing part of the page. Choose one labeled sentence. Do not write a new sentence.";
+
+/** A second ask, still display-only, for an alert row whose sentence is missing or shared with Pass. */
+function followUpCite(check: ChoiceCheck, spans: readonly PageSpan[]): ChoiceCheck {
+  const criteria: ChoiceCriteria = {};
+  const options: ChoiceCheck["options"] = {};
+  for (const span of spans) {
+    criteria[span.id] = span.text;
+    options[span.id] = "pass";
+  }
+  const instructions = typeof check.instructions === "string" ? `${check.instructions}${CAUSE_ASK}` : check.instructions;
+  return { ...check, instructions, criteria, options };
+}
+
+/**
+ * Display-only. A chosen span is kept below 0.6.
+ * Review and Alert keep a sentence that is not the Pass rows' sentence when the page has another.
+ * Pass may keep or receive a sentence after those rows are filled.
+ */
+function assignCites(
+  checks: readonly ChoiceCheck[],
+  answers: Readonly<Record<string, JevAnswer | undefined>>,
+  spans: readonly PageSpan[],
+  verdicts: ReadonlyMap<string, Verdict>,
+): Map<string, string> {
+  const cites = new Map<string, string>();
+  if (spans.length === 0) return cites;
+  const chosen = new Map<string, PageSpan>();
+  for (const check of checks) {
+    const parent = check.citeFor;
+    if (parent === undefined) continue;
+    const span = explicitSpan(answers[check.id], spans);
+    if (span !== undefined) chosen.set(parent, span);
+  }
+  const passTexts = new Set<string>();
+  for (const check of checks) {
+    const parent = check.citeFor;
+    if (parent === undefined || verdicts.get(parent) !== "pass") continue;
+    const span = chosen.get(parent);
+    if (span !== undefined) {
+      passTexts.add(span.text);
+      cites.set(parent, span.text);
+    }
+  }
+  for (const check of checks) {
+    const parent = check.citeFor;
+    if (parent === undefined || !isAlertVerdict(verdicts.get(parent))) continue;
+    const span = chosen.get(parent);
+    if (span === undefined || passTexts.has(span.text)) continue;
+    cites.set(parent, span.text);
+  }
+  for (const check of checks) {
+    const parent = check.citeFor;
+    if (parent === undefined || cites.has(parent) || !isAlertVerdict(verdicts.get(parent))) continue;
+    const used = new Set(cites.values());
+    const span =
+      spans.find((item) => !passTexts.has(item.text) && !used.has(item.text)) ??
+      spans.find((item) => !passTexts.has(item.text)) ??
+      spans.find((item) => !used.has(item.text)) ??
+      spans[0];
+    if (span !== undefined) cites.set(parent, span.text);
+  }
+  for (const check of checks) {
+    const parent = check.citeFor;
+    if (parent === undefined || cites.has(parent) || verdicts.get(parent) !== "pass") continue;
+    const used = new Set(cites.values());
+    const span = spans.find((item) => !used.has(item.text));
+    if (span !== undefined) cites.set(parent, span.text);
+  }
+  return cites;
+}
+
+function parentVerdicts(
+  questions: readonly Check[],
+  state: EntryType,
+  answers: Readonly<Record<string, JevAnswer | undefined>>,
+): Map<string, Verdict> {
+  const verdicts = new Map<string, Verdict>();
+  for (const check of questions) {
+    if (isCite(check)) continue;
+    const skip = skipReason(check, state);
+    if (skip !== undefined) {
+      verdicts.set(check.id, "not_applicable");
+      continue;
+    }
+    const answer = answers[check.id];
+    verdicts.set(check.id, answer === undefined ? "error" : judge(check, answer).verdict);
+  }
+  return verdicts;
+}
+
+function citesNeedingCause(
+  checks: readonly ChoiceCheck[],
+  answers: Readonly<Record<string, JevAnswer | undefined>>,
+  spans: readonly PageSpan[],
+  verdicts: ReadonlyMap<string, Verdict>,
+): ChoiceCheck[] {
+  if (spans.length === 0) return [];
+  const passTexts = new Set<string>();
+  for (const check of checks) {
+    const parent = check.citeFor;
+    if (parent === undefined || verdicts.get(parent) !== "pass") continue;
+    const span = explicitSpan(answers[check.id], spans);
+    if (span !== undefined) passTexts.add(span.text);
+  }
+  const nonPass = spans.some((span) => !passTexts.has(span.text));
+  return checks.filter((check) => {
+    const parent = check.citeFor;
+    if (parent === undefined || !isAlertVerdict(verdicts.get(parent))) return false;
+    const span = explicitSpan(answers[check.id], spans);
+    if (span === undefined) return true;
+    return passTexts.has(span.text) && nonPass;
+  });
 }
 
 export async function evaluate(definition: ApprovedDefinition, state: EntryType, jev: JevGateway): Promise<CheckReport> {
   const wall = startTimer();
   const verdictQuestions = definition.questions.filter((check) => !isCite(check));
   const citeQuestions = definition.questions.filter(isCite);
-  const spans = isSynthesis(state) ? [] : extractSpans(stateText(state));
-  const citeAsked = spans.length === 0 ? [] : citeQuestions.filter((check) => skipReason(check, state) === undefined).map((check) => expandCite(check, spans));
+  const synthesis = isSynthesis(state);
+  const spans = synthesis ? [] : extractSpans(stateText(state));
+  const applicableCites = synthesis ? [] : citeQuestions.filter((check) => skipReason(check, state) === undefined);
+  const citeAsked = spans.length === 0 ? [] : applicableCites.map((check) => expandCite(check, spans));
   const asked = [...verdictQuestions.filter((check) => skipReason(check, state) === undefined), ...citeAsked];
   let reply: JevReply = { answers: {}, usage: { input_tokens: 0, output_tokens: 0 } };
   let jevMs = 0;
@@ -150,12 +266,35 @@ export async function evaluate(definition: ApprovedDefinition, state: EntryType,
     reply = await jev.ask(buildRequest(state, asked));
     jevMs = jevTimer();
   }
-  const cites = new Map<string, string>();
-  for (const check of citeQuestions) {
-    const parent = check.citeFor;
-    const text = parent === undefined ? undefined : selectedCite(check, reply.answers[check.id], spans);
-    if (parent !== undefined && text !== undefined) cites.set(parent, text);
+  const answers: Record<string, JevAnswer | undefined> = { ...reply.answers };
+  const verdicts = parentVerdicts(verdictQuestions, state, answers);
+  const retry = citesNeedingCause(applicableCites, answers, spans, verdicts);
+  if (retry.length > 0) {
+    const passTexts = new Set<string>();
+    for (const check of applicableCites) {
+      const parent = check.citeFor;
+      if (parent === undefined || verdicts.get(parent) !== "pass") continue;
+      const span = explicitSpan(answers[check.id], spans);
+      if (span !== undefined) passTexts.add(span.text);
+    }
+    const offer = spans.filter((span) => !passTexts.has(span.text));
+    const askSpans = offer.length > 0 ? offer : spans;
+    const jevTimer = startTimer();
+    const second = await jev.ask(buildRequest(state, retry.map((check) => followUpCite(check, askSpans))));
+    jevMs += jevTimer();
+    reply = {
+      ...reply,
+      usage: {
+        input_tokens: reply.usage.input_tokens + second.usage.input_tokens,
+        output_tokens: reply.usage.output_tokens + second.usage.output_tokens,
+      },
+    };
+    for (const check of retry) {
+      const answer = second.answers[check.id];
+      if (answer !== undefined) answers[check.id] = answer;
+    }
   }
+  const cites = assignCites(applicableCites, answers, spans, verdicts);
   const items = verdictQuestions.map((check): ItemResult => {
     const skip = skipReason(check, state);
     if (skip !== undefined) return { id: check.id, verdict: "not_applicable", reason: skip };

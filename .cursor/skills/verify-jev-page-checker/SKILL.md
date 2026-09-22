@@ -82,7 +82,7 @@ Prefer URL entry points over nav buttons when starting a recipe. Scene is a quer
 
 Stable handles (accessible names / labels from the real UI, not test ids):
 
-- App chrome: heading-equivalent `Audit` (mark `Jev` + name `Audit` from `labels.ts`), meta `v6` on the panel / `Report · v6` / `History · v6` / `Settings · v6`
+- App chrome: heading-equivalent `Audit` (mark `Jev` + name `Audit` from `labels.ts`), meta `v7` on the panel / `Report · v7` / `History · v7` / `Settings · v7`
 - Preview fixture row: `Pass`, `Fail`, `Truncated`, `Chunked`. Product chrome row: `Setup`, `Inspector`, `Settings`, `Report`, `History`. They are not one toolbar.
 - Side panel buttons: `Audit`, `Report`, `History`, `Settings` (gated panel uses the same `Settings` button)
 - Side panel copy: `サイト`, `本文`, `Pass`, `Alert`, `Review`, `N/A`. Ready Inspector has no score lede and no footer about following the tab. Default basis text is Japanese, for example `責任者として分かる`.
@@ -93,9 +93,9 @@ Stable handles (accessible names / labels from the real UI, not test ids):
 - Theme options: `システム` (default), `ライト`, `ダーク`
 - Locale options: `システム` (default), `日本語`, `English`. Preview daemon locale is `ja-JP`, so system copy is Japanese.
 - Language options: `システム` (default), `日本語`, `English`
-- Settings actions: button `保存`, status `保存しました。`, heading `質問 14`. English locale uses button `Save` and status `Saved.` Cite questions include the note `選択肢は、このページから切った文です。none のときは文を出しません。この選択は判定のチップを動かしません。`
-- Details: meta `Report · v6`, panel head `送った文`, title label `タイトル`. No history list. The pass body row `主張の根拠` includes the page sentence with `12 September`.
-- History: meta `History · v6`, heading `History` (not `履歴`), row names are snapshot titles, each row shows `Audit した時刻`, and each row has `この記録を消す`
+- Settings actions: button `保存`, status `保存しました。`, heading `質問 14`. English locale uses button `Save` and status `Saved.` Cite questions include the note `選択肢は、このページから切った文です。Review と Alert の行には、その判定の原因になった文を出します。確信度が低くても、none でも隠しません。Pass の行と同じ文にはしません。この選択は判定のチップを動かしません。`
+- Details: meta `Report · v7`, panel head `送った文`, title label `タイトル`. No history list. The pass body row `主張の根拠` includes the page sentence with `12 September`.
+- History: meta `History · v7`, heading `History` (not `履歴`), row names are snapshot titles, each row shows `Audit した時刻`, and each row has `この記録を消す`
 
 `click --name` matches a **button** exactly. `fill --label` matches the wrapping `<label>` text exactly. `check --label` is a substring match so the long approval sentence can be shortened to `このチェックリスト全体を承認する`.
 

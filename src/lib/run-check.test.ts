@@ -60,7 +60,7 @@ function scriptedGateway(answersList: Record<string, JevAnswer>[]): JevGateway &
 
 test("a sourced news article passes site safety and body scrutiny", async () => {
   const report = await reportOf("page-credibility-pass.json");
-  assert.equal(report.definition.version, 6);
+  assert.equal(report.definition.version, 7);
   assert.equal(report.items.every((item) => item.verdict === "pass"), true);
   assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
   assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "pass");
@@ -74,7 +74,7 @@ test("a sourced news article passes site safety and body scrutiny", async () => 
   assert.equal(report.items.some((item) => item.id.endsWith("_cite")), false);
 });
 
-test("a cite below 0.6 or none is omitted and the parent chip stays", async () => {
+test("a low-confidence cite still shows that span and the parent chip stays", async () => {
   const replay = loadReplay("page-credibility-pass.json");
   const snapshot = snapshotOf("page-credibility-pass.json");
   const low = {
@@ -89,21 +89,65 @@ test("a cite below 0.6 or none is omitted and the parent chip stays", async () =
   const lowReport = await checkSnapshot(snapshot, definition, replayGateway(low, replay.usage));
   const lowEvidence = lowReport.items.find((item) => item.id === "evidence_for_claims");
   assert.equal(lowEvidence?.verdict, "pass");
-  assert.equal(lowEvidence?.cite, undefined);
+  assert.match(lowEvidence?.cite ?? "", /12 September/);
+});
 
-  const none = {
+test("Review and Alert rows show the causing sentence, not the Pass sentence", async () => {
+  const replay = loadReplay("page-credibility-pass.json");
+  const snapshot = snapshotOf("page-credibility-pass.json");
+  const collapsed = {
     ...replay.answers,
-    evidence_for_claims_cite: {
+    unsourced_specifics: {
+      type: "choice" as const,
+      choice: "many",
+      confidence: 0.92,
+      probabilities: { none: 0.02, some: 0.06, many: 0.92 },
+    },
+    unsourced_specifics_cite: {
       type: "choice" as const,
       choice: "none",
-      confidence: 0.91,
-      probabilities: { none: 0.91, s2: 0.09 },
+      confidence: 0.2,
+      probabilities: { none: 0.8, s2: 0.2 },
+    },
+    self_consistent: { type: "noul" as const, noul: 0.4 },
+    self_consistent_cite: {
+      type: "choice" as const,
+      choice: "s2",
+      confidence: 0.3,
+      probabilities: { s2: 0.3, none: 0.7 },
     },
   };
-  const noneReport = await checkSnapshot(snapshot, definition, replayGateway(none, replay.usage));
-  const noneEvidence = noneReport.items.find((item) => item.id === "evidence_for_claims");
-  assert.equal(noneEvidence?.verdict, "pass");
-  assert.equal(noneEvidence?.cite, undefined);
+  const gateway = replayGateway(collapsed, replay.usage);
+  const report = await checkSnapshot(snapshot, definition, gateway);
+  const evidence = report.items.find((item) => item.id === "evidence_for_claims");
+  const specifics = report.items.find((item) => item.id === "unsourced_specifics");
+  const consistent = report.items.find((item) => item.id === "self_consistent");
+  assert.equal(evidence?.verdict, "pass");
+  assert.equal(specifics?.verdict, "fail");
+  assert.equal(consistent?.verdict, "review");
+  assert.match(evidence?.cite ?? "", /12 September/);
+  assert.ok((specifics?.cite ?? "").length > 0);
+  assert.ok((consistent?.cite ?? "").length > 0);
+  assert.notEqual(specifics?.cite, evidence?.cite);
+  assert.notEqual(consistent?.cite, evidence?.cite);
+  assert.notEqual(specifics?.cite, consistent?.cite);
+  assert.equal(report.items.some((item) => item.id.endsWith("_cite")), false);
+  assert.equal(gateway.calls, 2);
+});
+
+test("each cite question asks for the sentence that bears on that question", () => {
+  const cites = parsed.questions.filter((question) => question.type === "choice" && question.citeFor !== undefined);
+  const texts = cites.map((question) => (typeof question.instructions === "string" ? question.instructions : ""));
+  assert.equal(new Set(texts).size, 5);
+  for (const text of texts) {
+    assert.match(text, /causes the failure/);
+    assert.equal(text.includes("most carries"), false);
+  }
+  for (const id of [...SITE_QUESTION_IDS, ...PAGE_QUESTION_IDS]) {
+    const question = parsed.questions.find((item) => item.id === id);
+    const text = typeof question?.instructions === "string" ? question.instructions : "";
+    assert.equal(text.includes("Do not write a new sentence"), false);
+  }
 });
 
 test("a miracle-cure sales page fails site safety and body scrutiny", async () => {

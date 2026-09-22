@@ -74,7 +74,7 @@ export interface ItemResult {
   reason: string;
   basis?: string;
   answer?: JevAnswer;
-  /** A sentence cut from the page and selected by Jev. Absent when none was selected. */
+  /** Page sentence for this question. Review and Alert rows keep the sentence that caused that verdict. */
   cite?: string;
 }
 
