@@ -9,6 +9,7 @@ import type {
   ScoreResponse,
   Usage,
 } from "@typesafe-ai/sdk";
+import type { PageSpanSource } from "./spans.js";
 
 export type Verdict = "pass" | "fail" | "review" | "not_applicable" | "error";
 export type MappedVerdict = Extract<Verdict, "pass" | "fail" | "review">;
@@ -76,11 +77,22 @@ export interface ItemResult {
   answer?: JevAnswer;
   /** Page span for this question. It does not vote. Review and Alert keep a span when one was cut. */
   cite?: string;
+  /** Whether Jev selected the span or the app attached it only to make the report easier to inspect. */
+  citeSource?: "jev" | "related";
+  /** Where the selected quote came from when it was captured. */
+  citeLocation?: PageSpanSource;
+}
+
+export interface ReportWindow {
+  start: number;
+  end: number;
 }
 
 /** Recorded at check time so the UI does not re-run windowing or restated lane ids. */
 export interface ReportInspection {
   windowCount: number;
+  /** Character offsets recorded at check time so older reports keep their original review windows. */
+  windows?: readonly ReportWindow[];
   covered: boolean;
   unreadRemainder: boolean;
   siteQuestionIds: readonly string[];

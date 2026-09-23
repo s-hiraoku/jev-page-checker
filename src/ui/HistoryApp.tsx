@@ -21,7 +21,7 @@ export function HistoryApp({ bridge }: { bridge: Bridge }) {
   }
 
   return (
-    <AppChrome wide meta={`History · v${session.definitionVersion}`} theme={theme} locale={locale}>
+    <AppChrome wide meta={`v${session.definitionVersion}`} theme={theme} locale={locale}>
       <HistoryBody
         history={session.history}
         onOpen={(id) => void bridge.openDetails(id)}

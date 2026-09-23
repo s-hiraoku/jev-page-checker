@@ -118,6 +118,7 @@ export async function checkSnapshot(snapshot: PageSnapshot, definitionRaw: unkno
     items: withholdBodyPassOnTruncation(merged.items, unread, bodyIds),
     inspection: {
       windowCount: split.windows.length,
+      windows: split.windows.map(({ start, end }) => ({ start, end })),
       covered: split.covered,
       unreadRemainder: unread,
       siteQuestionIds: siteIds,

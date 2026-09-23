@@ -132,3 +132,33 @@ test("mergeConservativeItem keeps a page sentence when the stricter window has n
   assert.equal(mergeConservativeItem([caused, cited]).verdict, "fail");
   assert.equal(mergeConservativeItem([caused, cited]).cite, "A conflicting date.");
 });
+
+test("mergeConservativeItem keeps the origin attached to the selected citation", () => {
+  const first: ItemResult = {
+    id: "self_consistent" as ItemResult["id"],
+    verdict: "pass",
+    reason: "pass",
+    cite: "The first date.",
+    citeSource: "jev",
+    citeLocation: "body",
+  };
+  const stricter: ItemResult = {
+    id: "self_consistent" as ItemResult["id"],
+    verdict: "review",
+    reason: "review",
+    cite: "A related date.",
+    citeSource: "related",
+    citeLocation: "metaDescription",
+  };
+  assert.equal(mergeConservativeItem([first, stricter]).cite, "A related date.");
+  assert.equal(mergeConservativeItem([first, stricter]).citeSource, "related");
+  assert.equal(mergeConservativeItem([first, stricter]).citeLocation, "metaDescription");
+  const noCite: ItemResult = {
+    id: "self_consistent" as ItemResult["id"],
+    verdict: "review",
+    reason: "review without a citation",
+  };
+  assert.equal(mergeConservativeItem([noCite, first]).cite, "The first date.");
+  assert.equal(mergeConservativeItem([noCite, first]).citeSource, "jev");
+  assert.equal(mergeConservativeItem([noCite, first]).citeLocation, "body");
+});

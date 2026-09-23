@@ -1,5 +1,8 @@
 import type { ItemResult } from "../lib/checkkit.js";
-import { evidenceReadout, questionLabel } from "../lib/labels.js";
+import { questionLabel, verdictRemark } from "../lib/labels.js";
+import type { ResolvedLocale } from "../lib/locale.js";
+import type { PageSnapshot } from "../lib/page-state.js";
+import { citeSource } from "../lib/report-evidence.js";
 import { AnswerView, VerdictChip } from "./bits.js";
 import { useCopy, useLocale } from "./useLocale.js";
 
@@ -7,83 +10,93 @@ export function ItemList({
   items,
   siteIds,
   bodyIds,
+  snapshot,
+  compact = false,
 }: {
   items: readonly ItemResult[];
   siteIds: readonly string[];
   bodyIds: readonly string[];
+  snapshot: PageSnapshot;
+  compact?: boolean;
 }) {
   const copy = useCopy();
   if (siteIds.length === 0 && bodyIds.length === 0) {
-    return <ResultTable items={items} />;
+    return <ResultGroup title={copy.pageChecks} items={items} snapshot={snapshot} compact={compact} />;
   }
   return (
-    <>
-      <ResultGroup title={copy.site} items={items.filter((item) => siteIds.includes(item.id))} />
-      <ResultGroup title={copy.body} items={items.filter((item) => bodyIds.includes(item.id))} />
-    </>
+    <div className="result-groups">
+      <ResultGroup title={copy.site} items={items.filter((item) => siteIds.includes(item.id))} snapshot={snapshot} compact={compact} />
+      <ResultGroup title={copy.body} items={items.filter((item) => bodyIds.includes(item.id))} snapshot={snapshot} compact={compact} />
+    </div>
   );
 }
 
-function ResultGroup({ title, items }: { title: string; items: readonly ItemResult[] }) {
+function ResultGroup({
+  title,
+  items,
+  snapshot,
+  compact,
+}: {
+  title: string;
+  items: readonly ItemResult[];
+  snapshot: PageSnapshot;
+  compact: boolean;
+}) {
   if (items.length === 0) return null;
+  const copy = useCopy();
+  const locale = useLocale();
   return (
-    <section className="result-group">
-      <div className="result-group-head">{title}</div>
-      <ResultTable items={items} />
+    <section className="result-group" aria-label={title}>
+      <h2 className="result-group-head">{title}</h2>
+      <div className="result-cards">
+        {items.map((item) => (
+          <ResultCard key={item.id} item={item} snapshot={snapshot} locale={locale} compact={compact} />
+        ))}
+      </div>
+      <p className="result-group-foot help">{copy.confidenceHelp}</p>
     </section>
   );
 }
 
-function ResultTable({ items }: { items: readonly ItemResult[] }) {
+function ResultCard({ item, snapshot, locale, compact }: { item: ItemResult; snapshot: PageSnapshot; locale: ResolvedLocale; compact: boolean }) {
   const copy = useCopy();
-  const locale = useLocale();
+  const question = questionLabel(item.id, locale);
+  const source = item.cite ? citeSource(snapshot, item.cite, item.citeLocation) : null;
+  const remark = verdictRemark(item.id, item.verdict, locale);
+  const selectedLabel = item.citeSource === "jev" ? copy.sourceSelected : item.citeSource === "related" ? copy.sourceRelated : "";
+  const showReason =
+    item.reason.length > 0 &&
+    (item.reason.includes("cannot support pass") || item.reason.includes("synthesis error"));
+
   return (
-    <table className="result-table">
-      <thead>
-        <tr>
-          <th>{copy.item}</th>
-          <th>{copy.verdict}</th>
-          <th>{copy.value}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {items.map((item) => {
-          const readout = evidenceReadout(item.id, item.verdict, locale, item.cite ?? "");
-          const showReason =
-            item.reason.length > 0 &&
-            (item.reason.includes("cannot support pass") || item.reason.includes("synthesis error"));
-          return (
-            <tr key={item.id}>
-              <th scope="row">
-                {questionLabel(item.id, locale)}
-                <table className="evidence-table">
-                  <tbody>
-                    {readout.remark ? (
-                      <tr>
-                        <th scope="row">{copy.remark}</th>
-                        <td>{readout.remark}</td>
-                      </tr>
-                    ) : null}
-                    {readout.sentence ? (
-                      <tr>
-                        <th scope="row">{copy.grounds}</th>
-                        <td>{readout.sentence}</td>
-                      </tr>
-                    ) : null}
-                  </tbody>
-                </table>
-                {showReason ? <p className="reason">{item.reason}</p> : null}
-              </th>
-              <td>
-                <VerdictChip verdict={item.verdict} />
-              </td>
-              <td>
-                <AnswerView id={item.id} answer={item.answer} />
-              </td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
+    <article className={`result-card result-${item.verdict}`} aria-labelledby={`question-${item.id}`}>
+      <div className="result-card-head">
+        <h3 id={`question-${item.id}`}>{question}</h3>
+        <VerdictChip verdict={item.verdict} />
+      </div>
+      <AnswerView id={item.id} answer={item.answer} />
+      {remark ? <p className="result-remark">{remark}</p> : null}
+      {item.cite ? (
+        <figure className="evidence-quote">
+          <figcaption>
+            <span>{source ? copy[source.label] : copy.sourcePage}</span>
+            {selectedLabel ? <span className="evidence-origin">{selectedLabel}</span> : null}
+          </figcaption>
+          <blockquote>{item.cite}</blockquote>
+          {source?.target && !compact ? (
+              <a
+                className="evidence-link"
+                href={`#${source.label === "sourceBody" ? `body-evidence-${item.id}` : source.target}`}
+                onClick={() => {
+                  if (source.label !== "sourceBody") document.getElementById("page-information")?.setAttribute("open", "");
+                }}
+              >
+              {source.label === "sourceBody" ? copy.viewInBody : copy.viewInPageInfo}
+            </a>
+          ) : null}
+        </figure>
+      ) : null}
+      {showReason ? <p className="reason">{item.reason}</p> : null}
+    </article>
   );
 }

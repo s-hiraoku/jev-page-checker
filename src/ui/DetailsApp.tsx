@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { recordById, type Bridge } from "../lib/bridge.js";
-import { bodySendKind } from "../lib/groups.js";
 import { downloadTextFile, reportDocument, reportFilename } from "../lib/report-file.js";
 import type { StoredRecord } from "../lib/session.js";
 import { AppChrome } from "./AppChrome.js";
@@ -27,11 +26,9 @@ export function DetailsApp({ bridge }: { bridge: Bridge }) {
     );
   }
   const record = recordById(session.history, id);
-  const kind = bodySendKind(record?.report.inspection);
-
   return (
-    <AppChrome wide meta={`Report · v${session.definitionVersion}`} theme={theme} locale={locale}>
-      <DetailsBody record={record} kind={kind} />
+    <AppChrome wide meta={`v${session.definitionVersion}`} theme={theme} locale={locale}>
+      <DetailsBody record={record} />
     </AppChrome>
   );
 }
@@ -45,16 +42,9 @@ function LoadingCopy({ fallback }: { fallback: string | null }) {
   return fallback ?? copy.loading;
 }
 
-function DetailsBody({
-  record,
-  kind,
-}: {
-  record: ReturnType<typeof recordById>;
-  kind: ReturnType<typeof bodySendKind>;
-}) {
+function DetailsBody({ record }: { record: ReturnType<typeof recordById> }) {
   const copy = useCopy();
   const locale = useLocale();
-  const sentLabel = kind === "unread" ? copy.sentUnread : kind === "chunked" ? copy.sentChunked : copy.sentBody;
   return (
     <>
       <p className="help">{copy.detailsHelp}</p>
@@ -66,14 +56,6 @@ function DetailsBody({
         </div>
       ) : null}
       {record ? <ReportView record={record} /> : <p className="notice">{copy.noResult}</p>}
-      {record ? (
-        <section className="panel">
-          <div className="panel-head">{sentLabel}</div>
-          <div className="panel-body">
-            <p className="help">{record.snapshot.text}</p>
-          </div>
-        </section>
-      ) : null}
     </>
   );
 }

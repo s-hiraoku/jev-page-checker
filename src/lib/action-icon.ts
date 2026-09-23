@@ -1,7 +1,6 @@
 import type { Verdict } from "./checkkit.js";
 import { copyFor } from "./copy.js";
 import { worseVerdict, worstVerdict } from "./groups.js";
-import { VERDICT_LABELS } from "./labels.js";
 import type { ResolvedLocale } from "./locale.js";
 import type { SessionView } from "./session.js";
 
@@ -78,7 +77,7 @@ export function actionIconModel(view: SessionView, locale: ResolvedLocale = "ja"
       return {
         site,
         page,
-        title: copy.iconReady(VERDICT_LABELS[site], VERDICT_LABELS[page]),
+        title: copy.iconReady(copy.verdictLabels[site], copy.verdictLabels[page]),
         badge: badgeFor(site, page),
         badgeColor: badgeColorFor(site, page),
       };

@@ -62,7 +62,7 @@ function PanelBody({
           {view.reason === "approval" ? copy.needApproval : copy.needApiKey}
           <div className="row" style={{ marginTop: 8 }}>
             <button className="btn" type="button" onClick={onSettings}>
-              Settings
+              {copy.settings}
             </button>
           </div>
         </div>
@@ -84,16 +84,16 @@ function PanelBody({
 
       <div className="toolbar">
         <button className="btn" type="button" onClick={onAudit}>
-          Audit
+          {copy.audit}
         </button>
         <button className="btn secondary" type="button" onClick={onDetails}>
-          Report
+          {copy.report}
         </button>
         <button className="btn secondary" type="button" onClick={onHistory}>
-          History
+          {copy.history}
         </button>
         <button className="btn secondary" type="button" onClick={onSettings}>
-          Settings
+          {copy.settings}
         </button>
       </div>
     </>

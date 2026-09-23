@@ -63,7 +63,8 @@ export async function createPreviewBridge(scene: string): Promise<Bridge> {
       return buildSessionPayload(definition, parsed, history, undefined);
     }
     const record = scene === "fail" ? fail : scene === "truncated" ? truncated : scene === "chunked" ? chunked : pass;
-    return buildSessionPayload(definition, parsed, history, {
+    const scenarioHistory = [record, ...history.filter((entry) => entry.id !== record.id)];
+    return buildSessionPayload(definition, parsed, scenarioHistory, {
       status: "ready",
       record,
       fingerprint: "",
