@@ -8,6 +8,7 @@ export const APP_MARK = "Jev";
 
 const QUESTION_LABELS: Record<ResolvedLocale, Record<string, string>> = {
   ja: {
+    content_classification: "本文の分類",
     identifiable_publisher: "ページの責任者が分かるか",
     honest_identity: "表示名とホスト名が一致するか",
     site_purpose: "ページの目的は明確か",
@@ -28,6 +29,7 @@ const QUESTION_LABELS: Record<ResolvedLocale, Record<string, string>> = {
     disclosed_incentives_cite: "利害を示す文",
   },
   en: {
+    content_classification: "Content classification",
     identifiable_publisher: "Can the publisher be identified?",
     honest_identity: "Does the displayed identity match the host?",
     site_purpose: "Is the page's purpose clear?",

@@ -1,4 +1,5 @@
 import type { ChoiceCheck, MappedVerdict, QuestionId } from "../../runner/types.js";
+import type { ApprovedDefinition, Check } from "../../runner/types.js";
 import {
   CATEGORY_RUBRICS,
   CONTENT_CATEGORY_IDS,
@@ -95,6 +96,18 @@ function checksForItem(categoryId: ContentCategoryId, entry: CategoryRubricItem)
   return [verdictCheck(categoryId, entry), citeCheck(categoryId, entry)];
 }
 
+function triggerAsCheck(trigger: CategoryTriggerCheck): ChoiceCheck {
+  return {
+    id: trigger.id,
+    type: "choice",
+    instructions: trigger.instructions,
+    criteria: trigger.choices,
+    options: { yes: "pass", no: "pass", unclear: "review" },
+    confidenceFloor: trigger.confidenceFloor,
+    applyWhen: APPLY_TO_ARTICLE,
+  };
+}
+
 /** Verdict and exact body-citation questions for every item in one category. */
 export function checksForCategory(id: ContentCategoryId): readonly CategoryCheck[] {
   return allItems(id).flatMap((entry) => checksForItem(id, entry));
@@ -103,6 +116,19 @@ export function checksForCategory(id: ContentCategoryId): readonly CategoryCheck
 /** Verdict and exact body-citation questions for all basic and conditional items. */
 export function allCategoryChecks(): readonly CategoryCheck[] {
   return CONTENT_CATEGORY_IDS.flatMap((id) => checksForCategory(id));
+}
+
+/** Build the approved v9 definition while retaining the common site checks. */
+export function buildCategoryDefinition(base: ApprovedDefinition): ApprovedDefinition {
+  const siteChecks = base.questions.filter((check) => check.applyWhen === undefined && (check.type !== "choice" || check.citeFor === undefined));
+  const categoryChecks = allCategoryChecks().map(({ categoryId: _categoryId, rubricItemId: _rubricItemId, questionKind: _questionKind, required: _required, ...check }) => check as Check);
+  const triggerChecks = CONTENT_CATEGORY_IDS.flatMap((id) => triggerChecksForCategory(id).map(triggerAsCheck));
+  return {
+    ...base,
+    version: base.version + 1,
+    subject: `${base.subject} Body checks are selected from the page's content category and activated content probes.`,
+    questions: [...siteChecks, ...categoryChecks, ...triggerChecks],
+  };
 }
 
 /** Content-only trigger questions; these answers route conditional probes and do not cast a verdict. */
