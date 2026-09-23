@@ -61,7 +61,6 @@ export interface ContentClassification {
   timing: { wallMs: number; jevMs: number };
 }
 
-const CONFIDENCE_FLOOR = 0.6;
 const ZERO_USAGE: Usage = { input_tokens: 0, output_tokens: 0 };
 const NONE = "none";
 const UNCLEAR = "unclear";
@@ -73,7 +72,6 @@ function choiceCheck(id: string, instructions: string, criteria: ChoiceCriteria)
     instructions,
     criteria,
     options: Object.fromEntries(Object.keys(criteria).map((label) => [label, "pass"])),
-    confidenceFloor: CONFIDENCE_FLOOR,
   };
 }
 
@@ -130,6 +128,59 @@ function choiceAnswer(reply: Awaited<ReturnType<JevGateway["ask"]>>, id: string)
   return answer?.type === "choice" ? answer : undefined;
 }
 
+function orderIndex(id: string, order: readonly string[]): number {
+  if (id === UNCLEAR) return order.length + 1;
+  const index = order.indexOf(id);
+  return index < 0 ? order.length : index;
+}
+
+type RankedLabel = { id: string; score: number };
+
+function rankedLabel(
+  answer: { choice: string; confidence: number; probabilities: Readonly<Record<string, number>> },
+  allowed: ReadonlySet<string>,
+  order: readonly string[],
+): RankedLabel | "unknown" {
+  const scores = new Map<string, number>();
+  for (const [label, value] of Object.entries(answer.probabilities)) {
+    if (Number.isFinite(value) && (allowed.has(label) || label === UNCLEAR)) scores.set(label, value);
+  }
+  if ((allowed.has(answer.choice) || answer.choice === UNCLEAR) && !scores.has(answer.choice)) {
+    scores.set(answer.choice, answer.confidence);
+  }
+  if (scores.size === 0) return "unknown";
+  let best = Number.NEGATIVE_INFINITY;
+  for (const value of scores.values()) if (value > best) best = value;
+  const leaders = [...scores.keys()].filter((label) => scores.get(label) === best);
+  const categories = leaders.filter((label) => label !== UNCLEAR);
+  if (categories.length === 0) return { id: UNCLEAR, score: best };
+  if (answer.choice !== UNCLEAR && categories.includes(answer.choice)) return { id: answer.choice, score: best };
+  const id = [...categories].sort((left, right) => orderIndex(left, order) - orderIndex(right, order))[0];
+  return id === undefined ? "unknown" : { id, score: best };
+}
+
+function rankedSecondary(
+  answer: { choice: string; confidence: number; probabilities: Readonly<Record<string, number>> },
+  allowed: ReadonlySet<string>,
+  order: readonly string[],
+  primary: RankedLabel,
+): RankedLabel | "unknown" | undefined {
+  if (answer.choice === NONE || primary.id === UNCLEAR) return undefined;
+  const ranked = rankedLabel(answer, allowed, order);
+  if (ranked === "unknown") return "unknown";
+  if (ranked.id === UNCLEAR || ranked.id === primary.id || ranked.score >= primary.score) return undefined;
+  return ranked;
+}
+
+function rankTally(tally: ReadonlyMap<string, { count: number; score: number }>, order: readonly string[]): string | undefined {
+  const ranked = [...tally.entries()].sort((left, right) => {
+    if (right[1].count !== left[1].count) return right[1].count - left[1].count;
+    if (right[1].score !== left[1].score) return right[1].score - left[1].score;
+    return orderIndex(left[0], order) - orderIndex(right[0], order);
+  });
+  return ranked[0]?.[0];
+}
+
 function review(
   reasonCode: ContentClassificationReasonCode,
   reason: string,
@@ -176,6 +227,8 @@ export async function classifyContent(
     return review("incomplete_body", "The supplied windows do not cover the complete, untruncated page body.", [], ZERO_USAGE, started, 0);
   }
 
+  const order = Object.keys(categoryDescriptions);
+  const allowed = new Set(order);
   const primaryCriteria: ChoiceCriteria = { ...categoryDescriptions, [UNCLEAR]: "The page's primary content category cannot be determined." };
   const secondaryCriteria: ChoiceCriteria = { ...categoryDescriptions, [NONE]: "There is no materially important secondary category." };
   const resultWindows: WindowClassification[] = [];
@@ -195,8 +248,8 @@ export async function classifyContent(
       [NONE, "No selectable page sentence supports this classification."],
     ]);
     const checks = [
-      choiceCheck(primaryId, "Classify the primary purpose of this page body using the supplied category descriptions. Select unclear when no single category fits. Do not infer from the URL, hostname, or publisher reputation.", primaryCriteria),
-      choiceCheck(secondaryId, "Choose a materially important secondary category only when it has a substantial purpose of its own. A link, quotation, example, or brief aside is not a secondary category. Otherwise choose none.", secondaryCriteria),
+      choiceCheck(primaryId, "Choose the one category that best fits the primary purpose of this page body. Use the supplied category descriptions and select the best match even when other categories are plausible. Choose unclear only when the body has no primary purpose. Do not infer from the URL, hostname, or publisher reputation.", primaryCriteria),
+      choiceCheck(secondaryId, "Choose a second category only when it has a substantial purpose of its own and is a worse fit than the primary category. A link, quotation, example, or brief aside is not a secondary category. Otherwise choose none.", secondaryCriteria),
       choiceCheck(evidenceId, "Choose one exact sentence from the offered page spans that supports the classification. Do not write or paraphrase a sentence; choose none if none supports it.", evidenceCriteria),
     ];
     const requestStarted = performance.now();
@@ -212,64 +265,57 @@ export async function classifyContent(
     if (primary === undefined || secondary === undefined || evidenceAnswer === undefined) {
       return review("missing_window_answers", "Jev did not return all three classification choices for a window.", resultWindows, usage, started, jevMs);
     }
+    const primaryRank = rankedLabel(primary, allowed, order);
+    if (primaryRank === "unknown") {
+      return review("unknown_primary", "Jev returned a primary category outside the supplied options.", resultWindows, usage, started, jevMs);
+    }
+    const secondaryRank = rankedSecondary(secondary, allowed, order, primaryRank);
+    if (secondaryRank === "unknown") {
+      return review("unknown_secondary", "Jev returned a secondary category outside the supplied options.", resultWindows, usage, started, jevMs);
+    }
     const evidence = findEvidence(spans, evidenceAnswer.choice);
     resultWindows.push({
       start: window.start,
       end: window.end,
-      ...(primary === undefined ? {} : { primary: primary.choice, confidence: primary.confidence }),
-      ...(secondary === undefined || secondary.choice === NONE ? { secondaryConfidence: secondary?.confidence } : { secondary: secondary.choice, secondaryConfidence: secondary.confidence }),
-      ...(evidence === undefined ? {} : { evidence, evidenceConfidence: evidenceAnswer?.confidence }),
+      primary: primaryRank.id,
+      confidence: primaryRank.score,
+      ...(secondaryRank === undefined ? {} : { secondary: secondaryRank.id, secondaryConfidence: secondaryRank.score }),
+      ...(evidence === undefined ? {} : { evidence, evidenceConfidence: evidenceAnswer.confidence }),
     });
   }
 
-  for (const [index, result] of resultWindows.entries()) {
-    if (result.primary === undefined || result.confidence === undefined) {
-      return review("missing_primary", "Jev did not return a primary category for every window.", resultWindows, usage, started, jevMs);
-    }
-    if (!Object.hasOwn(categoryDescriptions, result.primary) && result.primary !== UNCLEAR) {
-      return review("unknown_primary", "Jev returned a primary category outside the supplied options.", resultWindows, usage, started, jevMs);
-    }
-    if (result.secondary !== undefined && !Object.hasOwn(categoryDescriptions, result.secondary)) {
-      return review("unknown_secondary", "Jev returned a secondary category outside the supplied options.", resultWindows, usage, started, jevMs);
-    }
-    if (result.confidence < CONFIDENCE_FLOOR || (result.secondaryConfidence ?? 0) < CONFIDENCE_FLOOR) {
-      return review("low_confidence", "At least one category choice is below the 0.6 confidence floor.", resultWindows, usage, started, jevMs);
-    }
-    if (result.primary === UNCLEAR) return review("unclear_category", "At least one window has an unclear primary category.", resultWindows, usage, started, jevMs);
-    if (result.primary === result.secondary) return review("duplicate_categories", "A window selected the same primary and secondary category.", resultWindows, usage, started, jevMs);
-    if (result.evidence === undefined || result.evidenceConfidence === undefined || result.evidenceConfidence < CONFIDENCE_FLOOR) {
-      return review("low_confidence", "A window has no supported page-span evidence at or above the 0.6 confidence floor.", resultWindows, usage, started, jevMs);
-    }
+  const tally = new Map<string, { count: number; score: number }>();
+  for (const result of resultWindows) {
+    if (result.primary === undefined || result.primary === UNCLEAR) continue;
+    const current = tally.get(result.primary) ?? { count: 0, score: 0 };
+    current.count += 1;
+    current.score += result.confidence ?? 0;
+    tally.set(result.primary, current);
   }
-
-  const primaryCounts = new Map<string, number>();
-  const categories = new Set<string>();
-  for (const item of resultWindows) {
-    if (item.primary !== undefined) {
-      categories.add(item.primary);
-      primaryCounts.set(item.primary, (primaryCounts.get(item.primary) ?? 0) + 1);
-    }
-    if (item.secondary !== undefined) categories.add(item.secondary);
+  const primary = rankTally(tally, order);
+  if (primary === undefined) {
+    return review("unclear_category", "The leading category is unclear.", resultWindows, usage, started, jevMs);
   }
-  if (categories.size > 2) return review("too_many_categories", "The windows contain more than two material categories.", resultWindows, usage, started, jevMs);
-  const ranked = [...primaryCounts.entries()].sort((left, right) => right[1] - left[1]);
-  const primary = ranked[0]?.[0];
-  const secondPlace = ranked[1];
-  if (primary === undefined || (secondPlace !== undefined && ranked[0]?.[1] === secondPlace[1])) {
-    return review("primary_disagreement", "The windows disagree about the primary category without a clear majority.", resultWindows, usage, started, jevMs);
+  const winnerWindows = resultWindows.filter((item) => item.primary === primary);
+  const primaryScore = Math.min(...winnerWindows.map((item) => item.confidence ?? 0));
+  const secondaryTally = new Map<string, { count: number; score: number }>();
+  for (const result of resultWindows) {
+    if (result.secondary === undefined || result.secondary === primary) continue;
+    if ((result.secondaryConfidence ?? 0) >= primaryScore) continue;
+    const current = secondaryTally.get(result.secondary) ?? { count: 0, score: 0 };
+    current.count += 1;
+    current.score += result.secondaryConfidence ?? 0;
+    secondaryTally.set(result.secondary, current);
   }
-  const secondary = [...categories].find((category) => category !== primary);
-  if (secondary !== undefined && !resultWindows.some((item) => item.secondary === secondary)) {
-    return review("unexplained_secondary", "Window differences are not explained by an explicit material secondary category.", resultWindows, usage, started, jevMs);
-  }
-  const evidence = resultWindows.find((item) => item.primary === primary)?.evidence ?? resultWindows[0]?.evidence;
+  const secondary = rankTally(secondaryTally, order);
+  const evidence = winnerWindows.find((item) => item.evidence !== undefined)?.evidence;
   return {
     status: "classified",
     primary,
     ...(secondary === undefined ? {} : { secondary }),
-    confidence: Math.min(...resultWindows.filter((item) => item.primary === primary).map((item) => item.confidence ?? 0)),
+    confidence: primaryScore,
     ...(secondary === undefined ? {} : {
-      secondaryConfidence: Math.min(...resultWindows.filter((item) => item.secondary === secondary || item.primary === secondary).map((item) => item.secondary === secondary ? item.secondaryConfidence ?? 0 : item.confidence ?? 0)),
+      secondaryConfidence: Math.min(...resultWindows.filter((item) => item.secondary === secondary).map((item) => item.secondaryConfidence ?? 0)),
     }),
     ...(evidence === undefined ? {} : { evidence }),
     windows: resultWindows,

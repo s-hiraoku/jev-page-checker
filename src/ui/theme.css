@@ -821,6 +821,13 @@ a:hover {
   border-bottom-right-radius: var(--radius);
 }
 
+.history-category {
+  margin-top: 4px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .history-open {
   display: block;
   flex: 1;

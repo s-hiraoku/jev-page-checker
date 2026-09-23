@@ -9,6 +9,8 @@ import { createPreviewBridge } from "./mock.js";
 const FIXTURES = [
   ["pass", "Pass"],
   ["fail", "Fail"],
+  ["essay", "Essay"],
+  ["portal", "Listing"],
   ["truncated", "Truncated"],
   ["chunked", "Chunked"],
 ] as const;
@@ -62,14 +64,24 @@ export function PreviewApp() {
     return (
       <div className="store-layout">
         <section className="store-article">
-          <p className="kicker">{scene === "fail" ? "販売ページの例" : "報道ページの例"}</p>
+          <p className="kicker">{scene === "fail" ? "販売ページの例" : scene === "essay" ? "エッセイの例" : scene === "portal" ? "一覧ページの例" : "報道ページの例"}</p>
           <h1>
-            {scene === "fail" ? "Doctors hate this: one pill reverses aging in 11 days" : "City delays river bridge opening after inspection"}
+            {scene === "fail"
+              ? "Doctors hate this: one pill reverses aging in 11 days"
+              : scene === "essay"
+                ? "Why types beat guesswork"
+                : scene === "portal"
+                  ? "Example News"
+                  : "City delays river bridge opening after inspection"}
           </h1>
           <p>
             {scene === "fail"
               ? "販売ページの例。発行元も出典もなく、数字が食い違う。Inspector はサイトと本文を分ける。"
-              : "報道ページの例。発行元と著者とメモへのリンクがある。点数は一つにしない。"}
+              : scene === "essay"
+                ? "意見の例。主張と、自分の実行結果と、意見だと分かる箇所がある。"
+                : scene === "portal"
+                  ? "一覧の例。見出しが並び、分類する一本の本文はない。"
+                  : "報道ページの例。発行元と著者とメモへのリンクがある。点数は一つにしない。"}
           </p>
         </section>
         {panel}
