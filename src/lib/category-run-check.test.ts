@@ -147,9 +147,10 @@ test("a listing gets a site type and does not run body category questions", asyn
   assert.equal(report.classification?.status, "not_applicable");
   assert.equal(report.classification?.primary, undefined);
   assert.equal(report.siteType?.id, "tools_saas_docs");
+  assert.equal(report.contentClass?.status, "draft");
   assert.deepEqual(report.inspection?.bodyQuestionIds, []);
-  assert.equal(report.usage.input_tokens, 3);
-  assert.equal(report.usage.output_tokens, 2);
+  assert.equal(report.usage.input_tokens, 5);
+  assert.equal(report.usage.output_tokens, 4);
 });
 
 test("site type reads a later-window reprint while body category and site questions stay on the first window", async () => {
