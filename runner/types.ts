@@ -12,7 +12,7 @@ import type {
 import type { PageSpanSource } from "./spans.js";
 
 export type Verdict = "pass" | "fail" | "review" | "not_applicable" | "error";
-export type MappedVerdict = Extract<Verdict, "pass" | "fail" | "review">;
+export type MappedVerdict = Extract<Verdict, "pass" | "fail" | "review" | "not_applicable">;
 
 export type CheckerId = string & { readonly __brand: "CheckerId" };
 export type QuestionId = string & { readonly __brand: "QuestionId" };
