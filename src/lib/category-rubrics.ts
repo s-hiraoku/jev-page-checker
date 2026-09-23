@@ -237,6 +237,15 @@ export function categoryChoiceDescriptions(): Record<string, string> {
 
 export function getCategoryRubric(id: ContentCategoryId): CategoryRubric { return CATEGORY_RUBRICS[id]; }
 
+/** Verdict item or its cite question. Trigger ids stay unmatched so routing questions keep their own label. */
+export function rubricEntry(id: string): CategoryRubricItem | undefined {
+  for (const rubric of Object.values(CATEGORY_RUBRICS)) {
+    const entry = [...rubric.items, ...rubric.conditionalProbes].find((item) => item.id === id || `${item.id}_cite` === id);
+    if (entry !== undefined) return entry;
+  }
+  return undefined;
+}
+
 /** Localized axes, in stable first-seen order; every individual item remains in items. */
 export function categoryAxisLabels(id: ContentCategoryId): ReadonlyArray<{ key: string; label: BilingualLabel }> {
   const seen = new Set<string>();
