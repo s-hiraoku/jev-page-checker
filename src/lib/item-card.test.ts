@@ -126,9 +126,56 @@ test("a lane summary keeps the worst category remarks and the bar names the cate
     assert.match(summary, /サイト 警告/);
     assert.match(summary, /本文 要確認/);
     assert.match(summary, /報道・事実報告/);
+    assert.equal(summary.includes("サイト種別"), false);
     assert.equal(/\d/.test(summary), false);
     assert.match(html, /主張の検証手掛かりは、要確認である。/);
     assert.match(html, /表示名とホスト名が一致するか/);
+  } finally {
+    if (previousWindow === undefined) delete (globalThis as { window?: unknown }).window;
+    else globalThis.window = previousWindow;
+  }
+});
+
+test("the site lane shows the site type while the summary keeps the body category", () => {
+  const previousWindow = globalThis.window;
+  Object.assign(globalThis, { window: { matchMedia: () => ({ matches: true }) } });
+  try {
+    const record = {
+      id: "site-type-report",
+      tabId: 1,
+      createdAt: "2026-09-23T00:00:00.000Z",
+      snapshot,
+      report: {
+        definition: { id: "page-credibility", version: 10 },
+        items: [
+          { id: "honest_identity", verdict: "pass", reason: "noul" },
+          { id: "reporting_event_time", verdict: "pass", reason: "choice" },
+        ],
+        usage: { input_tokens: 1, output_tokens: 1 },
+        timing: { wallMs: 1, jevMs: 1 },
+        inspection: {
+          windowCount: 1,
+          covered: true,
+          unreadRemainder: false,
+          siteQuestionIds: ["honest_identity"],
+          bodyQuestionIds: ["reporting_event_time"],
+        },
+        classification: { status: "classified", primary: "reporting", confidence: 0.34 },
+        siteType: { status: "classified", id: "news_wire", confidence: 0.88 },
+      },
+    } as unknown as StoredRecord;
+    const html = renderToStaticMarkup(
+      createElement(LocaleProvider, {
+        locale: "ja",
+        children: createElement(ReportView, { record, compact: true }),
+      }),
+    );
+    const summary = html.slice(html.indexOf("report-summary"), html.indexOf("lane-stack"));
+    assert.match(summary, /報道・事実報告/);
+    assert.equal(summary.includes("サイト種別"), false);
+    const siteLane = html.slice(html.indexOf("lane-stack"), html.indexOf("lane-stack", html.indexOf("lane-stack") + 1));
+    assert.match(siteLane, /サイト種別 ニュース/);
+    assert.equal(siteLane.includes("報道・事実報告"), false);
   } finally {
     if (previousWindow === undefined) delete (globalThis as { window?: unknown }).window;
     else globalThis.window = previousWindow;

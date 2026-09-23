@@ -287,6 +287,14 @@ a:hover {
   margin-top: 2px;
 }
 
+.site-type-line {
+  margin: 6px 0 0;
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
 .lane {
   position: relative;
   overflow: hidden;
