@@ -87,6 +87,74 @@ test("a sourced news article passes site safety and body scrutiny", async () => 
   assert.equal(report.items.some((item) => item.id.endsWith("_cite")), false);
 });
 
+test("Japanese pass replay keeps body and publisher citations in the right source", async () => {
+  const evidenceSentence = "佐藤局長は、ひび割れが9月12日付の点検記録に記載されたと記者団に説明した。";
+  const replay = loadReplay("page-credibility-pass.json");
+  const snapshot = snapshotOf("page-credibility-pass.json", {
+    language: "ja",
+    title: "点検後、川の橋の開通を延期　交通局が発表",
+    metaDescription: "市の交通局が橋の開通延期を発表し、点検記録を公開しました。",
+    author: "佐藤花子",
+    siteName: "川まち新聞",
+    text: [
+      "市の交通局は、川に架かる橋の開通を延期すると発表した。",
+      evidenceSentence,
+      "交通局はその記録と南側橋脚の写真をウェブサイトで公開した。",
+      "佐藤局長は、橋の開通日がまだ決まっていないと述べた。",
+      "この記事は公開資料を引用し、交通局が発表していない費用や原因を追加していない。",
+    ].join(""),
+  });
+  const report = await checkSnapshot(snapshot, definition, replayGateway(replay.answers, replay.usage));
+  const evidence = report.items.find((item) => item.id === "evidence_for_claims");
+  const publisher = report.items.find((item) => item.id === "identifiable_publisher");
+  assert.equal(evidence?.verdict, "pass");
+  assert.equal(evidence?.cite, evidenceSentence);
+  assert.equal(evidence?.citeLocation, "body");
+  assert.equal(publisher?.cite, "佐藤花子");
+  assert.equal(publisher?.citeLocation, "author");
+});
+
+test("Japanese alert replay keeps the unsupported passage visible", async () => {
+  const unsupportedSentence = "無名の診療所は、印のないカプセルで11日以内に若返り、医療費を94％減らせると証明されたと主張した。";
+  const replay = loadReplay("page-credibility-fail.json");
+  const snapshot = snapshotOf("page-credibility-fail.json", {
+    language: "ja",
+    title: "一粒で若返る新薬、11日で効果　医師も認める",
+    metaDescription: "規制当局が禁止する前に、今すぐ半年分をご注文ください。",
+    siteName: "健康特報",
+    text: [
+      unsupportedSentence,
+      "同じ診療所は後になって、効果は3日で現れると説明した。",
+      "規制当局が禁止する前に、半年分を今すぐ注文するよう読者に促している。",
+      "研究、著者、製造元はいずれも記載されていない。",
+      "ページは、すべての医師が知っているのにこの情報を隠していると述べている。",
+    ].join(""),
+  });
+  const answers = {
+    ...replay.answers,
+    evidence_for_claims_cite: {
+      type: "choice" as const,
+      choice: "s1",
+      confidence: 0.88,
+      probabilities: { s1: 0.88, none: 0.12 },
+    },
+    unsourced_specifics_cite: {
+      type: "choice" as const,
+      choice: "s1",
+      confidence: 0.9,
+      probabilities: { s1: 0.9, none: 0.1 },
+    },
+  };
+  const report = await checkSnapshot(snapshot, definition, replayGateway(answers, replay.usage));
+  const evidence = report.items.find((item) => item.id === "evidence_for_claims");
+  const specifics = report.items.find((item) => item.id === "unsourced_specifics");
+  assert.equal(evidence?.verdict, "fail");
+  assert.equal(specifics?.verdict, "fail");
+  assert.equal(evidence?.cite, unsupportedSentence);
+  assert.equal(specifics?.cite, unsupportedSentence);
+  assert.equal(evidence?.citeLocation, "body");
+});
+
 test("a low-confidence cite still shows that span and the parent chip stays", async () => {
   const replay = loadReplay("page-credibility-pass.json");
   const snapshot = snapshotOf("page-credibility-pass.json");
