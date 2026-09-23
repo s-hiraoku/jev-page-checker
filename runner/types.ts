@@ -139,6 +139,14 @@ export interface ContentClassSummary {
   };
 }
 
+export interface SiteTypeSummary {
+  status: "classified" | "review";
+  reasonCode?: string;
+  reason?: string;
+  id?: string;
+  confidence?: number;
+}
+
 export interface CheckReport {
   definition: { id: CheckerId; version: number };
   items: ItemResult[];
@@ -147,4 +155,5 @@ export interface CheckReport {
   inspection?: ReportInspection;
   classification?: ContentClassificationSummary;
   contentClass?: ContentClassSummary;
+  siteType?: SiteTypeSummary;
 }

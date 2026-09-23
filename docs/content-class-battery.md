@@ -8,7 +8,7 @@
 
 本文の 11 分類（`CONTENT_CATEGORY_IDS`）と、サイトの固定 4 問（`identifiable_publisher`、`honest_identity`、`site_purpose`、`disclosed_incentives`）はチェックリストに残る。バッテリーの質問 ID はそのリストに入れない。定義版は 10 のままである。
 
-10 個の ID は、未マージのサイト種別タクソノミ（`SITE_TYPE_IDS`）と同じ並びである。この変更はタクソノミを実装しない。サイト種別の分類結果をあとから渡す口は `supplied` である。渡さないときは `content_class` を聞き、10 個の外の回答や失敗は `unknown_other` のバッテリーに回す。
+10 個の ID は、サイト種別（`SITE_TYPE_IDS`）と同じ並びである。バッテリーはサイト種別を実装しない。サイト種別は別の軸としてレポートの `siteType` に残る。サイト種別の分類結果をバッテリーへ渡す口は `supplied` である。渡さないときは `content_class` を聞き、10 個の外の回答や失敗は `unknown_other` のバッテリーに回す。
 
 ## 状態
 
@@ -20,4 +20,4 @@ Jev に渡す状態は、タイトル、サイト名、著者、説明、公開�
 
 ## English
 
-`content_class` selects one of ten batteries. The code averages only the answers whose draft states a direction. That average is not a verdict. Body-11 and the four site checks stay on the approved checklist at definition version 10. The ten ids match the unmerged `SITE_TYPE_IDS` list. This change does not implement that taxonomy. Jev live verification, the composite threshold, and tuned weights are unset.
+`content_class` selects one of ten batteries. The code averages only the answers whose draft states a direction. That average is not a verdict. Body-11 and the four site checks stay on the approved checklist at definition version 10. The ten ids match `SITE_TYPE_IDS`. The battery does not classify site type. Site type stays on `siteType`. Jev live verification, the composite threshold, and tuned weights are unset.
