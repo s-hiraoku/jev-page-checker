@@ -57,5 +57,6 @@ test("v9 selects only the classified category's body questions", async () => {
   assert.equal(report.classification?.primary, "reporting");
   assert.equal(report.classification?.status, "classified");
   assert.ok(report.inspection?.bodyQuestionIds.every((id) => id.startsWith("reporting_")));
+  assert.deepEqual(report.inspection?.bodyQuestionGroups?.map((group) => group.categoryId), ["reporting"]);
   assert.equal(report.items.some((item) => item.id.startsWith("opinion_")), false);
 });
