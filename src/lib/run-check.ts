@@ -26,6 +26,7 @@ import { CONTENT_CATEGORY_IDS, CATEGORY_RUBRICS, categoryChoiceDescriptions, typ
 import { triggerChecksForCategory } from "./category-definition.js";
 import { buildRequest } from "../../runner/jev.js";
 import type { ChoiceCriteria } from "@typesafe-ai/sdk";
+import { askContentClassBattery, contentClassState } from "./content-class-battery.js";
 
 export function createLiveJev(apiKey: string): JevGateway {
   return liveGateway(
@@ -164,6 +165,27 @@ async function activeConditionalProbes(
   return { active, uncertain, usage, jevMs };
 }
 
+async function withContentClassBattery(report: CheckReport, snapshot: PageSnapshot, text: string, jev: JevGateway): Promise<CheckReport> {
+  const run = await askContentClassBattery(contentClassState({
+    title: snapshot.title,
+    siteName: snapshot.siteName,
+    author: snapshot.author,
+    description: snapshot.metaDescription,
+    publishedAt: snapshot.publishedAt,
+    language: snapshot.language,
+    text,
+  }), jev);
+  return {
+    ...report,
+    contentClass: run.summary,
+    usage: addUsage(report.usage, run.usage),
+    timing: {
+      wallMs: report.timing.wallMs + run.timing.wallMs,
+      jevMs: report.timing.jevMs + run.timing.jevMs,
+    },
+  };
+}
+
 async function checkCategorizedSnapshot(snapshot: PageSnapshot, definition: ApprovedDefinition, jev: JevGateway, split: ReturnType<typeof splitOverlappingChunks>): Promise<CheckReport> {
   let classification;
   try {
@@ -187,7 +209,10 @@ async function checkCategorizedSnapshot(snapshot: PageSnapshot, definition: Appr
     classification,
     inspection: { windowCount: split.windows.length, windows: split.windows.map(({ start, end }) => ({ start, end })), covered: split.covered, unreadRemainder: snapshot.textTruncated === true || !split.covered, siteQuestionIds: siteIds, bodyQuestionIds: snapshot.hasArticle ? ["content_classification"] : [] },
   });
-  if (!snapshot.hasArticle || classification.status !== "classified" || !classification.primary) return emptyBody();
+  const batteryText = split.windows[0]?.text ?? "";
+  if (!snapshot.hasArticle || classification.status !== "classified" || !classification.primary) {
+    return withContentClassBattery(emptyBody(), snapshot, batteryText, jev);
+  }
   const selected = [classification.primary, classification.secondary].filter((id): id is ContentCategoryId => CONTENT_CATEGORY_IDS.includes(id as ContentCategoryId));
   const active = new Set<string>();
   const uncertain = new Set<string>();
@@ -219,14 +244,14 @@ async function checkCategorizedSnapshot(snapshot: PageSnapshot, definition: Appr
   const bodyItems = onlyUncertain.size > 0
     ? withheld.map((item): ItemResult => onlyUncertain.has(item.id) ? { ...item, verdict: item.verdict === "fail" ? "fail" : "review", reason: `conditional probe was uncertain; ${item.reason}` } : item)
     : withheld;
-  return {
+  return withContentClassBattery({
     ...merged,
     items: [...site.items, ...bodyItems],
     usage: addUsage(usage, merged.usage),
     timing: { wallMs: site.timing.wallMs + classification.timing.wallMs + merged.timing.wallMs, jevMs: jevMs + merged.timing.jevMs },
     classification,
     inspection: { windowCount: split.windows.length, windows: split.windows.map(({ start, end }) => ({ start, end })), covered: split.covered, unreadRemainder: snapshot.textTruncated === true || !split.covered, siteQuestionIds: siteIds, bodyQuestionIds: bodyIds, bodyQuestionGroups: bodyGroups },
-  };
+  }, snapshot, batteryText, jev);
 }
 
 export async function checkSnapshot(snapshot: PageSnapshot, definitionRaw: unknown, jev: JevGateway): Promise<CheckReport> {

@@ -119,6 +119,26 @@ export interface ContentClassificationSummary {
   };
 }
 
+export interface ContentClassSummary {
+  status: "draft";
+  jevLiveVerification: "欠測";
+  classId: string;
+  classSource: "content_class" | "fallback_unknown_other" | "supplied";
+  fallbackReason?: string;
+  batteryRequest: "ok" | "failed";
+  questionIds: readonly string[];
+  contentClassAnswer?: JevAnswer;
+  answers: Readonly<Record<string, JevAnswer>>;
+  trust: {
+    status: "draft";
+    weights: "draft-equal";
+    threshold: "欠測";
+    applied: false;
+    withheld: "threshold-欠測";
+    value?: number;
+  };
+}
+
 export interface CheckReport {
   definition: { id: CheckerId; version: number };
   items: ItemResult[];
@@ -126,4 +146,5 @@ export interface CheckReport {
   timing: { wallMs: number; jevMs: number };
   inspection?: ReportInspection;
   classification?: ContentClassificationSummary;
+  contentClass?: ContentClassSummary;
 }
