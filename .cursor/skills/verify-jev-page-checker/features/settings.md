@@ -47,4 +47,4 @@ Preconditions:
 - Theme `システム` follows the browser `prefers-color-scheme`. Forced `ライト` / `ダーク` do not depend on the OS. Changing the select updates the preview immediately; `保存` persists it in that preview instance.
 - Language `システム` follows the browser language (`ja*` → Japanese, anything else → English). Forced `日本語` / `English` do not depend on the OS. Switching to `en` changes chrome copy, including the approval checkbox label.
 - There is no 承認者の名前 field. Do not fill a name. The checklist is read-only; only the whole-list checkbox records approval.
-- The unchecked-approval dialog does not block the save. `保存しました。` is already shown when it opens. Dismiss it with `閉じる`. English locale uses `Close`.
+- The unchecked-approval dialog does not block the save. `保存しました。` is already shown when it opens. The dialog is modal: its backdrop blocks the form until `閉じる`. English locale uses `Close`.

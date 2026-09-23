@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { Check } from "../lib/checkkit.js";
 import { unknownErrorMessage } from "../lib/errors.js";
 import { parseLocale, parseTheme, type ExtensionSettings } from "../lib/settings.js";
@@ -205,8 +205,24 @@ function SettingsFields({
 
 function ApprovalWarningDialog({ onClose }: { onClose: () => void }) {
   const copy = useCopy();
+  const ref = useRef<HTMLDialogElement>(null);
+
+  useLayoutEffect(() => {
+    const dialog = ref.current;
+    if (!dialog || dialog.open) return;
+    dialog.showModal();
+  }, []);
+
   return (
-    <dialog open className="approval-warning" aria-labelledby="approval-warning-text">
+    <dialog
+      ref={ref}
+      className="approval-warning"
+      aria-labelledby="approval-warning-text"
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
+    >
       <p id="approval-warning-text">{copy.approvalUncheckedWarning}</p>
       <button type="button" className="btn" onClick={onClose}>
         {copy.dismiss}
