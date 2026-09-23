@@ -600,6 +600,10 @@ for (const id of CITE_IDS) {
 }
 
 export function instructionLabel(id: string, locale: ResolvedLocale, fallback: string): string {
+  const entry = rubricEntry(id);
+  if (entry !== undefined && entry.id === id && locale === "ja") {
+    return `${entry.label.ja}を、ページに書かれていることだけから見る。記述が足りなければ要確認。ページ自身が食い違うか、読者を誤らせるときだけ警告。`;
+  }
   if (locale !== "ja") return fallback;
   const citeJa = CITE_INSTRUCTION_JA[id];
   if (citeJa !== undefined) return citeJa;

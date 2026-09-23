@@ -45,8 +45,11 @@ test("every basic and conditional question is atomic, bilingual, and fully mappe
       assert.ok(entry.criteria.review.includes(entry.instruction), `${entry.id} review criterion is not specific`);
       assert.ok(entry.criteria.alert.includes(entry.instruction), `${entry.id} alert criterion is not specific`);
       assert.ok(entry.criteria.not_applicable.includes(entry.instruction), `${entry.id} N/A criterion is not specific`);
+      assert.match(entry.instruction, /Missing evidence is Review/);
+      assert.match(entry.instruction, /Do not write new text/);
       assert.match(entry.criteria.review, /Review/);
       assert.match(entry.criteria.alert, /Alert/);
+      assert.match(entry.criteria.alert, /Missing evidence is Review/);
       if (entry.required) {
         assert.match(entry.criteria.not_applicable, /required for the selected category/);
         assert.match(entry.criteria.not_applicable, /never N\/A/);

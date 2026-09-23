@@ -16,7 +16,7 @@ import portalReplay from "../../fixtures/replay/page-credibility-portal.json";
 
 const legacyDefinition = parseDefinition(definitionRaw);
 // Preview fixtures keep their v8 Jev answers; the shell and Settings page still
-// expose the current v9 question list used by the extension runtime.
+// expose the current category question list used by the extension runtime.
 const definition = buildCategoryDefinition(legacyDefinition);
 
 function classificationGateway(distribution: Readonly<Record<string, number>>): JevGateway {

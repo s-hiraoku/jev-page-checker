@@ -1,13 +1,17 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { parseDefinition } from "../../runner/definition.js";
 import {
+  CATEGORY_DEFINITION_VERSION,
   allCategoryChecks,
+  buildCategoryDefinition,
   checksForCategory,
   triggerChecksForCategory,
   type CategoryTriggerAnswer,
 } from "./category-definition.js";
 import { CATEGORY_RUBRICS, CONTENT_CATEGORY_IDS } from "./category-rubrics.js";
+import { DEFAULT_SETTINGS, setupGap } from "./settings.js";
 
 const articleGuard = { path: "hasArticle", op: "equals", value: true };
 
@@ -56,6 +60,16 @@ test("compiled category verdict and citation questions satisfy the runner defini
   });
   assert.equal(parsed.questions.length, allCategoryChecks().length);
   assert.ok(parsed.questions.every((check) => check.applyWhen?.path === "hasArticle"));
+});
+
+test("a category wording change bumps the definition and asks for the whole list again", () => {
+  const base = parseDefinition(JSON.parse(readFileSync(new URL("../../fixtures/page-credibility.checker.json", import.meta.url), "utf8")));
+  const definition = buildCategoryDefinition(base);
+  assert.equal(CATEGORY_DEFINITION_VERSION, 10);
+  assert.equal(definition.version, 10);
+  assert.equal(setupGap({ ...DEFAULT_SETTINGS, ackedVersion: 9, apiKey: "sk" }, definition.version), "approval");
+  assert.equal(setupGap({ ...DEFAULT_SETTINGS, ackedVersion: definition.version, apiKey: "sk" }, definition.version), null);
+  assert.equal(setupGap({ ...DEFAULT_SETTINGS, ackedVersion: null, apiKey: "sk" }, definition.version), "approval");
 });
 
 test("conditional trigger questions return yes, no, or unclear outside the verdict checks", () => {

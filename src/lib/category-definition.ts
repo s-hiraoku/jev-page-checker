@@ -118,7 +118,10 @@ export function allCategoryChecks(): readonly CategoryCheck[] {
   return CONTENT_CATEGORY_IDS.flatMap((id) => checksForCategory(id));
 }
 
-/** Build the approved v9 definition while retaining the common site checks. */
+/** Bump when category question text changes so Settings asks for the whole list again. */
+export const CATEGORY_DEFINITION_VERSION = 10;
+
+/** Build the approved category definition while retaining the common site checks. */
 export function buildCategoryDefinition(base: ApprovedDefinition): ApprovedDefinition {
   const siteIds = base.questions
     .filter((check) => check.applyWhen === undefined && (check.type !== "choice" || check.citeFor === undefined))
@@ -131,7 +134,7 @@ export function buildCategoryDefinition(base: ApprovedDefinition): ApprovedDefin
   const triggerChecks = CONTENT_CATEGORY_IDS.flatMap((id) => triggerChecksForCategory(id).map(triggerAsCheck));
   return {
     ...base,
-    version: base.version + 1,
+    version: CATEGORY_DEFINITION_VERSION,
     subject: `${base.subject} Body checks are selected from the page's content category and activated content probes.`,
     questions: [...siteChecks, ...categoryChecks, ...triggerChecks],
   };

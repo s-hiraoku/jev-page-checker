@@ -98,6 +98,16 @@ test("category checks have a remark for every verdict in both locales", () => {
   }
 });
 
+test("Japanese category instructions distinguish review from alert without asking Jev for prose", () => {
+  const japanese = instructionLabel("reporting_attribution", "ja", "Assess whether the source is identified.");
+  assert.match(japanese, /情報源の帰属/);
+  assert.match(japanese, /要確認/);
+  assert.match(japanese, /警告/);
+  assert.equal(japanese.includes("Assess whether"), false);
+  const english = instructionLabel("reporting_attribution", "en", "Assess whether the source is identified.");
+  assert.equal(english, "Assess whether the source is identified.");
+});
+
 test("basisLabel falls back to the stored English basis when the answer is missing", () => {
   assert.equal(basisLabel("identifiable_publisher", undefined, "ja", "stored"), "stored");
 });
