@@ -90,24 +90,6 @@
         "none": 0.16
       }
     },
-    "site_type": {
-      "type": "choice",
-      "choice": "expert_blog",
-      "confidence": 0.88,
-      "probabilities": {
-        "expert_blog": 0.88,
-        "unknown_other": 0.12
-      }
-    },
-    "content_class": {
-      "type": "choice",
-      "choice": "expert_blog",
-      "confidence": 0.88,
-      "probabilities": {
-        "expert_blog": 0.88,
-        "unknown_other": 0.12
-      }
-    },
     "content_primary": {
       "type": "choice",
       "choice": "opinion",

@@ -87,22 +87,6 @@
         "s1": 0.7,
         "none": 0.3
       }
-    },
-    "site_type": {
-      "type": "choice",
-      "choice": "unknown_other",
-      "confidence": 0.88,
-      "probabilities": {
-        "unknown_other": 0.12
-      }
-    },
-    "content_class": {
-      "type": "choice",
-      "choice": "unknown_other",
-      "confidence": 0.88,
-      "probabilities": {
-        "unknown_other": 0.12
-      }
     }
   },
   "usage": {

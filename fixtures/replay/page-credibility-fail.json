@@ -90,24 +90,6 @@
         "none": 0.09
       }
     },
-    "site_type": {
-      "type": "choice",
-      "choice": "marketing_leadgen",
-      "confidence": 0.88,
-      "probabilities": {
-        "marketing_leadgen": 0.88,
-        "unknown_other": 0.12
-      }
-    },
-    "content_class": {
-      "type": "choice",
-      "choice": "marketing_leadgen",
-      "confidence": 0.88,
-      "probabilities": {
-        "marketing_leadgen": 0.88,
-        "unknown_other": 0.12
-      }
-    },
     "content_primary": {
       "type": "choice",
       "choice": "sales",

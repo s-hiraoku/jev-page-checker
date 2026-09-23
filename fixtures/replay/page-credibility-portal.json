@@ -89,24 +89,6 @@
         "s2": 0.8,
         "none": 0.2
       }
-    },
-    "site_type": {
-      "type": "choice",
-      "choice": "news_wire",
-      "confidence": 0.88,
-      "probabilities": {
-        "news_wire": 0.88,
-        "unknown_other": 0.12
-      }
-    },
-    "content_class": {
-      "type": "choice",
-      "choice": "news_wire",
-      "confidence": 0.88,
-      "probabilities": {
-        "news_wire": 0.88,
-        "unknown_other": 0.12
-      }
     }
   },
   "usage": {
