@@ -181,11 +181,20 @@ async function checkCategorizedSnapshot(snapshot: PageSnapshot, definition: Appr
   }
   const bodyIds = selected.flatMap((category) => categoryQuestionIds(definition, category, active));
   const bodyDefinition = withQuestions(definition, bodyIds);
-  const rounds = await Promise.all(split.windows.map((window) => evaluate(bodyDefinition, stateForWindow(snapshot, window.text), jev)));
+  const windowReports = await Promise.all(split.windows.map((window) => evaluate(bodyDefinition, stateForWindow(snapshot, window.text), jev)));
+  let rounds = windowReports;
+  if (split.windows.length > 1) {
+    const bodyIdSet = new Set(bodyIds);
+    const findings = windowReports.map((report, index) => findingLine(index, report.items, bodyIdSet));
+    const packed = packSynthesisText(snapshot.text, split.windows, findings, bodyTokenBudget());
+    const synthesis = await evaluate(bodyDefinition, stateForSynthesis(snapshot, packed, findings), jev);
+    rounds = [...windowReports, { ...synthesis, items: softenSynthesisErrors(synthesis.items, bodyIds) }];
+  }
   const merged = mergeReports(bodyDefinition, rounds);
+  const withheld = withholdBodyPassOnTruncation(merged.items, snapshot.textTruncated === true || !split.covered, bodyIds);
   const bodyItems = uncertain.size > 0
-    ? merged.items.map((item): ItemResult => uncertain.has(item.id) ? { ...item, verdict: item.verdict === "fail" ? "fail" : "review", reason: `conditional probe was uncertain; ${item.reason}` } : item)
-    : merged.items;
+    ? withheld.map((item): ItemResult => uncertain.has(item.id) ? { ...item, verdict: item.verdict === "fail" ? "fail" : "review", reason: `conditional probe was uncertain; ${item.reason}` } : item)
+    : withheld;
   return {
     ...merged,
     items: [...site.items, ...bodyItems],
