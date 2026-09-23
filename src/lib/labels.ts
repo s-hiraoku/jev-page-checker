@@ -10,7 +10,7 @@ const QUESTION_LABELS: Record<ResolvedLocale, Record<string, string>> = {
   ja: {
     identifiable_publisher: "ページの責任者が分かるか",
     honest_identity: "表示名とホスト名が一致するか",
-    site_purpose: "ページの主な目的は何か",
+    site_purpose: "ページの目的は明確か",
     disclosed_incentives: "販売や勧誘の相手が分かるか",
     evidence_for_claims: "主な主張に根拠があるか",
     separates_fact_and_opinion: "事実と意見を区別できるか",
@@ -30,7 +30,7 @@ const QUESTION_LABELS: Record<ResolvedLocale, Record<string, string>> = {
   en: {
     identifiable_publisher: "Can the publisher be identified?",
     honest_identity: "Does the displayed identity match the host?",
-    site_purpose: "What is the page mainly for?",
+    site_purpose: "Is the page's purpose clear?",
     disclosed_incentives: "Is it clear who benefits from a pitch?",
     evidence_for_claims: "Are the main claims supported?",
     separates_fact_and_opinion: "Can facts and opinions be told apart?",
@@ -84,20 +84,14 @@ export const VERDICT_LABELS: Record<Verdict, string> = {
 
 const PURPOSE_LABELS: Record<ResolvedLocale, Record<string, string>> = {
   ja: {
-    news_reference: "報道・解説",
-    opinion_analysis: "意見・分析",
-    portal: "ポータル・一覧",
-    commercial: "販売・集客",
-    satire_entertainment: "風刺・娯楽",
-    unclear: "判別できない",
+    clear: "目的が明確",
+    mixed: "目的が混在・不明瞭",
+    hidden: "目的を隠している",
   },
   en: {
-    news_reference: "News / reference",
-    opinion_analysis: "Opinion / analysis",
-    portal: "Portal / listing",
-    commercial: "Sales / acquisition",
-    satire_entertainment: "Satire / entertainment",
-    unclear: "Unclear",
+    clear: "Clear purpose",
+    mixed: "Mixed or unclear purpose",
+    hidden: "Purpose is hidden",
   },
 };
 
@@ -153,12 +147,9 @@ const BASIS_LABELS: Record<ResolvedLocale, Record<string, Record<string, string>
       false: "The page claims to be a different organization than the hostname suggests (typosquat, fake login, copied masthead, spoofed institution).",
     },
     site_purpose: {
-      news_reference: "Reports or explains events or facts in a journalistic or encyclopedic way.",
-      opinion_analysis: "Argues a position, teaches, or interprets; the author's view or experience is the point.",
-      portal: "A listing, index, or headline board rather than one piece of writing.",
-      commercial: "Exists mainly to sell a product, service, or lead, including affiliate copy dressed as reporting.",
-      satire_entertainment: "Humor, fiction, or entertainment that is not claiming to be a news report.",
-      unclear: "Purpose cannot be determined, or incompatible purposes are mixed without labeling them.",
+      clear: "The page communicates what it is for, regardless of whether it is reporting, opinion, a listing, sales, fiction, or entertainment.",
+      mixed: "The page has hard-to-distinguish purposes, or its purpose cannot be determined from the available content.",
+      hidden: "The page obscures what it is for.",
     },
     disclosed_incentives: {
       no_pitch: "There is no sales or advocacy pitch.",
@@ -198,12 +189,9 @@ const BASIS_LABELS: Record<ResolvedLocale, Record<string, Record<string, string>
       false: "ホストが示す主体とは別の組織を名乗っている（タイポスクワッティング、偽ログイン、盗用した見出し、なりすまし）。",
     },
     site_purpose: {
-      news_reference: "出来事や事実を、報道または事典のように報告・説明する。",
-      opinion_analysis: "立場を論じる、教える、解釈する。著者の見解や経験が主題である。",
-      portal: "一件の文章ではなく、一覧、索引、見出し板である。",
-      commercial: "主に商品・サービス・見込み客の獲得が目的。報道に見せたアフィリエイトも含む。",
-      satire_entertainment: "ユーモア、創作、娯楽であり、報道だと称していない。",
-      unclear: "目的が分からない。または相容れない目的が、区別されずに混ざっている。",
+      clear: "報道、意見、一覧、販売、創作、娯楽のいずれでも、ページが何のためかを伝えている。",
+      mixed: "目的が区別しにくく混在している。または、ページの内容から目的を判断できない。",
+      hidden: "ページが何のためかを隠している。",
     },
     disclosed_incentives: {
       no_pitch: "販売や勧誘はない。",
@@ -282,10 +270,10 @@ const VERDICT_REMARKS: Record<ResolvedLocale, Record<string, Record<Verdict, str
       not_applicable: "この項目は対象外。",
     },
     site_purpose: {
-      pass: "主な目的は報道、意見、一覧のいずれか。",
-      review: "販売や娯楽が主目的の可能性がある。",
-      fail: "主な目的を判別できない。",
-      error: "ページの目的を判定できなかった。",
+      pass: "ページが何のためかを明示している。",
+      review: "目的が混在しているか、内容から目的を判断できない。",
+      fail: "目的を明かさず、読者を別の理解へ誘導している。",
+      error: "ページの目的が明確か判定できなかった。",
       not_applicable: "この項目は対象外。",
     },
     disclosed_incentives: {
@@ -347,10 +335,10 @@ const VERDICT_REMARKS: Record<ResolvedLocale, Record<string, Record<Verdict, str
       not_applicable: "Not applicable to this page.",
     },
     site_purpose: {
-      pass: "The page is mainly news, opinion, or a listing.",
-      review: "The page may mainly be a pitch or entertainment.",
-      fail: "The page's main purpose is unclear.",
-      error: "The page's purpose could not be checked.",
+      pass: "The page makes its purpose clear.",
+      review: "The page's purposes are mixed, or its purpose is unclear from the available content.",
+      fail: "The page hides what it is for.",
+      error: "The clarity of the page's purpose could not be checked.",
       not_applicable: "Not applicable to this page.",
     },
     disclosed_incentives: {
@@ -427,7 +415,7 @@ const INSTRUCTION_JA: Record<string, string> = {
   honest_identity:
     "見えているブランド、タイトル、名乗っている発行元は、実際のホスト名と一致しているか。それとも別の主体のなりすましか。見るのはなりすましであり、文章のうまさや有名さではありません。自分として話しているサイトは、名指しした機関を厳しく批評していても、なりすましではありません。別のホストにいながら、他の組織の名前、ロゴ、ログインを写しているページはなりすましです。他者のホストの綴りを似せたものもなりすましです。風刺だと分かるように自分で書いている場合は、身元については正直です。",
   site_purpose:
-    "ページの形、タイトル、見えている本文から、このページの主な目的は何か。ページの形は、クライアントが構造から付けたラベルです。一覧は行き先の並び、記事は一つの文章です。ホストの評判は使いません。目的は人気や品質の点数ではありません。意見、解説、批評は意見・分析です。報道に見えて、販売、商品の順位付け、見込み客の獲得が目的なら販売です。相容れない目的が、区別されずに混ざっていれば判別できません。",
+    "ページの形、タイトル、見えている本文から、読者にページの目的が分かるか。ページの形はクライアントが構造から付けたラベルです。一覧は行き先の並び、記事は一つの文章です。ホストの評判は使いません。報道、意見、一覧、販売、創作、娯楽のどれであっても、目的が明示されていれば明確です。販売の利害は disclosed_incentives で別に確認します。目的が混在して区別できないか、内容が足りず判断できなければ mixed です。ページが何のためかを隠している場合だけ hidden です。",
   disclosed_incentives:
     "販売、資金集め、または得をする主体への働きかけがあるとき、どれに当たるか。no_pitch は販売や勧誘がない。named_beneficiary は勧誘があり、誰が得をするかが書いてある。hidden_beneficiary は商品、寄付、政治的な結果を推し進めつつ、誰が得をするかを隠している。明らかな店は no_pitch です。誰が宣伝の対価を得ているか読者に分からなければ、商品名は named_beneficiary ではありません。",
   evidence_for_claims:

@@ -28,16 +28,9 @@
     "honest_identity": { "type": "noul", "noul": 0.92 },
     "site_purpose": {
       "type": "choice",
-      "choice": "portal",
-      "confidence": 0.88,
-      "probabilities": {
-        "news_reference": 0.07,
-        "opinion_analysis": 0.02,
-        "portal": 0.88,
-        "commercial": 0.02,
-        "satire_entertainment": 0.005,
-        "unclear": 0.005
-      }
+      "choice": "clear",
+      "confidence": 0.9,
+      "probabilities": { "clear": 0.9, "mixed": 0.05, "hidden": 0.05 }
     },
     "disclosed_incentives": {
       "type": "choice",

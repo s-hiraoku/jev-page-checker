@@ -1,7 +1,7 @@
 {
   "id": "page-credibility",
   "version": 8,
-  "subject": "Site safety of the current page (who is responsible, whether it impersonates another party, what it is for, whether a pitch is disclosed) and, when the page is one piece of writing, scrutiny of that writing. A listing is not an article. A purpose of opinion is not a safety failure. The report is evidence, not a reputation score for a familiar site.",
+  "subject": "Site safety of the current page (who is responsible, whether it impersonates another party, whether its purpose is clear, and whether a pitch is disclosed) and, when the page is one piece of writing, scrutiny of that writing. A listing is not an article. The kind of purpose, including sales or fiction, is not a safety failure by itself. The report is evidence, not a reputation score for a familiar site.",
   "approval": { "status": "approved", "at": "2026-09-22T01:30:00Z", "by": "fixture" },
   "questions": [
     {
@@ -29,22 +29,16 @@
     {
       "id": "site_purpose",
       "type": "choice",
-      "instructions": "What is the primary purpose of this page, given pageKind, the title, and the visible text? pageKind is a structural label from the client: portal means a listing of destinations, article means one piece of writing. Do not use the host's reputation. Purpose is not a popularity or quality score. Opinion, teaching, and commentary are opinion_analysis. A page that looks like reporting but exists to sell, rank products, or capture a lead is commercial. Incompatible purposes mixed without labeling them are unclear.",
+      "instructions": "Is the page's purpose clear to a reader, given pageKind, the title, and the visible text? pageKind is a structural label from the client: portal means a listing of destinations, article means one piece of writing. Do not use the host's reputation. Judge how clearly the page communicates what it is for, not whether that purpose is news, opinion, sales, fiction, or entertainment. A purpose can be clear even when the page is selling something or presenting fiction; assess any pitch's beneficiary separately in disclosed_incentives. Choose mixed when the page has multiple purposes that are difficult to distinguish or its purpose cannot be determined from the available content. Choose hidden only when the page obscures what it is for.",
       "criteria": {
-        "news_reference": "Reports or explains events or facts in a journalistic or encyclopedic way.",
-        "opinion_analysis": "Argues a position, teaches, or interprets; the author's view or experience is the point.",
-        "portal": "A listing, index, or headline board rather than one piece of writing.",
-        "commercial": "Exists mainly to sell a product, service, or lead, including affiliate copy dressed as reporting.",
-        "satire_entertainment": "Humor, fiction, or entertainment that is not claiming to be a news report.",
-        "unclear": "Purpose cannot be determined, or incompatible purposes are mixed without labeling them."
+        "clear": "The page communicates what it is for, regardless of whether it is reporting, opinion, a listing, sales, fiction, or entertainment.",
+        "mixed": "The page has hard-to-distinguish purposes, or its purpose cannot be determined from the available content.",
+        "hidden": "The page obscures what it is for."
       },
       "options": {
-        "news_reference": "pass",
-        "opinion_analysis": "pass",
-        "portal": "pass",
-        "commercial": "review",
-        "satire_entertainment": "review",
-        "unclear": "fail"
+        "clear": "pass",
+        "mixed": "review",
+        "hidden": "fail"
       },
       "confidenceFloor": 0.6
     },
