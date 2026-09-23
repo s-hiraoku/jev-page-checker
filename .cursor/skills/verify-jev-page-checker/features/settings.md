@@ -5,7 +5,7 @@ Settings is where a user stores the TypeSafe key, tracking toggles, and a whole-
 ## Sub-features
 
 - `settings-open` opens the form from the panel toolbar, the preview `Settings` button, or `#options`.
-- `settings-checklist` shows `質問 14` with ids such as `identifiable_publisher` and `evidence_for_claims_cite`.
+- `settings-checklist` shows `質問 18` with ids such as `identifiable_publisher`, `identifiable_publisher_cite`, and `evidence_for_claims_cite`.
 - `settings-approve` requires the whole-list checkbox only. There is no name field and the checklist is not editable.
 - `settings-save` writes the draft and shows `保存しました。`
 - `settings-follow` exposes `タブに追従する`.
@@ -27,7 +27,7 @@ Preconditions:
 - `control-jev doctor` reports `ok: true`.
 - Start from `/?scene=setup#options` so approval starts empty.
 
-- **URL entry.** Open settings on the setup scene. Run `control-jev browser goto --path "/?scene=setup#options"`. Meta `Settings · v7` and `質問 14` are visible. A checklist article contains `発行元が特定できる` and `identifiable_publisher`. A cite article contains `主張の根拠を支える文`, `evidence_for_claims_cite`, and `選択肢は、このページから切った文です。Review と Alert の行には、その判定の原因になった文を出します。確信度が低くても、none でも隠しません。Pass の行と同じ文にはしません。この選択は判定のチップを動かしません。`
+- **URL entry.** Open settings on the setup scene. Run `control-jev browser goto --path "/?scene=setup#options"`. Meta `Settings · v8` and `質問 18` are visible. A checklist article contains `発行元が特定できる` and `identifiable_publisher`. A cite article contains `主張の根拠を支える文`, `evidence_for_claims_cite`, and `選択肢は、このページから切った文です。サイトの問も本文の問も、その判定の原因になった文を出します。Review と Alert の行は空にしません。この選択は判定のチップを動かしません。`
 - **Toolbar entry.** Go to the setup panel and choose `Settings`. Run `control-jev browser goto --path "/?scene=setup#side"` and `control-jev browser click --name "Settings"`. The form appears again.
 - **Approve and key.** Tick the whole list and enter a key. There is no 承認者の名前 field. Run `control-jev browser check --label "このチェックリスト全体を承認する"` and `control-jev browser fill --label "TypeSafe API キー" --value "sk-preview"`.
 - **タブに追従する.** Leave tracking on. Run `control-jev browser text --contains "タブに追従する"`. The checkbox is checked by default. English locale uses `Follow the tab`.

@@ -21,6 +21,10 @@ const QUESTION_LABELS: Record<ResolvedLocale, Record<string, string>> = {
     unsourced_specifics_cite: "出典のない具体の文",
     self_consistent_cite: "食い違いの文",
     certainty_matches_evidence_cite: "断定を支える文",
+    identifiable_publisher_cite: "発行元を示す文",
+    honest_identity_cite: "なりすましを示す文",
+    site_purpose_cite: "目的を示す文",
+    disclosed_incentives_cite: "利害を示す文",
   },
   en: {
     identifiable_publisher: "Publisher is identifiable",
@@ -37,6 +41,10 @@ const QUESTION_LABELS: Record<ResolvedLocale, Record<string, string>> = {
     unsourced_specifics_cite: "Sentence behind unsourced specifics",
     self_consistent_cite: "Sentence behind a contradiction",
     certainty_matches_evidence_cite: "Sentence behind the certainty",
+    identifiable_publisher_cite: "Sentence behind the publisher",
+    honest_identity_cite: "Sentence behind identity",
+    site_purpose_cite: "Sentence behind the purpose",
+    disclosed_incentives_cite: "Sentence behind the pitch",
   },
 };
 
@@ -244,6 +252,170 @@ export function basisLabel(
   return BASIS_LABELS[locale][id]?.[key] ?? BASIS_LABELS.en[id]?.[key] ?? fallback;
 }
 
+export const REMARK_IDS = [
+  "identifiable_publisher",
+  "honest_identity",
+  "site_purpose",
+  "disclosed_incentives",
+  "evidence_for_claims",
+  "separates_fact_and_opinion",
+  "unsourced_specifics",
+  "self_consistent",
+  "certainty_matches_evidence",
+] as const;
+
+const VERDICT_REMARKS: Record<ResolvedLocale, Record<string, Record<Verdict, string>>> = {
+  ja: {
+    identifiable_publisher: {
+      pass: "責任者を、名指しできる。",
+      review: "責任者は、決めきれない。",
+      fail: "責任者が、分からない。",
+      error: "責任者を、判定できなかった。",
+      not_applicable: "この問は、聞いていない。",
+    },
+    honest_identity: {
+      pass: "名乗りとホストが、一致する。",
+      review: "なりすましか、決めきれない。",
+      fail: "別の主体を、名乗っている。",
+      error: "なりすましを、判定できなかった。",
+      not_applicable: "この問は、聞いていない。",
+    },
+    site_purpose: {
+      pass: "主な目的は、報道か意見か一覧である。",
+      review: "主な目的は、販売か娯楽である。",
+      fail: "主な目的が、分からない。",
+      error: "目的を、判定できなかった。",
+      not_applicable: "この問は、聞いていない。",
+    },
+    disclosed_incentives: {
+      pass: "勧誘がないか、受益者が書いてある。",
+      review: "利害を、決めきれない。",
+      fail: "誰が得をするかを、隠している。",
+      error: "利害を、判定できなかった。",
+      not_applicable: "この問は、聞いていない。",
+    },
+    evidence_for_claims: {
+      pass: "主な事実主張に、ページ上の支えがある。",
+      review: "支えは、一部か、まだ決めきれない。",
+      fail: "主な事実主張に、支えがほとんどない。",
+      error: "根拠を、判定できなかった。",
+      not_applicable: "記事がないので、この問は聞いていない。",
+    },
+    separates_fact_and_opinion: {
+      pass: "事実と判断を、読み分けられる。",
+      review: "事実と判断の切り分けを、決めきれない。",
+      fail: "判断が事実のように、または事実が好みのように書かれている。",
+      error: "切り分けを、判定できなかった。",
+      not_applicable: "記事がないので、この問は聞いていない。",
+    },
+    unsourced_specifics: {
+      pass: "具体は、出典があるか、出典を要しない。",
+      review: "出典のない具体は、中核ではない。",
+      fail: "記事を支える具体に、出典がない。",
+      error: "出典を、判定できなかった。",
+      not_applicable: "記事がないので、この問は聞いていない。",
+    },
+    self_consistent: {
+      pass: "同じ事実で、食い違っていない。",
+      review: "食い違いか、決めきれない。",
+      fail: "同じ事実に、食い違いがある。",
+      error: "食い違いを、判定できなかった。",
+      not_applicable: "記事がないので、この問は聞いていない。",
+    },
+    certainty_matches_evidence: {
+      pass: "断定の強さは、示された支えに見合う。",
+      review: "断定と支えの釣り合いを、決めきれない。",
+      fail: "断定が、示された支えより強い。",
+      error: "断定を、判定できなかった。",
+      not_applicable: "記事がないので、この問は聞いていない。",
+    },
+  },
+  en: {
+    identifiable_publisher: {
+      pass: "A responsible party can be named.",
+      review: "The responsible party is not settled.",
+      fail: "No responsible party can be named.",
+      error: "The publisher check did not finish.",
+      not_applicable: "This question was not asked.",
+    },
+    honest_identity: {
+      pass: "The name matches the host.",
+      review: "Impersonation is not settled.",
+      fail: "The page claims to be someone else.",
+      error: "The identity check did not finish.",
+      not_applicable: "This question was not asked.",
+    },
+    site_purpose: {
+      pass: "The purpose reads as news, opinion, or a listing.",
+      review: "The purpose reads as a pitch or as entertainment.",
+      fail: "The purpose cannot be read.",
+      error: "The purpose check did not finish.",
+      not_applicable: "This question was not asked.",
+    },
+    disclosed_incentives: {
+      pass: "There is no pitch, or the beneficiary is named.",
+      review: "The pitch is not settled.",
+      fail: "The page hides who benefits.",
+      error: "The incentive check did not finish.",
+      not_applicable: "This question was not asked.",
+    },
+    evidence_for_claims: {
+      pass: "The main claims have support on the page.",
+      review: "Support is partial, or not settled.",
+      fail: "The main claims have almost no support.",
+      error: "The evidence check did not finish.",
+      not_applicable: "Not asked. This page is not one piece of writing.",
+    },
+    separates_fact_and_opinion: {
+      pass: "Facts and judgments can be told apart.",
+      review: "The split is not settled.",
+      fail: "A judgment is written as fact, or a fact as mere taste.",
+      error: "The split check did not finish.",
+      not_applicable: "Not asked. This page is not one piece of writing.",
+    },
+    unsourced_specifics: {
+      pass: "Particulars are sourced, or none are invented.",
+      review: "Unsourced particulars are not the core.",
+      fail: "Load-bearing particulars have no source.",
+      error: "The source check did not finish.",
+      not_applicable: "Not asked. This page is not one piece of writing.",
+    },
+    self_consistent: {
+      pass: "The same fact is not contradicted.",
+      review: "A contradiction is not settled.",
+      fail: "The same fact is stated two ways.",
+      error: "The consistency check did not finish.",
+      not_applicable: "Not asked. This page is not one piece of writing.",
+    },
+    certainty_matches_evidence: {
+      pass: "The tone matches the support on the page.",
+      review: "The match between tone and support is not settled.",
+      fail: "The tone is stronger than the support.",
+      error: "The certainty check did not finish.",
+      not_applicable: "Not asked. This page is not one piece of writing.",
+    },
+  },
+};
+
+/** Short client remark for this question and this verdict. The same sentence for every URL. */
+export function verdictRemark(id: string, verdict: Verdict, locale: ResolvedLocale = "ja"): string {
+  return VERDICT_REMARKS[locale][id]?.[verdict] ?? "";
+}
+
+/** Item readout. The remark is not the criterion paragraph, and it does not repeat the chip. */
+export function evidenceReadout(
+  id: string,
+  verdict: Verdict,
+  locale: ResolvedLocale,
+  sentence: string,
+): { verdict: string; remark: string; sentence: string } {
+  return {
+    verdict: VERDICT_LABELS[verdict],
+    remark: verdictRemark(id, verdict, locale),
+    sentence: sentence.trim(),
+  };
+}
+
 export function instructionText(check: { instructions: unknown }): string {
   return typeof check.instructions === "string" ? check.instructions : JSON.stringify(check.instructions);
 }
@@ -280,6 +452,14 @@ const CITE_INSTRUCTION_JA: Record<string, string> = {
     "このページから切った文が選択肢です。各ラベルの説明がその文です。本文の内部矛盾に関わる文を一つ選んでください。同じ事実について別の文と食い違う数字、日付、結果の文、または後で取り消している主張の文です。食い違いが無ければ、別の文も述べている事実の文です。いちばん具体的な段落だから、という理由では選ばないでください。この問が通過しないときは、通過する部分を支える文ではなく、失敗の原因になっている文を選んでください。同じ事実に触れる文が無ければ none です。新しい文は書かないでください。",
   certainty_matches_evidence_cite:
     "このページから切った文が選択肢です。各ラベルの説明がその文です。断定の強さに関わる文を一つ選んでください。断定、和らげ、仮説、個人の結果のいずれかの文です。言い切りの強さと、その文の中の根拠がずれている文があればそれを優先します。数字があるという理由だけでは選ばないでください。この問が通過しないときは、通過する部分を支える文ではなく、失敗の原因になっている文を選んでください。断定の強さが問題になる文が無ければ none です。新しい文は書かないでください。",
+  identifiable_publisher_cite:
+    "ラベルは、ページに出ているタイトル、サイト名、著者、説明、そのあとに本文から切った文です。各ラベルの説明がその文字列です。責任者の名前が分かるもの、または責任者がいないと分かるものを一つ選んでください。この問が通過しないときは、通過する部分を支えるものではなく、失敗の原因になっているものを選んでください。責任者に関わるものが無ければ none です。新しい文は書かないでください。",
+  honest_identity_cite:
+    "ラベルは、ページに出ているタイトル、サイト名、著者、説明、そのあとに本文から切った文です。各ラベルの説明がその文字列です。自分として話しているか、別の主体を名乗っているかが分かるものを一つ選んでください。この問が通過しないときは、通過する部分を支えるものではなく、失敗の原因になっているものを選んでください。身元に関わるものが無ければ none です。新しい文は書かないでください。",
+  site_purpose_cite:
+    "ラベルは、ページに出ているタイトル、サイト名、著者、説明、そのあとに本文から切った文です。各ラベルの説明がその文字列です。このページが何のためにあるかが分かるものを一つ選んでください。この問が通過しないときは、通過する部分を支えるものではなく、失敗の原因になっているものを選んでください。目的に関わるものが無ければ none です。新しい文は書かないでください。",
+  disclosed_incentives_cite:
+    "ラベルは、ページに出ているタイトル、サイト名、著者、説明、そのあとに本文から切った文です。各ラベルの説明がその文字列です。勧誘、得をする主体の名前、または勧誘がないことが分かるものを一つ選んでください。この問が通過しないときは、通過する部分を支えるものではなく、失敗の原因になっているものを選んでください。勧誘に関わるものが無ければ none です。新しい文は書かないでください。",
 };
 
 const CITE_NONE_EN = "No single sentence carries this question.";
@@ -290,6 +470,10 @@ const CITE_IDS = [
   "unsourced_specifics_cite",
   "self_consistent_cite",
   "certainty_matches_evidence_cite",
+  "identifiable_publisher_cite",
+  "honest_identity_cite",
+  "site_purpose_cite",
+  "disclosed_incentives_cite",
 ] as const;
 
 for (const id of CITE_IDS) {

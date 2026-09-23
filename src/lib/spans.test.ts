@@ -1,16 +1,27 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { extractSpans } from "./checkkit.js";
+import { extractSiteSpans, extractSpans } from "./checkkit.js";
 
 test("extractSpans keeps numbered sentences and drops short fragments", () => {
   const text = "Too short. The bureau posted the inspection memo dated 12 September and a photograph of the south pier. A name alone is not enough here.";
   const spans = extractSpans(text);
   assert.deepEqual(
     spans.map((span) => span.id),
-    ["s1"],
+    ["s1", "s2"],
   );
   assert.match(spans[0]?.text ?? "", /12 September/);
+  assert.match(spans[1]?.text ?? "", /A name alone/);
+});
+
+test("extractSpans keeps an ordinary short sentence and splits two numbered clauses", () => {
+  const hedged = "Sato said no opening date has been set.";
+  const paired = "A clinic claimed a change in 11 days and cut the bill by 94 percent.";
+  const spans = extractSpans(`${hedged} ${paired}`);
+  assert.match(spans[0]?.text ?? "", /opening date/);
+  assert.match(spans.map((span) => span.text).join("\n"), /11 days/);
+  assert.match(spans.map((span) => span.text).join("\n"), /94 percent/);
+  assert.equal(spans.filter((span) => /\d/.test(span.text)).length, 2);
 });
 
 test("extractSpans splits a fullwidth stop that has no following space", () => {
@@ -29,5 +40,8 @@ test("extractSpans uses the same cut on the replay articles", () => {
   const passSpans = extractSpans(pass.state.text);
   const failSpans = extractSpans(fail.state.text);
   assert.match(passSpans.find((span) => span.id === "s2")?.text ?? "", /12 September/);
+  assert.match(passSpans.find((span) => span.id === "s4")?.text ?? "", /opening date/);
   assert.match(failSpans.find((span) => span.id === "s1")?.text ?? "", /11 days/);
+  assert.match(failSpans.find((span) => span.id === "s2")?.text ?? "", /94 percent/);
+  assert.equal(failSpans[0]?.text.includes("94 percent"), false);
 });

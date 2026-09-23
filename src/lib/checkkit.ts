@@ -3,6 +3,7 @@ export {
   DefinitionError,
   buildRequest,
   evaluate,
+  extractSiteSpans,
   extractSpans,
   exitCodeFor,
   jsonEqual,

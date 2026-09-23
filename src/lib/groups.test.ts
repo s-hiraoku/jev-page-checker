@@ -5,6 +5,7 @@ import { parseDefinition, type ItemResult, type Verdict } from "./checkkit.js";
 import {
   bodyQuestionIds,
   bodySendKind,
+  citeQuestionIds,
   isBodyQuestion,
   isCiteQuestion,
   mergeConservativeItem,
@@ -31,6 +32,8 @@ test("site and body lanes come from hasArticle applyWhen, not restated ids", () 
     "self_consistent",
     "certainty_matches_evidence",
   ]);
+  assert.equal(siteIds.length + bodyIds.length, 9);
+  assert.equal(citeQuestionIds(definition.questions).length, 9);
   for (const question of definition.questions) {
     const inBodyLane = isBodyQuestion(question.applyWhen) && !isCiteQuestion(question);
     assert.equal(inBodyLane, bodyIds.includes(question.id));

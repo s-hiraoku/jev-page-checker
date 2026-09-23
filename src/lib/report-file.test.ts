@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { reportDocument, reportFilename } from "./report-file.js";
+import type { ItemResult } from "./checkkit.js";
 import { withoutRecord, type StoredRecord } from "./session.js";
 
 test("withoutRecord drops only the named id", () => {
@@ -38,4 +39,40 @@ test("a saved report file names the host and includes extracted facts", () => {
   assert.match(text, /doi\.example\.org/);
   assert.match(reportDocument(record, "en"), /Published: 2026-09-18/);
   assert.match(reportDocument(record, "en"), /Page kind: Article/);
+});
+
+test("a saved report lists the verdict, the remark, and the page sentence", () => {
+  const item: ItemResult = {
+    id: "identifiable_publisher" as ItemResult["id"],
+    verdict: "fail",
+    reason: "noul 0.08 is at or below failAt 0.2",
+    answer: { type: "noul", noul: 0.08 },
+    cite: "No study, author, or manufacturer is named.",
+  };
+  const record = {
+    id: "1",
+    createdAt: "2026-09-20T08:00:00.000Z",
+    snapshot: {
+      title: "Deal",
+      url: "http://deal-today.example/miracle-cure",
+      hostname: "deal-today.example",
+      publishedAt: "",
+      pageKind: "article",
+      outboundHosts: [],
+      wordCount: 10,
+      text: "order now",
+    },
+    report: { items: [item] },
+  } as unknown as StoredRecord;
+  const text = reportDocument(record, "ja");
+  assert.match(text, /発行元が特定できる/);
+  assert.match(text, /判定: Alert/);
+  assert.match(text, /寸評: 責任者が、分からない。/);
+  assert.match(text, /本文: No study, author, or manufacturer is named\./);
+  assert.equal(text.includes("責任者として分かる"), false);
+  assert.equal(text.includes("基準:"), false);
+  const english = reportDocument(record, "en");
+  assert.match(english, /Verdict: Alert/);
+  assert.match(english, /Remark: No responsible party can be named\./);
+  assert.match(english, /Body: No study, author, or manufacturer is named\./);
 });

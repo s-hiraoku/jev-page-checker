@@ -44,6 +44,30 @@
       "choice": "no_pitch",
       "confidence": 0.81,
       "probabilities": { "no_pitch": 0.81, "named_beneficiary": 0.1, "hidden_beneficiary": 0.09 }
+    },
+    "identifiable_publisher_cite": {
+      "type": "choice",
+      "choice": "s1",
+      "confidence": 0.7,
+      "probabilities": { "s1": 0.7, "none": 0.3 }
+    },
+    "honest_identity_cite": {
+      "type": "choice",
+      "choice": "s1",
+      "confidence": 0.7,
+      "probabilities": { "s1": 0.7, "none": 0.3 }
+    },
+    "site_purpose_cite": {
+      "type": "choice",
+      "choice": "s1",
+      "confidence": 0.7,
+      "probabilities": { "s1": 0.7, "none": 0.3 }
+    },
+    "disclosed_incentives_cite": {
+      "type": "choice",
+      "choice": "s1",
+      "confidence": 0.7,
+      "probabilities": { "s1": 0.7, "none": 0.3 }
     }
   },
   "usage": { "input_tokens": 180, "output_tokens": 12 }

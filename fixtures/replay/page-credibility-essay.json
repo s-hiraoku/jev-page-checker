@@ -45,6 +45,30 @@
       "confidence": 0.88,
       "probabilities": { "no_pitch": 0.88, "named_beneficiary": 0.07, "hidden_beneficiary": 0.05 }
     },
+    "identifiable_publisher_cite": {
+      "type": "choice",
+      "choice": "s3",
+      "confidence": 0.9,
+      "probabilities": { "s3": 0.9, "none": 0.1 }
+    },
+    "honest_identity_cite": {
+      "type": "choice",
+      "choice": "s2",
+      "confidence": 0.88,
+      "probabilities": { "s2": 0.88, "none": 0.12 }
+    },
+    "site_purpose_cite": {
+      "type": "choice",
+      "choice": "s1",
+      "confidence": 0.86,
+      "probabilities": { "s1": 0.86, "none": 0.14 }
+    },
+    "disclosed_incentives_cite": {
+      "type": "choice",
+      "choice": "s4",
+      "confidence": 0.84,
+      "probabilities": { "s4": 0.84, "none": 0.16 }
+    },
     "evidence_for_claims_cite": {
       "type": "choice",
       "choice": "s2",

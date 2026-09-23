@@ -20,7 +20,8 @@
 
 - サイトでは、誰が責任者か、なりすましか、何のためのページか、隠し勧誘かを聞く。
 - 本文は、一本の文章があるときだけ聞く。聞くのは、根拠、事実と意見、出典、矛盾、断定である。
-- 本文の各問では、その問に関わるページの文を一本選ばせる。Review または Alert の行には、その判定の原因になった文を出す。確信度が 0.6 未満でも隠さない。none のとき、または Pass の行と同じ文しか選ばれないときは、ページに別の文があれば Review と Alert にはその別の文を付ける。この付け足しは表示だけであり、合否のチップは親の回答のままである。Pass の行にも文を出してよい。Jev に文を書かせない。切り方はどの URL でも同じである。
+- サイトの各問と本文の各問では、ページから切った単位を一本、Jev に選ばせる。サイトの選択肢は、タイトル、サイト名、著者、説明、そのあとに本文と同じ切り方の文である。本文の選択肢は主本文から切った文である。24 字未満の断片は落とす。数字を含む節が and で結ばれ、どちらも 24 字以上のときは、二つの文に切る。選ばれた単位を、その項目の文として出す。Review または Alert の行には、その判定の原因になった単位を出す。確信度が 0.6 未満でも隠さない。none のとき、または Pass の行と同じ単位しか選ばれないときは、ページに別の単位があれば Review と Alert にはその別の単位を付ける。この付け足しは表示だけであり、合否のチップは親の回答のままである。Pass の行にも単位を出してよい。Jev に文を書かせない。切り方はどの URL でも同じである。
+- 項目に出す表は、その問とその判定についての短い寸評と、ページから選んだ単位である。見出しは寸評と本文である。判定のチップは繰り返さない。基準の段落は貼らない。寸評はどの URL でも同じ文である。Jev にこの表を書かせない。
 - 利害の開示は三択である。勧誘がない、または受益者が書いてある、は Pass。隠しているは Alert。確信度の床は 0.6 である。
 - 本文の精査は、抜き出した主本文の全体を見る。Jev の入力枠は、state と最長の質問で 32,000 トークン、1 回のリクエストで 64,000 トークンである。これは公式の Models の値である。収まるときは 1 回で送る。超えたら重ねて分割し、厳しめにまとめる。切れ残りがあるときだけ、本文は通過にしない。上限はどの URL でも同じである。サイト全体は見ない。
 - 一覧は、リンク密度などのページ構造で見る。ホストもパスも見ない。
@@ -51,7 +52,8 @@ What the check may do:
 
 - Site questions ask who is responsible, whether the page impersonates someone, what the page is for, and whether a pitch hides who benefits.
 - Body questions run only when there is one piece of writing. They ask about evidence, fact and opinion, sources, contradiction, and certainty.
-- For each body question, Jev is asked for the sentence cut from the page that bears on that question. A Review or Alert row shows the sentence that caused that verdict. Confidence below 0.6 does not hide it. When the choice is none, or only the sentence already shown on a Pass row, and the page has another sentence, the Review or Alert row shows that other sentence. The attachment is display-only. The verdict chip stays on the parent answer. A Pass row may also show a sentence. Jev does not write the sentence. The cut is the same for every URL.
+- For each site question and each body question, Jev selects one span cut from the page. Site choices are the title, site name, author, and description as shown, then sentences cut the same way as the body. Body choices are sentences cut from the main text. A fragment under 24 characters is dropped. Two clauses joined by "and" are cut apart when each contains a digit and is at least 24 characters. The report shows that span on the item. A Review or Alert row shows the span that caused that verdict, including when confidence is below 0.6. When the choice is none, or the only choice is the span already on a Pass row, Review and Alert show another span from the page when one exists. That attachment is display only. The parent answer still sets the chip. A Pass row may show a span too. Jev does not write the span. The cut is the same for every URL.
+- The item table shows a short client-side remark for that question and that verdict, plus the page span. The headings are Remark and Body. It does not repeat the verdict chip, and it does not paste the criterion paragraph. The remark is the same for every URL. Jev does not write it.
 - Disclosure is a three-way choice. No pitch, and a named beneficiary, pass. Hiding who benefits is Alert. The confidence floor is 0.6.
 - Body review covers the extracted main text. Jev's input window is 32,000 tokens for state plus the longest question, and 64,000 tokens per request. Those are the official Models limits. A body that fits is sent once. A longer body is split with overlap and combined strictly. If any remainder is unread, the body does not pass. The limit is the same for every URL. The checker does not read the whole site.
 - A listing is recognized from page structure, such as link density. Host and path are not inputs.

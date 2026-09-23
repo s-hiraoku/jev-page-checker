@@ -1,6 +1,6 @@
 import { copyFor } from "./copy.js";
 import { formatCheckedAt } from "./format.js";
-import { basisLabel, questionLabel, VERDICT_LABELS } from "./labels.js";
+import { evidenceReadout, questionLabel } from "./labels.js";
 import type { ResolvedLocale } from "./locale.js";
 import type { StoredRecord } from "./session.js";
 
@@ -30,10 +30,11 @@ export function reportDocument(record: StoredRecord, locale: ResolvedLocale): st
     "",
   ];
   for (const item of record.report.items) {
-    const basis = basisLabel(item.id, item.answer, locale, item.basis?.trim() ?? "");
-    lines.push(`${questionLabel(item.id, locale)}: ${VERDICT_LABELS[item.verdict]}`);
-    if (basis) lines.push(basis);
-    if (item.cite) lines.push(item.cite);
+    const readout = evidenceReadout(item.id, item.verdict, locale, item.cite ?? "");
+    lines.push(questionLabel(item.id, locale));
+    lines.push(`${copy.verdict}: ${readout.verdict}`);
+    if (readout.remark) lines.push(`${copy.remark}: ${readout.remark}`);
+    if (readout.sentence) lines.push(`${copy.grounds}: ${readout.sentence}`);
     lines.push("");
   }
   lines.push(snapshot.text);

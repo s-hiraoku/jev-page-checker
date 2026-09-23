@@ -47,6 +47,8 @@ const ja = {
   output: "出力",
   item: "項目",
   verdict: "判定",
+  remark: "寸評",
+  grounds: "本文",
   value: "値",
   questions: (count: number) => `質問 ${count}`,
   questionText: "質問内容",
@@ -60,7 +62,7 @@ const ja = {
     `${passAt} 以上で Pass。${failAt} 以下で Alert。その間は Review。確信度が ${floor} 未満なら Review。`,
   choiceFloor: (floor: number) => `確信度が ${floor} 未満なら Review。それ以外は、選んだラベルの判定です。`,
   citeChoices:
-    "選択肢は、このページから切った文です。Review と Alert の行には、その判定の原因になった文を出します。確信度が低くても、none でも隠しません。Pass の行と同じ文にはしません。この選択は判定のチップを動かしません。",
+    "選択肢は、このページから切った文です。サイトの問も本文の問も、その判定の原因になった文を出します。Review と Alert の行は空にしません。この選択は判定のチップを動かしません。",
   truncatedNotice:
     "主本文が Jev の入力枠を超えて切れています。切れた先は見ていません。本文レーンは Pass にしません。",
   chunkedNotice: "主本文が長いので、重ねて分割し、厳しめにまとめて見ました。",
@@ -143,6 +145,8 @@ const en: typeof ja = {
   output: "out",
   item: "Item",
   verdict: "Verdict",
+  remark: "Remark",
+  grounds: "Body",
   value: "Value",
   questions: (count: number) => `Questions ${count}`,
   questionText: "Question text",
@@ -157,7 +161,7 @@ const en: typeof ja = {
   choiceFloor: (floor: number) =>
     `Confidence below ${floor} is Review. Otherwise the selected label sets the verdict.`,
   citeChoices:
-    "The choices are sentences cut from this page. A Review or Alert row shows the sentence that caused that verdict, even when confidence is low or the choice is none, and not the sentence on a Pass row. This choice does not change the verdict chip.",
+    "The choices are sentences cut from this page. Site and body rows show the sentence that caused that verdict. A Review or Alert row is not left blank. This choice does not change the verdict chip.",
   truncatedNotice:
     "The main body is longer than Jev's input window. The rest was not reviewed. The body lane does not pass.",
   chunkedNotice: "The main body was long, so it was split with overlap and combined strictly.",

@@ -94,7 +94,7 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
           )}
         </tbody>
       </table>
-      <ItemList items={record.report.items} siteIds={siteIds} bodyIds={bodyIds} snapshot={record.snapshot} />
+      <ItemList items={record.report.items} siteIds={siteIds} bodyIds={bodyIds} />
     </div>
   );
 }
