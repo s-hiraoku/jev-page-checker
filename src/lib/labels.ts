@@ -77,6 +77,30 @@ const QUESTION_AXIS_LABELS: Record<ResolvedLocale, Record<string, string>> = {
   },
 };
 
+const LEGACY_V8_SITE_PURPOSE_LABELS: Record<ResolvedLocale, string> = {
+  ja: "ページの主な目的は何か",
+  en: "What is the page mainly for?",
+};
+
+const LEGACY_V8_PURPOSE_LABELS: Record<ResolvedLocale, Record<string, string>> = {
+  ja: {
+    news_reference: "報道・解説",
+    opinion_analysis: "意見・分析",
+    portal: "ポータル・一覧",
+    commercial: "販売・集客",
+    satire_entertainment: "風刺・娯楽",
+    unclear: "判別できない",
+  },
+  en: {
+    news_reference: "News / reference",
+    opinion_analysis: "Opinion / analysis",
+    portal: "Portal / listing",
+    commercial: "Sales / acquisition",
+    satire_entertainment: "Satire / entertainment",
+    unclear: "Unclear",
+  },
+};
+
 export const VERDICT_LABELS: Record<Verdict, string> = {
   pass: "Pass",
   fail: "Alert",
@@ -111,7 +135,8 @@ const SPECIFIC_LABELS: Record<ResolvedLocale, Record<string, string>> = {
   },
 };
 
-export function questionLabel(id: string, locale: ResolvedLocale = "ja"): string {
+export function questionLabel(id: string, locale: ResolvedLocale = "ja", definitionVersion?: number): string {
+  if (id === "site_purpose" && definitionVersion === 8) return LEGACY_V8_SITE_PURPOSE_LABELS[locale];
   const category = Object.values(CATEGORY_RUBRICS).find((rubric) => [...rubric.items, ...rubric.conditionalProbes].some((entry) => entry.id === id || `${entry.id}_cite` === id));
   if (category !== undefined) {
     const entry = [...category.items, ...category.conditionalProbes].find((item) => item.id === id || `${item.id}_cite` === id);
@@ -120,13 +145,13 @@ export function questionLabel(id: string, locale: ResolvedLocale = "ja"): string
   return QUESTION_LABELS[locale][id] ?? id;
 }
 
-export function questionAxisLabel(id: string, locale: ResolvedLocale = "ja"): string {
+export function questionAxisLabel(id: string, locale: ResolvedLocale = "ja", definitionVersion?: number): string {
   const category = Object.values(CATEGORY_RUBRICS).find((rubric) => [...rubric.items, ...rubric.conditionalProbes].some((entry) => entry.id === id || `${entry.id}_cite` === id));
   if (category !== undefined) {
     const entry = [...category.items, ...category.conditionalProbes].find((item) => item.id === id || `${item.id}_cite` === id);
     if (entry !== undefined) return entry.axisLabel[locale];
   }
-  return QUESTION_AXIS_LABELS[locale][id] ?? questionLabel(id, locale);
+  return QUESTION_AXIS_LABELS[locale][id] ?? questionLabel(id, locale, definitionVersion);
 }
 
 const DISCLOSURE_LABELS: Record<ResolvedLocale, Record<string, string>> = {
@@ -142,8 +167,11 @@ const DISCLOSURE_LABELS: Record<ResolvedLocale, Record<string, string>> = {
   },
 };
 
-export function choiceLabel(questionId: string, choice: string, locale: ResolvedLocale = "ja"): string {
-  if (questionId === "site_purpose") return PURPOSE_LABELS[locale][choice] ?? choice;
+export function choiceLabel(questionId: string, choice: string, locale: ResolvedLocale = "ja", definitionVersion?: number): string {
+  if (questionId === "site_purpose") {
+    const labels = definitionVersion === 8 ? LEGACY_V8_PURPOSE_LABELS : PURPOSE_LABELS;
+    return labels[locale][choice] ?? choice;
+  }
   if (questionId === "disclosed_incentives") return DISCLOSURE_LABELS[locale][choice] ?? choice;
   if (questionId === "unsourced_specifics") return SPECIFIC_LABELS[locale][choice] ?? choice;
   if (choice === "pass") return locale === "ja" ? "通過" : "Pass";
@@ -403,8 +431,26 @@ const VERDICT_REMARKS: Record<ResolvedLocale, Record<string, Record<Verdict, str
   },
 };
 
+const LEGACY_V8_SITE_PURPOSE_REMARKS: Record<ResolvedLocale, Record<Verdict, string>> = {
+  ja: {
+    pass: "主な目的は報道、意見、一覧のいずれか。",
+    review: "販売や娯楽が主目的の可能性がある。",
+    fail: "主な目的を判別できない。",
+    error: "ページの目的を判定できなかった。",
+    not_applicable: "この項目は対象外。",
+  },
+  en: {
+    pass: "The page is mainly news, opinion, or a listing.",
+    review: "The page may mainly be a pitch or entertainment.",
+    fail: "The page's main purpose is unclear.",
+    error: "The page's purpose could not be checked.",
+    not_applicable: "Not applicable to this page.",
+  },
+};
+
 /** Short client remark for this question and this verdict. The same sentence for every URL. */
-export function verdictRemark(id: string, verdict: Verdict, locale: ResolvedLocale = "ja"): string {
+export function verdictRemark(id: string, verdict: Verdict, locale: ResolvedLocale = "ja", definitionVersion?: number): string {
+  if (id === "site_purpose" && definitionVersion === 8) return LEGACY_V8_SITE_PURPOSE_REMARKS[locale][verdict];
   return VERDICT_REMARKS[locale][id]?.[verdict] ?? "";
 }
 

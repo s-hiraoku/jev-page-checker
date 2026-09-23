@@ -24,7 +24,15 @@ function gatewayFor(snapshot: PageSnapshot): JevGateway {
   const siteAnswers: Record<string, JevAnswer> = {};
   for (const question of site) {
     if (question.type === "noul") siteAnswers[question.id] = { type: "noul", noul: 0.95 };
-    else if (question.type === "choice") siteAnswers[question.id] = answerFor(question.id, question.id.endsWith("_cite") ? "none" : Object.keys(question.criteria)[0]!);
+    else if (question.type === "choice") {
+      const citeChoices: Record<string, string> = {
+        identifiable_publisher_cite: "s3",
+        honest_identity_cite: "s2",
+        site_purpose_cite: "s1",
+        disclosed_incentives_cite: "s4",
+      };
+      siteAnswers[question.id] = answerFor(question.id, citeChoices[question.id] ?? Object.keys(question.criteria)[0]!);
+    }
   }
   const triggers: Record<string, JevAnswer> = {};
   for (const trigger of triggerChecksForCategory("reporting")) triggers[trigger.id] = answerFor(trigger.id, "no");
@@ -59,4 +67,35 @@ test("v9 selects only the classified category's body questions", async () => {
   assert.ok(report.inspection?.bodyQuestionIds.every((id) => id.startsWith("reporting_")));
   assert.deepEqual(report.inspection?.bodyQuestionGroups?.map((group) => group.categoryId), ["reporting"]);
   assert.equal(report.items.some((item) => item.id.startsWith("opinion_")), false);
+  assert.equal(report.items.find((item) => item.id === "identifiable_publisher")?.cite, "A. Writer");
+  assert.equal(report.items.find((item) => item.id === "site_purpose")?.cite, "Bridge inspection report");
+});
+
+test("classification request failure keeps the site lane in the report", async () => {
+  let calls = 0;
+  const report = await checkSnapshot(snapshot(), definition, {
+    async ask() {
+      calls += 1;
+      if (calls === 1) throw new Error("classification unavailable");
+      return { answers: {}, usage: { input_tokens: 1, output_tokens: 1 } };
+    },
+  });
+  assert.equal(report.classification?.status, "review");
+  assert.equal(report.classification?.reasonCode, "classification_error");
+  assert.ok(report.items.some((item) => item.id === "identifiable_publisher"));
+});
+
+test("conditional probe failure holds its category checks for review", async () => {
+  const base = gatewayFor(snapshot());
+  let calls = 0;
+  const report = await checkSnapshot(snapshot(), definition, {
+    async ask(request) {
+      calls += 1;
+      if (calls === 3) throw new Error("trigger unavailable");
+      return base.ask(request);
+    },
+  });
+  assert.equal(report.classification?.status, "classified");
+  assert.ok(report.items.some((item) => item.id === "identifiable_publisher"));
+  assert.equal(report.items.find((item) => item.id === "reporting_high_stakes")?.verdict, "review");
 });

@@ -177,20 +177,22 @@ export function ResultRadars({
   siteQuestionIds,
   bodyQuestionIds,
   bodyQuestionGroups,
+  definitionVersion,
 }: {
   items: readonly ItemResult[];
   compact?: boolean;
   siteQuestionIds: readonly string[];
   bodyQuestionIds: readonly string[];
   bodyQuestionGroups?: readonly { categoryId: string; questionIds: readonly string[] }[];
+  definitionVersion?: number;
 }) {
   const locale = useLocale();
   const copy = useCopy();
   const site = radarAxes(
     items,
     siteQuestionIds,
-    (id) => questionLabel(id, locale),
-    (id) => questionAxisLabel(id, locale),
+    (id) => questionLabel(id, locale, definitionVersion),
+    (id) => questionAxisLabel(id, locale, definitionVersion),
   );
   const groups = bodyQuestionGroups?.length ? bodyQuestionGroups : [{ categoryId: "body", questionIds: bodyQuestionIds }];
   return (
@@ -199,7 +201,7 @@ export function ResultRadars({
       {groups.map((group) => {
         const rubric = CATEGORY_RUBRICS[group.categoryId as ContentCategoryId];
         const title = rubric?.label[locale] ?? copy.body;
-        const axes = radarAxes(items, group.questionIds, (id) => questionLabel(id, locale), (id) => questionAxisLabel(id, locale));
+        const axes = radarAxes(items, group.questionIds, (id) => questionLabel(id, locale, definitionVersion), (id) => questionAxisLabel(id, locale, definitionVersion));
         return <RadarChart key={group.categoryId} title={title} axes={axes} compact={compact} verdict={worstVerdict(items, group.questionIds)} />;
       })}
     </div>

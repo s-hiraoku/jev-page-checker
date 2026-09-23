@@ -207,12 +207,13 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
           siteQuestionIds={siteIds}
           bodyQuestionIds={bodyIds}
           bodyQuestionGroups={inspection?.bodyQuestionGroups}
+          definitionVersion={record.report.definition.version}
         />
       </section>
       {sendKind === "unread" ? <p className="notice">{copy.truncatedNotice}</p> : null}
       {sendKind === "chunked" ? <p className="help chunked-note">{copy.chunkedNotice} {copy.synthesisHelp}</p> : null}
       <p className="help result-help">{copy.resultHelp}</p>
-      <ItemList items={record.report.items} siteIds={siteIds} bodyIds={bodyIds} snapshot={snapshot} compact={compact} />
+      <ItemList items={record.report.items} siteIds={siteIds} bodyIds={bodyIds} snapshot={snapshot} compact={compact} definitionVersion={record.report.definition.version} />
       <ReviewedBody record={record} compact={compact} label={sentLabel} />
       {!compact ? <PageInformation snapshot={snapshot} copy={copy} /> : null}
       {!compact ? (

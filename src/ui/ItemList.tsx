@@ -12,21 +12,23 @@ export function ItemList({
   bodyIds,
   snapshot,
   compact = false,
+  definitionVersion,
 }: {
   items: readonly ItemResult[];
   siteIds: readonly string[];
   bodyIds: readonly string[];
   snapshot: PageSnapshot;
   compact?: boolean;
+  definitionVersion?: number;
 }) {
   const copy = useCopy();
   if (siteIds.length === 0 && bodyIds.length === 0) {
-    return <ResultGroup title={copy.pageChecks} items={items} snapshot={snapshot} compact={compact} />;
+    return <ResultGroup title={copy.pageChecks} items={items} snapshot={snapshot} compact={compact} definitionVersion={definitionVersion} />;
   }
   return (
     <div className="result-groups">
-      <ResultGroup title={copy.site} items={items.filter((item) => siteIds.includes(item.id))} snapshot={snapshot} compact={compact} />
-      <ResultGroup title={copy.body} items={items.filter((item) => bodyIds.includes(item.id))} snapshot={snapshot} compact={compact} />
+      <ResultGroup title={copy.site} items={items.filter((item) => siteIds.includes(item.id))} snapshot={snapshot} compact={compact} definitionVersion={definitionVersion} />
+      <ResultGroup title={copy.body} items={items.filter((item) => bodyIds.includes(item.id))} snapshot={snapshot} compact={compact} definitionVersion={definitionVersion} />
     </div>
   );
 }
@@ -36,11 +38,13 @@ function ResultGroup({
   items,
   snapshot,
   compact,
+  definitionVersion,
 }: {
   title: string;
   items: readonly ItemResult[];
   snapshot: PageSnapshot;
   compact: boolean;
+  definitionVersion?: number;
 }) {
   if (items.length === 0) return null;
   const copy = useCopy();
@@ -50,7 +54,7 @@ function ResultGroup({
       <h2 className="result-group-head">{title}</h2>
       <div className="result-cards">
         {items.map((item) => (
-          <ResultCard key={item.id} item={item} snapshot={snapshot} locale={locale} compact={compact} />
+          <ResultCard key={item.id} item={item} snapshot={snapshot} locale={locale} compact={compact} definitionVersion={definitionVersion} />
         ))}
       </div>
       <p className="result-group-foot help">{copy.confidenceHelp}</p>
@@ -58,11 +62,11 @@ function ResultGroup({
   );
 }
 
-function ResultCard({ item, snapshot, locale, compact }: { item: ItemResult; snapshot: PageSnapshot; locale: ResolvedLocale; compact: boolean }) {
+function ResultCard({ item, snapshot, locale, compact, definitionVersion }: { item: ItemResult; snapshot: PageSnapshot; locale: ResolvedLocale; compact: boolean; definitionVersion?: number }) {
   const copy = useCopy();
-  const question = questionLabel(item.id, locale);
+  const question = questionLabel(item.id, locale, definitionVersion);
   const source = item.cite ? citeSource(snapshot, item.cite, item.citeLocation) : null;
-  const remark = verdictRemark(item.id, item.verdict, locale);
+  const remark = verdictRemark(item.id, item.verdict, locale, definitionVersion);
   const selectedLabel = item.citeSource === "jev" ? copy.sourceSelected : item.citeSource === "related" ? copy.sourceRelated : "";
   const showReason =
     item.reason.length > 0 &&
@@ -74,7 +78,7 @@ function ResultCard({ item, snapshot, locale, compact }: { item: ItemResult; sna
         <h3 id={`question-${item.id}`}>{question}</h3>
         <VerdictChip verdict={item.verdict} />
       </div>
-      <AnswerView id={item.id} answer={item.answer} />
+      <AnswerView id={item.id} answer={item.answer} definitionVersion={definitionVersion} />
       {remark ? <p className="result-remark">{remark}</p> : null}
       {item.cite ? (
         <figure className="evidence-quote">

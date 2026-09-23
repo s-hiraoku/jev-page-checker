@@ -89,6 +89,46 @@ test("a saved report lists the verdict, the remark, and the page sentence", () =
   assert.match(english, /Citation \(Page text\): No study, author, or manufacturer is named\./);
 });
 
+test("a v8 saved report keeps the historical purpose wording", () => {
+  const record = {
+    id: "legacy-purpose",
+    createdAt: "2026-09-20T08:00:00.000Z",
+    snapshot: {
+      title: "Bridge update",
+      url: "https://news.example.org/bridge",
+      hostname: "news.example.org",
+      siteName: "Example News",
+      author: "Mina Ito",
+      metaDescription: "A report on the bridge opening.",
+      publishedAt: "2026-09-18",
+      pageKind: "article",
+      outboundHosts: [],
+      wordCount: 10,
+      isHttps: true,
+      language: "en",
+      linkCount: 2,
+      text: "The inspection report was published on 18 September.",
+    },
+    report: {
+      definition: { id: "page-credibility", version: 8 },
+      items: [{
+        id: "site_purpose" as ItemResult["id"],
+        verdict: "pass" as const,
+        reason: "choice maps to pass",
+        answer: { type: "choice" as const, choice: "news_reference", confidence: 0.91, probabilities: { news_reference: 0.91 } },
+      }],
+    },
+  } as unknown as StoredRecord;
+  const japanese = reportDocument(record, "ja");
+  assert.match(japanese, /ページの主な目的は何か/);
+  assert.match(japanese, /報道・解説/);
+  assert.match(japanese, /主な目的は報道、意見、一覧のいずれか。/);
+  const english = reportDocument(record, "en");
+  assert.match(english, /What is the page mainly for\?/);
+  assert.match(english, /News \/ reference/);
+  assert.match(english, /The page is mainly news, opinion, or a listing\./);
+});
+
 test("a saved report includes typed Jev answers, source labels, and recorded window text", () => {
   const snapshot = {
     title: "Bridge update",

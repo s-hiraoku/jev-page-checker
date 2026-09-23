@@ -21,7 +21,8 @@ export type ContentClassificationReasonCode =
   | "duplicate_categories"
   | "too_many_categories"
   | "primary_disagreement"
-  | "unexplained_secondary";
+  | "unexplained_secondary"
+  | "classification_error";
 
 export interface ContentEvidence {
   text: string;

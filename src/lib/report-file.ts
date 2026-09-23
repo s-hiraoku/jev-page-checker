@@ -17,17 +17,17 @@ function percentage(value: number, locale: ResolvedLocale): string {
   return new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 }).format(value);
 }
 
-function answerLines(id: string, answer: JevAnswer | undefined, locale: ResolvedLocale): string[] {
+function answerLines(id: string, answer: JevAnswer | undefined, locale: ResolvedLocale, definitionVersion?: number): string[] {
   if (answer === undefined) return [];
   const copy = copyFor(locale);
   if (answer.type === "noul") return [`${copy.answerProbability}: ${percentage(answer.noul, locale)}`];
   if (answer.type === "choice") {
     return [
-      `${copy.answerSelection}: ${choiceLabel(id, answer.choice, locale)}`,
+      `${copy.answerSelection}: ${choiceLabel(id, answer.choice, locale, definitionVersion)}`,
       `${copy.answerConfidence}: ${percentage(answer.confidence, locale)}`,
       `${copy.probabilityDetails}: ${Object.entries(answer.probabilities)
         .sort((left, right) => right[1] - left[1])
-        .map(([key, value]) => `${choiceLabel(id, key, locale)} ${percentage(value, locale)}`)
+        .map(([key, value]) => `${choiceLabel(id, key, locale, definitionVersion)} ${percentage(value, locale)}`)
         .join(" / ")}`,
     ];
   }
@@ -86,6 +86,7 @@ export function reportFilename(record: StoredRecord): string {
 export function reportDocument(record: StoredRecord, locale: ResolvedLocale): string {
   const copy = copyFor(locale);
   const snapshot = record.snapshot;
+  const definitionVersion = record.report.definition?.version;
   const hosts = snapshot.outboundHosts.length === 0 ? copy.noHosts : snapshot.outboundHosts.join(", ");
   const lines = [
     snapshot.title || copy.untitled,
@@ -107,10 +108,10 @@ export function reportDocument(record: StoredRecord, locale: ResolvedLocale): st
     "",
   ];
   for (const item of record.report.items) {
-    lines.push(questionLabel(item.id, locale));
+    lines.push(questionLabel(item.id, locale, definitionVersion));
     lines.push(`${copy.verdict}: ${copy.verdictLabels[item.verdict]}`);
-    lines.push(...answerLines(item.id, item.answer, locale));
-    const remark = verdictRemark(item.id, item.verdict, locale);
+    lines.push(...answerLines(item.id, item.answer, locale, definitionVersion));
+    const remark = verdictRemark(item.id, item.verdict, locale, definitionVersion);
     if (remark) lines.push(`${copy.remark}: ${remark}`);
     if (item.cite) {
       const source = citeSource(snapshot, item.cite, item.citeLocation);

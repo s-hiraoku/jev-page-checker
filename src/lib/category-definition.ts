@@ -120,7 +120,13 @@ export function allCategoryChecks(): readonly CategoryCheck[] {
 
 /** Build the approved v9 definition while retaining the common site checks. */
 export function buildCategoryDefinition(base: ApprovedDefinition): ApprovedDefinition {
-  const siteChecks = base.questions.filter((check) => check.applyWhen === undefined && (check.type !== "choice" || check.citeFor === undefined));
+  const siteIds = base.questions
+    .filter((check) => check.applyWhen === undefined && (check.type !== "choice" || check.citeFor === undefined))
+    .map((check) => check.id);
+  const siteChecks = base.questions.filter((check) =>
+    check.applyWhen === undefined &&
+    (check.type !== "choice" || check.citeFor === undefined || siteIds.includes(check.citeFor)),
+  );
   const categoryChecks = allCategoryChecks().map(({ categoryId: _categoryId, rubricItemId: _rubricItemId, questionKind: _questionKind, required: _required, ...check }) => check as Check);
   const triggerChecks = CONTENT_CATEGORY_IDS.flatMap((id) => triggerChecksForCategory(id).map(triggerAsCheck));
   return {

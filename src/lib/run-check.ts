@@ -117,6 +117,13 @@ function categoryQuestionIds(definition: ApprovedDefinition, category: ContentCa
     .map((question) => question.id);
 }
 
+function siteCheckIds(definition: ApprovedDefinition, siteIds: readonly string[]): string[] {
+  const site = new Set(siteIds);
+  return definition.questions
+    .filter((question) => site.has(question.id) || (question.type === "choice" && question.citeFor !== undefined && site.has(question.citeFor)))
+    .map((question) => question.id);
+}
+
 async function activeConditionalProbes(
   snapshot: PageSnapshot,
   windows: readonly { text: string; start: number; end: number }[],
@@ -140,7 +147,13 @@ async function activeConditionalProbes(
       applyWhen: { path: "hasArticle", op: "equals", value: true } as const,
     }));
     const started = performance.now();
-    const reply = await jev.ask(buildRequest(stateForWindow(snapshot, window.text), checks));
+    let reply;
+    try {
+      reply = await jev.ask(buildRequest(stateForWindow(snapshot, window.text), checks));
+    } catch {
+      for (const trigger of triggers) uncertain.add(trigger.rubricItemId);
+      continue;
+    }
     jevMs += Math.round(performance.now() - started);
     usage = addUsage(usage, reply.usage);
     for (const trigger of triggers) {
@@ -156,9 +169,21 @@ async function activeConditionalProbes(
 }
 
 async function checkCategorizedSnapshot(snapshot: PageSnapshot, definition: ApprovedDefinition, jev: JevGateway, split: ReturnType<typeof splitOverlappingChunks>): Promise<CheckReport> {
-  const classification = await classifyContent(snapshot, split.windows, jev, categoryDescriptions());
+  let classification;
+  try {
+    classification = await classifyContent(snapshot, split.windows, jev, categoryDescriptions());
+  } catch {
+    classification = {
+      status: "review" as const,
+      reasonCode: "classification_error" as const,
+      reason: "The body classification request failed.",
+      windows: [],
+      usage: { input_tokens: 0, output_tokens: 0 },
+      timing: { wallMs: 0, jevMs: 0 },
+    };
+  }
   const siteIds = siteQuestionIds(definition.questions);
-  const siteDefinition = withQuestions(definition, siteIds);
+  const siteDefinition = withQuestions(definition, siteCheckIds(definition, siteIds));
   const site = await evaluate(siteDefinition, stateForWindow(snapshot, split.windows[0]?.text ?? ""), jev);
   const emptyBody = (): CheckReport => ({
     ...site,
@@ -179,7 +204,8 @@ async function checkCategorizedSnapshot(snapshot: PageSnapshot, definition: Appr
     for (const id of probes.active) active.add(id);
     for (const id of probes.uncertain) uncertain.add(id);
   }
-  const bodyGroups = selected.map((category) => ({ categoryId: category, questionIds: categoryQuestionIds(definition, category, active) }));
+  const routed = new Set([...active, ...uncertain]);
+  const bodyGroups = selected.map((category) => ({ categoryId: category, questionIds: categoryQuestionIds(definition, category, routed) }));
   const bodyIds = bodyGroups.flatMap((group) => group.questionIds);
   const bodyDefinition = withQuestions(definition, bodyIds);
   const windowReports = await Promise.all(split.windows.map((window) => evaluate(bodyDefinition, stateForWindow(snapshot, window.text), jev)));
@@ -193,8 +219,9 @@ async function checkCategorizedSnapshot(snapshot: PageSnapshot, definition: Appr
   }
   const merged = mergeReports(bodyDefinition, rounds);
   const withheld = withholdBodyPassOnTruncation(merged.items, snapshot.textTruncated === true || !split.covered, bodyIds);
-  const bodyItems = uncertain.size > 0
-    ? withheld.map((item): ItemResult => uncertain.has(item.id) ? { ...item, verdict: item.verdict === "fail" ? "fail" : "review", reason: `conditional probe was uncertain; ${item.reason}` } : item)
+  const onlyUncertain = new Set([...uncertain].filter((id) => !active.has(id)));
+  const bodyItems = onlyUncertain.size > 0
+    ? withheld.map((item): ItemResult => onlyUncertain.has(item.id) ? { ...item, verdict: item.verdict === "fail" ? "fail" : "review", reason: `conditional probe was uncertain; ${item.reason}` } : item)
     : withheld;
   return {
     ...merged,
