@@ -1,12 +1,23 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CATEGORY_RUBRICS, CONTENT_CATEGORY_IDS, categoryAxisLabels } from "./category-rubrics.js";
+import { CATEGORY_RUBRICS, CONTENT_CATEGORY_IDS, categoryAxisLabels, categoryChoiceDescriptions } from "./category-rubrics.js";
 
 const counts: Record<string, number> = {
   reporting: 5, announcement: 5, explanation: 5, opinion: 5,
   investigation: 7, guide: 6, experience_review: 5, sales: 5,
   reference: 5, discussion: 5, creative: 4,
 };
+
+test("category choice descriptions state distinct purposes", () => {
+  const descriptions = categoryChoiceDescriptions();
+  assert.equal(Object.keys(descriptions).length, CONTENT_CATEGORY_IDS.length);
+  const purposes = CONTENT_CATEGORY_IDS.map((id) => CATEGORY_RUBRICS[id].purpose.en);
+  assert.equal(new Set(purposes).size, purposes.length);
+  for (const text of Object.values(descriptions)) {
+    assert.doesNotMatch(text, /^Assess whether/);
+    assert.ok(text.length > 20);
+  }
+});
 
 test("catalog contains exactly the approved eleven categories and item counts", () => {
   assert.equal(CONTENT_CATEGORY_IDS.length, 11);

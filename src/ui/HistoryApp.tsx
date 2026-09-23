@@ -1,4 +1,5 @@
 import type { Bridge } from "../lib/bridge.js";
+import { CATEGORY_RUBRICS, type ContentCategoryId } from "../lib/category-rubrics.js";
 import { formatCheckedAt } from "../lib/format.js";
 import type { StoredRecord } from "../lib/session.js";
 import { worstVerdict } from "../lib/groups.js";
@@ -29,6 +30,18 @@ export function HistoryApp({ bridge }: { bridge: Bridge }) {
       />
     </AppChrome>
   );
+}
+
+function classificationLabel(
+  item: StoredRecord,
+  review: string,
+  notApplicable: string,
+  locale: "ja" | "en",
+): string {
+  const classification = item.report.classification;
+  if (classification?.status === "not_applicable") return notApplicable;
+  if (classification?.status === "review" || classification?.primary === undefined) return review;
+  return CATEGORY_RUBRICS[classification.primary as ContentCategoryId]?.label[locale] ?? classification.primary;
 }
 
 function LoadingCopy({ fallback }: { fallback: string | null }) {
@@ -79,6 +92,7 @@ function HistoryRow({
     <div className="history-row">
       <button type="button" className="history-open" aria-label={title} onClick={() => onOpen(item.id)}>
         <strong>{title}</strong>
+        <div className="history-category">{copy.classificationTitle}: {classificationLabel(item, copy.classificationStatusReview, copy.classificationStatusNotApplicable, locale)}</div>
         <div className="history-time">
           {copy.checkedAt} {formatCheckedAt(item.createdAt, locale)}
         </div>

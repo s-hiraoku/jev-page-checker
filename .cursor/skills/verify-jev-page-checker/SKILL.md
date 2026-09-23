@@ -83,7 +83,7 @@ Prefer URL entry points over nav buttons when starting a recipe. Scene is a quer
 Stable handles (accessible names / labels from the real UI, not test ids):
 
 - App chrome: heading-equivalent `Audit` (mark `Jev` + name `Audit` from `labels.ts`), meta `v8` on the panel / `Report · v8` / `History · v8` / `Settings · v8`
-- Preview fixture row: `Pass`, `Fail`, `Truncated`, `Chunked`. Product chrome row: `Setup`, `Inspector`, `Settings`, `Report`, `History`. They are not one toolbar.
+- Preview fixture row: `Pass`, `Fail`, `Essay`, `Listing`, `Truncated`, `Chunked`. Product chrome row: `Setup`, `Inspector`, `Settings`, `Report`, `History`. They are not one toolbar.
 - Side panel buttons: `Audit`, `Report`, `History`, `Settings` (gated panel uses the same `Settings` button)
 - Side panel copy: `サイト`, `本文`, `Pass`, `Alert`, `Review`, `N/A`. Ready Inspector has no score lede and no footer about following the tab. The outer column is still `判定`. Each item's inner table is `寸評` and `本文` only. The remark is a short fixed sentence for that question and that verdict, for example `責任者を、名指しできる。` It is not the criterion paragraph.
 - Pass title: `City delays river bridge opening after inspection, officials say`

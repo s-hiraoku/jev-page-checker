@@ -24,6 +24,7 @@ export interface ConditionalProbe extends CategoryRubricItem {
 }
 export interface CategoryRubric {
   label: BilingualLabel;
+  purpose: BilingualLabel;
   items: readonly CategoryRubricItem[];
   conditionalProbes: readonly ConditionalProbe[];
 }
@@ -57,7 +58,21 @@ const C = {
   na: "N/A only when this criterion's feature is genuinely absent. If the category requires the information, its omission is Review.",
 };
 
-const CATEGORY_RUBRIC_BASE: Readonly<Record<ContentCategoryId, CategoryRubric>> = {
+const CATEGORY_PURPOSE: Readonly<Record<ContentCategoryId, BilingualLabel>> = {
+  reporting: { ja: "外部で起きた事実を伝える。", en: "Reports an event or fact that happened outside the writing." },
+  announcement: { ja: "当事者が自らの決定や予定を伝える。", en: "A party states its own decision, plan, or offering." },
+  explanation: { ja: "既存の情報を整理し、意味や関係を解説する。", en: "Organizes existing information and explains its meaning or relationships." },
+  opinion: { ja: "立場や提案を論じる。", en: "Argues a position or a proposal." },
+  investigation: { ja: "独自の方法で調べ、結果を示す。", en: "Investigates with its own method and shows the result." },
+  guide: { ja: "読者が行う作業の手順を説明する。", en: "Explains steps a reader carries out." },
+  experience_review: { ja: "使用や体験に基づいて評価する。", en: "Evaluates something from use or experience." },
+  sales: { ja: "購入、申込、寄付などの行動を促す。", en: "Urges a purchase, signup, donation, or similar action." },
+  reference: { ja: "定義、仕様、データなどを参照できる形で示す。", en: "Presents definitions, specifications, or data for lookup." },
+  discussion: { ja: "複数の投稿、質問、回答、応答を扱う。", en: "Handles several posts, questions, answers, or replies." },
+  creative: { ja: "創作物、風刺、娯楽として読ませる。", en: "Presents fiction, satire, or entertainment." },
+};
+
+const CATEGORY_RUBRIC_BASE: Readonly<Record<ContentCategoryId, Omit<CategoryRubric, "purpose">>> = {
   reporting: { label: { ja: "報道・事実報告", en: "Reporting" }, items: [
     item("reporting_event_time", "中心事実と時点", "Central event and time", "事実・時点", "Facts and timing", "Assess whether the central reported event and the time to which the account refers are identifiable.", criteria(C.required, C.absent, C.wrong, C.na)),
     item("reporting_attribution", "情報源の帰属", "Source attribution", "情報源", "Attribution", "Assess whether the source of central facts or quotations is identified in the text.", criteria(C.required, C.absent, C.wrong, C.na)),
@@ -208,9 +223,17 @@ const EXTRA_PROBES: Readonly<Record<ContentCategoryId, readonly ConditionalProbe
 export const CATEGORY_RUBRICS = Object.fromEntries(
   CONTENT_CATEGORY_IDS.map((id) => [id, {
     ...CATEGORY_RUBRIC_BASE[id],
+    purpose: CATEGORY_PURPOSE[id],
     conditionalProbes: [...CATEGORY_RUBRIC_BASE[id].conditionalProbes, ...EXTRA_PROBES[id]],
   }]),
 ) as unknown as Readonly<Record<ContentCategoryId, CategoryRubric>>;
+
+export function categoryChoiceDescriptions(): Record<string, string> {
+  return Object.fromEntries(CONTENT_CATEGORY_IDS.map((id) => {
+    const rubric = CATEGORY_RUBRICS[id];
+    return [id, `${rubric.label.en}. ${rubric.purpose.en}`];
+  }));
+}
 
 export function getCategoryRubric(id: ContentCategoryId): CategoryRubric { return CATEGORY_RUBRICS[id]; }
 

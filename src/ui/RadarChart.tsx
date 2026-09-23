@@ -1,10 +1,10 @@
 import { useLayoutEffect, useState } from "react";
-import { worstVerdict } from "../lib/groups.js";
+import { worseVerdict, worstVerdict } from "../lib/groups.js";
 import { questionAxisLabel, questionLabel } from "../lib/labels.js";
 import { polarPoint, radarAxes, type RadarAxis } from "../lib/radar-values.js";
 import type { ItemResult, Verdict } from "../lib/checkkit.js";
 import { useCopy, useLocale } from "./useLocale.js";
-import { CATEGORY_RUBRICS, type ContentCategoryId } from "../lib/category-rubrics.js";
+import { CATEGORY_RUBRICS, categoryAxisLabels, type ContentCategoryId } from "../lib/category-rubrics.js";
 
 const RINGS = [1 / 3, 2 / 3, 1];
 const GROW_MS = 1100;
@@ -195,15 +195,49 @@ export function ResultRadars({
     (id) => questionAxisLabel(id, locale, definitionVersion),
   );
   const groups = bodyQuestionGroups?.length ? bodyQuestionGroups : [{ categoryId: "body", questionIds: bodyQuestionIds }];
+  const labelFor = (id: string) => questionLabel(id, locale, definitionVersion);
+  const axisFor = (id: string) => questionAxisLabel(id, locale, definitionVersion);
   return (
     <div className={`radar-pair${compact ? " compact" : ""}`}>
       <RadarChart title={copy.site} axes={site} compact={compact} verdict={worstVerdict(items, siteQuestionIds)} />
       {groups.map((group) => {
         const rubric = CATEGORY_RUBRICS[group.categoryId as ContentCategoryId];
         const title = rubric?.label[locale] ?? copy.body;
-        const axes = radarAxes(items, group.questionIds, (id) => questionLabel(id, locale, definitionVersion), (id) => questionAxisLabel(id, locale, definitionVersion));
-        return <RadarChart key={group.categoryId} title={title} axes={axes} compact={compact} verdict={worstVerdict(items, group.questionIds)} />;
+        const axes = axesForGroup(items, group.categoryId, group.questionIds, labelFor, axisFor, locale);
+        return <RadarChart key={`${group.categoryId}:${axes.map((axis) => axis.id).join(",")}`} title={title} axes={axes} compact={compact} verdict={worstVerdict(items, group.questionIds)} />;
       })}
     </div>
   );
+}
+
+function axesForGroup(
+  items: readonly ItemResult[],
+  categoryId: string,
+  questionIds: readonly string[],
+  labelFor: (id: string) => string,
+  axisFor: (id: string) => string,
+  locale: "ja" | "en",
+): RadarAxis[] {
+  const rubric = CATEGORY_RUBRICS[categoryId as ContentCategoryId];
+  const categoryIds = questionIds.filter((id) => id.startsWith(`${categoryId}_`) && !id.endsWith("_cite") && !id.endsWith("_trigger"));
+  if (rubric === undefined || categoryIds.length === 0) {
+    return radarAxes(items, questionIds, labelFor, axisFor);
+  }
+  const entries = [...rubric.items, ...rubric.conditionalProbes];
+  return categoryAxisLabels(categoryId as ContentCategoryId).flatMap((axis) => {
+    const memberIds = categoryIds.filter((id) => entries.find((entry) => entry.id === id)?.axisKey === axis.key);
+    if (memberIds.length === 0) return [];
+    const measured = radarAxes(items, memberIds, labelFor, axisFor).filter((axisItem) => axisItem.value !== null && axisItem.verdict !== null && axisItem.verdict !== "not_applicable");
+    const picked = measured.reduce<RadarAxis | undefined>((worst, axisItem) => {
+      if (worst === undefined || worst.verdict === null || axisItem.verdict === null) return axisItem;
+      return worseVerdict(axisItem.verdict, worst.verdict) === axisItem.verdict ? axisItem : worst;
+    }, undefined);
+    return [{
+      id: axis.key,
+      label: axis.label[locale],
+      fullLabel: picked?.fullLabel ?? axis.label[locale],
+      value: picked?.value ?? null,
+      verdict: picked?.verdict ?? null,
+    }];
+  });
 }

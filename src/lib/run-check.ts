@@ -22,7 +22,7 @@ import {
 } from "./groups.js";
 import { snapshotToState, type PageSnapshot } from "./page-state.js";
 import { classifyContent } from "./content-classifier.js";
-import { CONTENT_CATEGORY_IDS, CATEGORY_RUBRICS, type ContentCategoryId } from "./category-rubrics.js";
+import { CONTENT_CATEGORY_IDS, CATEGORY_RUBRICS, categoryChoiceDescriptions, type ContentCategoryId } from "./category-rubrics.js";
 import { triggerChecksForCategory } from "./category-definition.js";
 import { buildRequest } from "../../runner/jev.js";
 import type { ChoiceCriteria } from "@typesafe-ai/sdk";
@@ -97,11 +97,7 @@ function isCategoryDefinition(definition: ApprovedDefinition): boolean {
 }
 
 function categoryDescriptions(): Record<string, string> {
-  return Object.fromEntries(CONTENT_CATEGORY_IDS.map((id) => {
-    const rubric = CATEGORY_RUBRICS[id];
-    const cues = rubric.items.slice(0, 3).map((item) => `${item.label.en}: ${item.instruction}`).join(" ");
-    return [id, `${rubric.label.en}. ${cues}`];
-  }));
+  return categoryChoiceDescriptions();
 }
 
 function categoryQuestionIds(definition: ApprovedDefinition, category: ContentCategoryId, conditional: ReadonlySet<string>): string[] {

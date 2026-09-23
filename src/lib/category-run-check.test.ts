@@ -11,7 +11,7 @@ const raw = JSON.parse(readFileSync(new URL("../../fixtures/page-credibility.che
 const definition = buildCategoryDefinition(parseDefinition(raw));
 
 function answerFor(id: string, choice: string): JevAnswer {
-  return { type: "choice", choice, confidence: 0.9, probabilities: { [choice]: 0.9, other: 0.1 } };
+  return { type: "choice", choice, confidence: 0.9, probabilities: id.startsWith("content_") ? { [choice]: 0.9 } : { [choice]: 0.9, other: 0.1 } };
 }
 
 function gatewayFor(snapshot: PageSnapshot): JevGateway {

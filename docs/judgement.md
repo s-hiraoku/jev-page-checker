@@ -28,7 +28,7 @@
 - 一覧は、リンク密度などのページ構造で見る。ホストもパスも見ない。
 - 意見・分析は目的のラベルである。それ自体は危険ではない。
 - Jev には意味だけを聞く。HTTPS、メタ情報、語数、リンク密度、本文が入力枠で切れたか、分割の合成は、コードが見る。
-- noul の通過は 0.8 である。choice と score の確信度の床は 0.6 である。意味で決めた線であり、一つの画面に合わせない。
+- noul の通過は 0.8 である。choice と score の確信度の床は 0.6 である。意味で決めた線であり、一つの画面に合わせない。本文分類は、選択肢の分布の 1 位で一つのカテゴリに決める。同点は混在にせず、供給されたカテゴリ順で一つに割る。確信度の床で分類を未分類のままにしない。`passAt` と `failAt` は動かさない。
 - 定義を変えたら、リスト全体を承認し直す。一部だけの承認はしない。
 - 仮説、未検証、実験が必要と本文に書いてある提案は、出典のない報道の断定と同じ失敗にしない。出典や計測がない提案は、通過ではなく要確認である。
 - 発行元は、画面の著者、署名、発行者の表示を見る。主本文からナビゲーションとして外したことは、発行元がいないことではない。
@@ -61,7 +61,7 @@ What the check may do:
 - A listing is recognized from page structure, such as link density. Host and path are not inputs.
 - Opinion and analysis are a purpose label. The label itself is not a failure.
 - Jev is asked for meaning only. The code judges HTTPS, metadata, word count, link density, whether the body was cut by the input window, and how split windows are combined.
-- Noul passes at 0.8. The confidence floor for choice and score is 0.6. Those lines were chosen for their meaning. They are not fitted to one case.
+- Noul passes at 0.8. The confidence floor for choice and score is 0.6. Those lines were chosen for their meaning. They are not fitted to one case. Content classification selects the single top-ranked category from the choice distribution. A tie resolves to one category in the supplied category order and does not stay mixed. The confidence floor does not leave a leading category unclassified. `passAt` and `failAt` stay where they are.
 - If the definition changes, the whole list must be accepted again. A partial acceptance is not enough.
 - A proposal that the text marks as a hypothesis, as unverified, or as needing an experiment is not the same failure as an unsourced news assertion. A proposal with no source or measurement is Review, not Pass.
 - Publisher identity uses the author, byline, and publisher chrome on the page. Removing navigation from the main text does not mean there is no publisher.
