@@ -4,6 +4,7 @@ import { test } from "node:test";
 import type { JevAnswer, JevGateway, JevReply } from "./checkkit.js";
 import { buildCategoryDefinition, checksForCategory, triggerChecksForCategory } from "./category-definition.js";
 import { parseDefinition } from "./checkkit.js";
+import { bodyWindowCharBudget } from "./jev-budget.js";
 import { checkSnapshot } from "./run-check.js";
 import type { PageSnapshot } from "./page-state.js";
 
@@ -149,6 +150,30 @@ test("a listing gets a site type and does not run body category questions", asyn
   assert.deepEqual(report.inspection?.bodyQuestionIds, []);
   assert.equal(report.usage.input_tokens, 3);
   assert.equal(report.usage.output_tokens, 2);
+});
+
+test("site type reads a later-window reprint while body category and site questions stay on the first window", async () => {
+  const disclosure = "Reprinted from the city gazette with the original publisher credit.";
+  const page = snapshot();
+  page.text = `${"a".repeat(bodyWindowCharBudget())} ${disclosure}`;
+  let siteTypeText = "";
+  let siteQuestionText = "";
+  const base = gatewayFor();
+  const report = await checkSnapshot(page, definition, {
+    async ask(request) {
+      const state = request.state;
+      const text = state !== null && typeof state === "object" && "text" in state && typeof state.text === "string" ? state.text : "";
+      if ("site_type" in request.questions) siteTypeText = text;
+      if ("identifiable_publisher" in request.questions) siteQuestionText = text;
+      return base.ask(request);
+    },
+  });
+  assert.equal(report.definition.version, 10);
+  assert.equal(report.classification?.primary, "reporting");
+  assert.equal(report.siteType?.id, "news_wire");
+  assert.equal(siteTypeText.includes(disclosure), true);
+  assert.equal(siteQuestionText.includes(disclosure), false);
+  assert.equal(siteTypeText.startsWith("a"), true);
 });
 
 test("a failed site type request keeps the body category", async () => {

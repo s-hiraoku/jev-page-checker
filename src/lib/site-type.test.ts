@@ -3,6 +3,7 @@ import { test } from "node:test";
 import type { JevGateway } from "../../runner/jev.js";
 import { CONTENT_CATEGORY_IDS } from "./category-rubrics.js";
 import type { PageSnapshot } from "./page-state.js";
+import { estimateTokens } from "./jev-budget.js";
 import { reportDocument } from "./report-file.js";
 import type { StoredRecord } from "./session.js";
 import {
@@ -10,6 +11,7 @@ import {
   classifySiteType,
   isSiteTypeId,
   siteTypeChoiceCriteria,
+  siteTypeExcerpt,
   siteTypeLabel,
   type SiteTypeId,
 } from "./site-type.js";
@@ -160,4 +162,61 @@ test("a saved report names the site type apart from the body category", () => {
   const english = reportDocument(record, "en");
   assert.match(english, /Site type: News/);
   assert.match(english, /Primary category: Reporting/);
+});
+
+test("a Japanese site type review uses site type reasons, not the English producer text", () => {
+  const base = {
+    id: "site-type-review",
+    createdAt: "2026-09-23T00:00:00.000Z",
+    snapshot: snapshot(),
+    report: {
+      definition: { id: "page-credibility", version: 10 },
+      items: [],
+      usage: { input_tokens: 0, output_tokens: 0 },
+      timing: { wallMs: 0, jevMs: 0 },
+      siteType: {
+        status: "review",
+        reasonCode: "empty_page",
+        reason: "The page has no title, site name, author, description, or text to classify.",
+      },
+    },
+  } as unknown as StoredRecord;
+  const japanese = reportDocument(base, "ja");
+  assert.match(japanese, /サイト種別: 保留/);
+  assert.match(japanese, /理由: サイト種別を判断するタイトル、サイト名、著者、説明、本文がありません。/);
+  assert.equal(japanese.includes("The page has no title"), false);
+  assert.equal(japanese.includes("本文分類の依頼に失敗"), false);
+  const english = reportDocument(base, "en");
+  assert.match(english, /Site type: Needs review/);
+  assert.match(english, /Reason: The page has no title, site name, author, description, or text to classify\./);
+  const failed = reportDocument({
+    ...base,
+    report: {
+      ...base.report,
+      siteType: { status: "review", reasonCode: "site_type_error", reason: "The site type request failed." },
+    },
+  } as StoredRecord, "ja");
+  assert.match(failed, /理由: サイト種別の依頼に失敗したため、種別を保留しました。/);
+  assert.equal(failed.includes("The site type request failed."), false);
+  const legacy = reportDocument({
+    ...base,
+    report: {
+      ...base.report,
+      siteType: { status: "review", reason: "Legacy site type reason." },
+    },
+  } as StoredRecord, "ja");
+  assert.match(legacy, /理由: Legacy site type reason\./);
+});
+
+test("site type excerpt keeps a later-window ending inside the token budget", () => {
+  const opening = "Opening bureau report. ";
+  const middle = "x".repeat(400);
+  const ending = "Reprinted from the city gazette.";
+  const text = `${opening}${middle}${ending}`;
+  const excerpt = siteTypeExcerpt(text, [{ start: 0, end: 80 }, { start: 60, end: text.length }], 20);
+  assert.equal(excerpt.startsWith("Opening"), true);
+  assert.equal(excerpt.endsWith(ending), true);
+  assert.equal(excerpt.includes("x".repeat(50)), false);
+  assert.equal(estimateTokens(excerpt) <= 20, true);
+  assert.equal(siteTypeExcerpt(text, [{ start: 0, end: text.length }], 10_000), text);
 });

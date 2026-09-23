@@ -51,7 +51,10 @@ function siteTypeLines(record: StoredRecord, locale: ResolvedLocale): string[] {
     return [`${copy.siteTypeTitle}: ${siteTypeLabel(siteType.id, locale)}`];
   }
   const lines = [`${copy.siteTypeTitle}: ${copy.siteTypeReview}`];
-  if (siteType.reason) lines.push(`${copy.classificationReason}: ${siteType.reason}`);
+  const reason = siteType.reasonCode !== undefined && Object.hasOwn(copy.siteTypeReasons, siteType.reasonCode)
+    ? copy.siteTypeReasons[siteType.reasonCode as keyof typeof copy.siteTypeReasons]
+    : siteType.reason;
+  if (reason) lines.push(`${copy.classificationReason}: ${reason}`);
   return lines;
 }
 

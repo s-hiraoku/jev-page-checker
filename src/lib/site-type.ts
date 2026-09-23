@@ -1,6 +1,7 @@
 import type { Usage } from "@typesafe-ai/sdk";
 import { buildRequest, type JevGateway } from "../../runner/jev.js";
 import type { ChoiceCheck, QuestionId, SiteTypeSummary } from "../../runner/types.js";
+import { bodyTokenBudget, estimateTokens, trimToTokenBudget } from "./jev-budget.js";
 import type { PageSnapshot } from "./page-state.js";
 import type { ResolvedLocale } from "./locale.js";
 
@@ -124,6 +125,46 @@ function pageState(snapshot: PageSnapshot, text: string) {
 
 function blank(value: string): boolean {
   return value.trim().length === 0;
+}
+
+function trimTailToTokenBudget(text: string, maxTokens: number): string {
+  const budget = Math.max(1, Math.floor(maxTokens));
+  if (estimateTokens(text) <= budget) return text;
+  let low = 1;
+  let high = text.length;
+  let best = 1;
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    if (estimateTokens(text.slice(text.length - mid)) <= budget) {
+      best = mid;
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+  return text.slice(text.length - best);
+}
+
+export function siteTypeExcerpt(
+  text: string,
+  windows: readonly { start: number; end: number }[],
+  maxTokens = bodyTokenBudget(),
+): string {
+  const budget = Math.max(1, Math.floor(maxTokens));
+  const first = windows[0];
+  const last = windows[windows.length - 1];
+  const start = first === undefined ? 0 : Math.max(0, Math.min(first.start, text.length));
+  const end = last === undefined ? start : Math.max(start, Math.min(last.end, text.length));
+  const span = text.slice(start, end);
+  if (estimateTokens(span) <= budget) return span;
+  const tailBudget = Math.floor(budget / 2);
+  if (tailBudget < 1) return trimToTokenBudget(span, budget);
+  const tail = trimTailToTokenBudget(span, tailBudget);
+  const headSource = span.slice(0, span.length - tail.length);
+  const separator = "\n";
+  const headBudget = budget - estimateTokens(tail) - estimateTokens(separator);
+  if (headBudget < 1 || headSource.length === 0) return tail;
+  return `${trimToTokenBudget(headSource, headBudget)}${separator}${tail}`;
 }
 
 function review(

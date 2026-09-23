@@ -22,7 +22,7 @@ import {
 } from "./groups.js";
 import { snapshotToState, type PageSnapshot } from "./page-state.js";
 import { classifyContent } from "./content-classifier.js";
-import { classifySiteType, siteTypeSummary, type SiteTypeClassification } from "./site-type.js";
+import { classifySiteType, siteTypeExcerpt, siteTypeSummary, type SiteTypeClassification } from "./site-type.js";
 import { CONTENT_CATEGORY_IDS, CATEGORY_RUBRICS, categoryChoiceDescriptions, type ContentCategoryId } from "./category-rubrics.js";
 import { triggerChecksForCategory } from "./category-definition.js";
 import { buildRequest } from "../../runner/jev.js";
@@ -194,7 +194,7 @@ async function checkCategorizedSnapshot(snapshot: PageSnapshot, definition: Appr
     };
   }
   const siteText = split.windows[0]?.text ?? "";
-  const siteTypeResult = await readSiteType(snapshot, siteText, jev);
+  const siteTypeResult = await readSiteType(snapshot, siteTypeExcerpt(snapshot.text, split.windows, bodyTokenBudget()), jev);
   const siteType = siteTypeSummary(siteTypeResult);
   const siteIds = siteQuestionIds(definition.questions);
   const siteDefinition = withQuestions(definition, siteCheckIds(definition, siteIds));
