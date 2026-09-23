@@ -33,7 +33,7 @@ Preconditions:
 - **タブに追従する.** Leave tracking on. Run `control-jev browser text --contains "タブに追従する"`. The checkbox is checked by default. English locale uses `Follow the tab`.
 - **Theme.** The appearance select defaults to `システム`. Run `control-jev browser text --contains "テーマ"` and `control-jev browser select --label "テーマ" --value "light"`. Then `control-jev browser attr --selector "html" --name "data-theme"` prints `light`. Repeat with `--value "dark"` then `--value "system"` to restore the default.
 - **Language.** The language select defaults to `システム`. Preview Chrome is `ja-JP`, so copy starts in Japanese. Run `control-jev browser select --label "言語" --value "en"`. The page shows `Language`, `Question text`, `The definition sent to Jev is English.`, and `Accept this whole checklist.` Restore with `--value "ja"` or `--value "system"`.
-- **Save.** Choose `保存`. Run `control-jev browser click --name "保存"`. Status `保存しました。` appears.
+- **Save.** The approval checkbox sits directly under `Jev に送るチェック項目`, above the question list. Choose `保存`. Run `control-jev browser click --name "保存"`. Status `保存しました。` appears. Saving with the checkbox off still succeeds, then shows `チェックリストの承認項目にチェックが入っていません。チェック機能を有効にするには、チェックを入れてください。` English locale uses `The checklist approval is not checked. Check it to enable checking.` Saving with the checkbox on does not show that dialog.
 - **Proof.** Capture the saved form. Run `control-jev browser screenshot --path .cursor/skills/verify-jev-page-checker/artifacts/settings/saved.png` and `control-jev browser snapshot --path .cursor/skills/verify-jev-page-checker/artifacts/settings/saved.aria.txt`. Both show `Settings`, the fourteen-question heading, and `保存しました。`
 
 ## Gotchas
@@ -47,3 +47,4 @@ Preconditions:
 - Theme `システム` follows the browser `prefers-color-scheme`. Forced `ライト` / `ダーク` do not depend on the OS. Changing the select updates the preview immediately; `保存` persists it in that preview instance.
 - Language `システム` follows the browser language (`ja*` → Japanese, anything else → English). Forced `日本語` / `English` do not depend on the OS. Switching to `en` changes chrome copy, including the approval checkbox label.
 - There is no 承認者の名前 field. Do not fill a name. The checklist is read-only; only the whole-list checkbox records approval.
+- The unchecked-approval dialog does not block the save. `保存しました。` is already shown when it opens. The dialog is modal: its backdrop blocks the form until `閉じる`. English locale uses `Close`.

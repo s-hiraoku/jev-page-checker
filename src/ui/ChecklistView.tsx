@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { Check } from "../lib/checkkit.js";
 import { basisEntries, choiceLabel, instructionLabel, instructionText, questionLabel } from "../lib/labels.js";
 import type { Copy } from "../lib/copy.js";
@@ -73,7 +74,7 @@ function VerdictQuestion({ check, copy }: { check: Check; copy: Copy }) {
   );
 }
 
-export function ChecklistView({ questions }: { questions: readonly Check[] }) {
+export function ChecklistView({ questions, afterHeading }: { questions: readonly Check[]; afterHeading: ReactNode }) {
   const copy = useCopy();
   const locale = useLocale();
   const verdictQuestions = questions.filter((check) => check.type !== "choice" || check.citeFor === undefined);
@@ -84,12 +85,11 @@ export function ChecklistView({ questions }: { questions: readonly Check[] }) {
   return (
     <section className="checklist-section">
       <header className="checklist-heading">
-        <div>
-          <h2 className="page-title">{copy.checklistTitle}</h2>
-          <p className="lede">{copy.checklistHelp}</p>
-        </div>
+        <h2 className="page-title">{copy.checklistTitle}</h2>
         <p className="checklist-counts">{copy.checklistCounts(verdictQuestions.length, sourceQuestions.length)}</p>
       </header>
+      {afterHeading}
+      <p className="lede">{copy.checklistHelp}</p>
       <div className="question-text-card">
         <h3>{copy.questionText}</h3>
         <p>{copy.definitionLanguage}</p>
