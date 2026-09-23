@@ -246,7 +246,7 @@ test("a category check keeps the site four and body questions and attaches the d
   assert.equal("hostname" in (batteryState ?? {}), false);
 });
 
-test("the v8 replay path does not ask the battery", async () => {
+test("a non-category checker does not ask the battery", async () => {
   let calls = 0;
   const report = await checkSnapshot({ ...snapshot(), hasArticle: false, pageKind: "portal" }, raw, {
     async ask() {
@@ -254,7 +254,7 @@ test("the v8 replay path does not ask the battery", async () => {
       return { answers: {}, usage: { input_tokens: 1, output_tokens: 1 } };
     },
   });
-  assert.equal(report.definition.version, 8);
+  assert.equal(report.definition.version, 10);
   assert.equal(report.contentClass, undefined);
   assert.equal(calls, 1);
 });

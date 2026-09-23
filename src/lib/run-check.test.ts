@@ -50,6 +50,18 @@ function twoWindowText(base: string): string {
   return `${base} ${"x".repeat(extra)}`;
 }
 
+function tracingReplay(answers: Parameters<typeof replayGateway>[0], usage: Parameters<typeof replayGateway>[1]) {
+  const inner = replayGateway(answers, usage);
+  const asked: string[] = [];
+  const gateway: JevGateway = {
+    async ask(request) {
+      asked.push(Object.keys(request.questions)[0] ?? "");
+      return inner.ask(request);
+    },
+  };
+  return { gateway, asked };
+}
+
 test("a sourced news article passes site safety and the reporting body checks", async () => {
   const report = await reportOf("page-credibility-pass.json");
   const bodyIds = bodyLaneIds(report);
@@ -322,22 +334,42 @@ test("a truncated listing still skips body questions", async () => {
   assert.deepEqual(report.inspection?.bodyQuestionIds, []);
 });
 
-test("an article that fits one window asks classification, site, triggers, and body", async () => {
+test("an article that fits one window asks classification, site type, site, triggers, body, and the content-class battery", async () => {
   const pass = loadReplay("page-credibility-pass.json");
   const snapshot = snapshotOf("page-credibility-pass.json", { text: `${pass.state.text} ${"x".repeat(12_000)}` });
-  const gateway = replayGateway(pass.answers, pass.usage);
-  const report = await checkSnapshot(snapshot, definition, gateway);
-  assert.equal(gateway.calls, 4);
+  const traced = tracingReplay(pass.answers, pass.usage);
+  const report = await checkSnapshot(snapshot, definition, traced.gateway);
+  assert.deepEqual(traced.asked, [
+    "content_primary",
+    "site_type",
+    "identifiable_publisher",
+    "reporting_high_stakes_trigger",
+    "reporting_event_time",
+    "content_class",
+    "publisher_identifiable",
+  ]);
   assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
   assert.equal(worstVerdict(report.items, bodyLaneIds(report)), "pass");
 });
 
-test("a long article asks overlapping body windows and a synthesis, then can pass", async () => {
+test("a long article asks two classification windows, site type, site, triggers, body windows, synthesis, and the content-class battery", async () => {
   const pass = loadReplay("page-credibility-pass.json");
   const snapshot = snapshotOf("page-credibility-pass.json", { text: twoWindowText(pass.state.text) });
-  const gateway = replayGateway(pass.answers, pass.usage);
-  const report = await checkSnapshot(snapshot, definition, gateway);
-  assert.equal(gateway.calls, 8);
+  const traced = tracingReplay(pass.answers, pass.usage);
+  const report = await checkSnapshot(snapshot, definition, traced.gateway);
+  assert.deepEqual(traced.asked, [
+    "content_primary",
+    "content_primary",
+    "site_type",
+    "identifiable_publisher",
+    "reporting_high_stakes_trigger",
+    "reporting_high_stakes_trigger",
+    "reporting_event_time",
+    "reporting_event_time",
+    "reporting_event_time",
+    "content_class",
+    "publisher_identifiable",
+  ]);
   assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
   assert.equal(worstVerdict(report.items, bodyLaneIds(report)), "pass");
 });
@@ -390,12 +422,12 @@ test("synthesis fail catches a contradiction that no single window failed", asyn
   assert.equal(worstVerdict(report.items, bodyLaneIds(report)), "fail");
 });
 
-test("a long listing still makes one call and skips body questions", async () => {
+test("a long listing asks site type, site, and the content-class battery, and skips body questions", async () => {
   const portal = loadReplay("page-credibility-portal.json");
   const snapshot = snapshotOf("page-credibility-portal.json", { text: `${portal.state.text} ${"word ".repeat(4000)}` });
-  const gateway = replayGateway(portal.answers, portal.usage);
-  const report = await checkSnapshot(snapshot, definition, gateway);
-  assert.equal(gateway.calls, 1);
+  const traced = tracingReplay(portal.answers, portal.usage);
+  const report = await checkSnapshot(snapshot, definition, traced.gateway);
+  assert.deepEqual(traced.asked, ["site_type", "identifiable_publisher", "content_class", "publisher_identifiable"]);
   assert.deepEqual(report.inspection?.bodyQuestionIds, []);
 });
 
