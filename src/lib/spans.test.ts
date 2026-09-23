@@ -12,6 +12,17 @@ test("extractSpans keeps numbered sentences and drops short fragments", () => {
   );
   assert.match(spans[0]?.text ?? "", /12 September/);
   assert.match(spans[1]?.text ?? "", /A name alone/);
+  assert.ok(spans.every((span) => span.source === "body"));
+});
+
+test("extractSiteSpans retains the source field when text overlaps page metadata", () => {
+  const repeated = "Bridge inspection update";
+  const spans = extractSiteSpans({
+    title: repeated,
+    text: `${repeated} was posted by the bureau with a report about the bridge inspection.`,
+  });
+  assert.deepEqual(spans[0], { id: "s1", text: repeated, source: "title" });
+  assert.equal(spans.find((span) => span.text.includes("posted by the bureau"))?.source, "body");
 });
 
 test("extractSpans keeps an ordinary short sentence and splits two numbered clauses", () => {

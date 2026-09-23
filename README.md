@@ -19,7 +19,7 @@ Chrome で `chrome://extensions` を開き、デベロッパーモードをオ�
 1. Settings でチェックリストを読み、リスト全体を承認します。テーマと言語の「システム」は、端末の設定に合わせます。
 2. TypeSafe の API キーを保存します。キーは拡張のストレージにだけ置き、Jev への問い合わせ以外には使いません。
 3. 「タブに追従する」をオンにしておくと、タブの切り替えと読み込み完了のたびにやり直します。
-4. Inspector はサイトと本文を別レーンで出します。Report では質問ごと、抽出した事実、Jev に送った文を見ます。Report から、その結果を端末内のファイルに残せます。過去の Audit は History で、時刻つきで並び、1 件ずつ消せます。ツールバーのアイコンも同じ分け方で、上段がサイト、下段が本文です。判定が変わると色とバッジが変わります。
+4. チェック画面はサイトと本文を別レーンで表示します。Report では質問ごとの判定と Jev の回答、根拠になったページ上の記載を確認できます。本文の引用は抽出した本文中で強調し、分割した場合はチェック時に記録した各範囲を開いて確認できます。タイトル、サイト名、著者、説明などのページ情報も表示します。結果は端末内のファイルに保存できます。過去のチェックは履歴に時刻つきで並び、1 件ずつ削除できます。
 
 画面だけ見るときは `npm run preview` です。ストア提出用の zip は `npm run zip` で `.output/` に出ます。zip のルートは `manifest.json` です。親フォルダは挟みません。`v*` タグを push すると、CI が同じ zip を GitHub Release に付けます。main と pull request では、テスト、型検査、ビルドのあと、同じ zip を Actions の成果物にも残します。掲載文は [`store/listing.md`](store/listing.md)、プライバシーポリシーは [`docs/privacy.html`](docs/privacy.html) です。Chrome ウェブストアには、その zip をそのまま上げてください。展開してフォルダごと固め直すと、ストアはマニフェストが無いと見なします。
 
@@ -33,7 +33,7 @@ You need Node 26 or newer. `npm install`, `npm test`, and `npm run build` produc
 
 In Settings, read the checklist and accept the whole list. System theme and system language follow the device. Save a TypeSafe API key. The key stays in extension storage and is used only to call Jev. Follow the tab reruns the check when you switch tabs or a page finishes loading.
 
-Inspector shows a site lane and a body lane. Report shows each question, facts already extracted from the page, and the text sent to Jev. You can save that report as a file on the device. History lists past Audits with the time of each check, and you can delete one record. The toolbar icon uses the same split. The top half is the site lane. The bottom half is the body lane.
+The checker shows a site lane and a body lane. Report shows each verdict, Jev's typed answer, and the page passage used as evidence. Body citations are highlighted in the extracted text; when a body is split, the report shows the ranges recorded at check time. It also shows page information used in the check, such as the title, site name, author, and description. Save a report to a file on the device. History lists past checks by time and lets you delete one record.
 
 `npm run preview` shows the screens without a key. `npm run zip` writes the store zip under `.output/`. `manifest.json` is at the zip root. Pushing a `v*` tag makes CI attach that zip to a GitHub Release.
 
@@ -53,7 +53,7 @@ Inspector shows a site lane and a body lane. Report shows each question, facts a
 | `self_consistent` | 本文 | noul | 同じ事実が食い違っていないか。同じ主張の繰り返しは矛盾ではない。 |
 | `certainty_matches_evidence` | 本文 | noul | 断定の強さが根拠に見合っているか。仮説や未検証と書いた点は、すでに不確かさとして書いてある。健康、金、身元、法には、より強い根拠が要る。 |
 
-サイトのレーンは、誰が責任者か、なりすましか、何のためのページか、隠し勧誘か、を見ます。本文のレーンは、根拠、事実と意見、出典、矛盾、断定を見ます。意見であること自体は失敗ではありません。本文の各問では、ページから切った文のうち一本を Jev に選ばせ、その文を出します。Jev は文を書きません。none、または確信度 0.6 未満のときは出しません。この選択は合否を動かしません。
+サイトのレーンは、誰が責任者か、なりすましか、何のためのページか、隠し勧誘かを見ます。本文のレーンは、根拠、事実と意見、出典、矛盾、断定を見ます。意見であること自体は失敗ではありません。各問ではページから切った文から Jev に一本を選ばせます。選んだ文と、選択が無い場合などにアプリが表示用に添えた関連箇所を区別します。Jev は文を書きません。この選択は合否を動かしません。画面には Noul の「はい」の確率、Choice の選択肢と確信度、Score の値と確信度を型ごとに表示します。
 
 リンクが多く、リンクあたりの本文が短いページは一覧です。一覧では本文の 5 問は走りません。パスが `/` だから一覧、有名なサイトだから通過、という例外はありません。
 
@@ -77,7 +77,7 @@ The definition is `fixtures/page-credibility.checker.json`. Jev is asked for mea
 | `self_consistent` | body | noul | Does the same fact disagree with itself? Repeating one claim is not a contradiction. |
 | `certainty_matches_evidence` | body | noul | Does the strength of the wording match the evidence? A point marked as a hypothesis or as unverified already states its uncertainty. Health, money, identity, and law need stronger evidence. |
 
-The site lane asks who is responsible, whether the page impersonates someone, what the page is for, and whether a pitch hides who benefits. The body lane asks about evidence, fact and opinion, sources, contradiction, and certainty. Opinion is not a failure by itself. For each body question, Jev selects one sentence cut from the page, and the report shows that sentence. Jev does not write it. none, or confidence below 0.6, shows no sentence. The selection does not change the verdict.
+The site lane asks who is responsible, whether the page impersonates someone, what the page is for, and whether a pitch hides who benefits. The body lane asks about evidence, fact and opinion, sources, contradiction, and certainty. Opinion is not a failure by itself. For each question, Jev selects a span cut from the page. The report distinguishes a Jev-selected span from related page text attached by the app for display when Jev has no selection. Jev does not write the span. The selection does not change the verdict. The interface shows Noul's probability of yes, Choice's selected label and confidence, and Score's value and confidence according to their distinct types.
 
 A page with many links and little text per link is a listing. The five body questions do not run on a listing. There is no exception because the path is `/`, or because the site is famous.
 

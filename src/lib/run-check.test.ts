@@ -67,6 +67,7 @@ test("a sourced news article passes site safety and body scrutiny", async () => 
   assert.match(report.items.find((item) => item.id === "identifiable_publisher")?.basis ?? "", /identifiable as responsible/);
   assert.match(report.items.find((item) => item.id === "evidence_for_claims")?.basis ?? "", /presented as established/);
   assert.match(report.items.find((item) => item.id === "evidence_for_claims")?.cite ?? "", /12 September/);
+  assert.equal(report.items.find((item) => item.id === "evidence_for_claims")?.citeLocation, "body");
   assert.match(report.items.find((item) => item.id === "separates_fact_and_opinion")?.cite ?? "", /does not add costs/);
   assert.match(report.items.find((item) => item.id === "unsourced_specifics")?.cite ?? "", /photograph of the south pier/);
   assert.match(report.items.find((item) => item.id === "self_consistent")?.cite ?? "", /hairline cracks/);
@@ -76,6 +77,7 @@ test("a sourced news article passes site safety and body scrutiny", async () => 
     report.items.find((item) => item.id === "certainty_matches_evidence")?.cite,
   );
   assert.match(report.items.find((item) => item.id === "identifiable_publisher")?.cite ?? "", /Mina Ito/);
+  assert.equal(report.items.find((item) => item.id === "identifiable_publisher")?.citeLocation, "author");
   assert.match(report.items.find((item) => item.id === "honest_identity")?.cite ?? "", /Example News/);
   assert.match(report.items.find((item) => item.id === "site_purpose")?.cite ?? "", /City delays river bridge/);
   assert.match(report.items.find((item) => item.id === "disclosed_incentives")?.cite ?? "", /postponed the opening/);
@@ -101,6 +103,7 @@ test("a low-confidence cite still shows that span and the parent chip stays", as
   const lowEvidence = lowReport.items.find((item) => item.id === "evidence_for_claims");
   assert.equal(lowEvidence?.verdict, "pass");
   assert.match(lowEvidence?.cite ?? "", /12 September/);
+  assert.equal(lowEvidence?.citeSource, "jev");
 });
 
 test("Review and Alert rows show the causing sentence, not the Pass sentence", async () => {
@@ -142,6 +145,9 @@ test("Review and Alert rows show the causing sentence, not the Pass sentence", a
   assert.notEqual(specifics?.cite, evidence?.cite);
   assert.notEqual(consistent?.cite, evidence?.cite);
   assert.notEqual(specifics?.cite, consistent?.cite);
+  assert.equal(evidence?.citeSource, "jev");
+  assert.equal(specifics?.citeSource, "related");
+  assert.equal(consistent?.citeSource, "related");
   assert.equal(report.items.some((item) => item.id.endsWith("_cite")), false);
   assert.equal(gateway.calls, 2);
 });
@@ -282,6 +288,7 @@ test("checkSnapshot records window coverage and lane ids from the definition", a
   assert.deepEqual(short.inspection?.siteQuestionIds, SITE_QUESTION_IDS);
   assert.deepEqual(short.inspection?.bodyQuestionIds, PAGE_QUESTION_IDS);
   assert.equal(short.inspection?.windowCount, 1);
+  assert.deepEqual(short.inspection?.windows, [{ start: 0, end: snapshotOf("page-credibility-pass.json").text.length }]);
   assert.equal(short.inspection?.covered, true);
   assert.equal(short.inspection?.unreadRemainder, false);
 
@@ -295,6 +302,9 @@ test("checkSnapshot records window coverage and lane ids from the definition", a
     replayGateway(pass.answers, pass.usage),
   );
   assert.ok((long.inspection?.windowCount ?? 0) > 1);
+  assert.equal(long.inspection?.windows?.length, long.inspection?.windowCount);
+  assert.deepEqual(long.inspection?.windows?.[0], { start: 0, end: long.inspection?.windows?.[0]?.end });
+  assert.equal(long.inspection?.windows?.at(-1)?.end, snapshotOf("page-credibility-pass.json", { text: twoWindowText(pass.state.text) }).text.length);
   assert.equal(long.inspection?.unreadRemainder, false);
   assert.equal(long.inspection?.covered, true);
 });

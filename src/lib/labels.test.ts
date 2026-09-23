@@ -57,8 +57,8 @@ test("evidenceReadout states a short remark for that question and that verdict",
     "ja",
     "No study, author, or manufacturer is named.",
   );
-  assert.equal(readout.verdict, "Alert");
-  assert.equal(readout.remark, "責任者が、分からない。");
+  assert.equal(readout.verdict, "警告");
+  assert.equal(readout.remark, "ページの責任者を特定できない。");
   assert.equal(readout.remark.includes("責任者として分かる"), false);
   assert.equal(readout.remark.includes("匿名"), false);
   assert.match(readout.sentence, /manufacturer is named/);

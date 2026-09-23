@@ -1,11 +1,14 @@
 import type { Copy } from "../lib/copy.js";
 import { bodySendKind, worstVerdict } from "../lib/groups.js";
-import type { PageKind } from "../lib/page-state.js";
+import { formatCheckedAt } from "../lib/format.js";
+import type { PageKind, PageSnapshot } from "../lib/page-state.js";
+import type { ItemResult } from "../lib/checkkit.js";
 import type { StoredRecord } from "../lib/session.js";
+import { citeSource, displayCharacterRange } from "../lib/report-evidence.js";
 import { ItemList } from "./ItemList.js";
 import { Lane } from "./bits.js";
 import { ResultRadars } from "./RadarChart.js";
-import { useCopy } from "./useLocale.js";
+import { useCopy, useLocale } from "./useLocale.js";
 
 function kindLabel(kind: PageKind, copy: Copy): string {
   return kind === "portal" ? copy.kindListing : copy.kindArticle;
@@ -15,86 +18,150 @@ function hostLine(hosts: readonly string[], copy: Copy): string {
   return hosts.length === 0 ? copy.noHosts : hosts.join(", ");
 }
 
+function HighlightedBody({ text, items, snapshot }: { text: string; items: readonly ItemResult[]; snapshot: PageSnapshot }) {
+  const citations = items.flatMap((item) => {
+    if (!item.cite || citeSource(snapshot, item.cite, item.citeLocation).label !== "sourceBody") return [];
+    const start = text.indexOf(item.cite);
+    return start < 0 ? [] : [{ start, end: start + item.cite.length, id: `body-evidence-${item.id}` }];
+  });
+  const boundaries = [...new Set([0, text.length, ...citations.flatMap(({ start, end }) => [start, end])])].sort((a, b) => a - b);
+  const anchors = new Map<number, string[]>();
+  for (const citation of citations) anchors.set(citation.start, [...(anchors.get(citation.start) ?? []), citation.id]);
+  return (
+    <p className="body-copy-text">
+      {boundaries.slice(0, -1).map((start, index) => {
+        const end = boundaries[index + 1] ?? text.length;
+        const value = text.slice(start, end);
+        const ids = anchors.get(start) ?? [];
+        const active = citations.some((citation) => citation.start < end && citation.end > start);
+        return (
+          <span className="body-copy-part" key={`${start}-${end}`}>
+            {ids.map((id) => <span className="evidence-anchor" id={id} key={id} />)}
+            {active ? <mark>{value}</mark> : value}
+          </span>
+        );
+      })}
+    </p>
+  );
+}
+
+function PageInformation({ snapshot, copy }: { snapshot: PageSnapshot; copy: Copy }) {
+  const fields = [
+    ["title", copy.title, snapshot.title || copy.untitled],
+    ["siteName", copy.siteName, snapshot.siteName || copy.absent],
+    ["author", copy.author, snapshot.author || copy.absent],
+    ["metaDescription", copy.pageDescription, snapshot.metaDescription || copy.absent],
+    ["publishedAt", copy.published, snapshot.publishedAt || copy.absent],
+    ["language", copy.language, snapshot.language || copy.absent],
+    ["pageKind", copy.pageKindLabel, kindLabel(snapshot.pageKind, copy)],
+    ["https", copy.https, snapshot.isHttps ? copy.present : copy.absent],
+    ["wordCount", copy.wordCountLabel, `${snapshot.wordCount} ${copy.words}`],
+    ["textLength", copy.bodyLengthLabel, copy.bodyLength([...snapshot.text].length)],
+    ["linkCount", copy.links, String(snapshot.linkCount)],
+    ["outboundHosts", copy.hosts, hostLine(snapshot.outboundHosts, copy)],
+  ] as const;
+  return (
+    <details className="report-disclosure page-info" id="page-information">
+      <summary>{copy.pageInfo}</summary>
+      <p className="help">{copy.pageInfoHelp}</p>
+      <dl className="metadata-list">
+        {fields.map(([key, label, value]) => (
+          <div id={`page-metadata-${key}`} className="metadata-row" key={key}>
+            <dt>{label}</dt><dd>{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </details>
+  );
+}
+
+function ReviewedBody({ record, compact, label }: { record: StoredRecord; compact: boolean; label: string }) {
+  const copy = useCopy();
+  if (compact) return null;
+  const { snapshot } = record;
+  const inspection = record.report.inspection;
+  const windows = inspection?.windows;
+  const showWindowRanges = inspection?.windowCount !== undefined && inspection.windowCount > 1;
+  return (
+    <section className="reviewed-body" id="body-evidence">
+      <details className="report-disclosure body-disclosure" open>
+        <summary>
+          <span>{label}</span>
+          <span className="body-length">{copy.bodyLength([...snapshot.text].length)}</span>
+        </summary>
+        <p className="help">{copy.bodyTextHelp}</p>
+        {snapshot.text ? <HighlightedBody text={snapshot.text} items={record.report.items} snapshot={snapshot} /> : <p>{copy.noBodyText}</p>}
+      </details>
+      {showWindowRanges ? (
+        <details className="report-disclosure window-disclosure">
+          <summary>{copy.bodyWindows} · {copy.windows(inspection.windowCount)}</summary>
+          <p className="help">{copy.windowHelp}</p>
+          {windows?.length ? windows.map(({ start, end }, index) => {
+            const range = displayCharacterRange(snapshot.text, start, end);
+            return (
+              <details className="window-item" key={`${start}-${end}`}>
+                <summary>{copy.bodyWindow(index + 1, range.start, range.end)}</summary>
+                <p className="body-copy-text">{snapshot.text.slice(start, end)}</p>
+              </details>
+            );
+          }) : <p className="help">{copy.windowRangesUnavailable}</p>}
+        </details>
+      ) : null}
+    </section>
+  );
+}
+
 export function ReportView({ record, compact = false }: { record: StoredRecord; compact?: boolean }) {
   const copy = useCopy();
+  const locale = useLocale();
   const inspection = record.report.inspection;
   const siteIds = inspection?.siteQuestionIds ?? [];
   const bodyIds = inspection?.bodyQuestionIds ?? [];
-  const site = worstVerdict(record.report.items, siteIds);
-  const page = worstVerdict(record.report.items, bodyIds);
+  const siteVerdict = worstVerdict(record.report.items, siteIds);
+  const bodyVerdict = worstVerdict(record.report.items, bodyIds);
   const sendKind = bodySendKind(inspection);
   const snapshot = record.snapshot;
+  const sentLabel = sendKind === "unread" ? copy.sentUnread : sendKind === "chunked" ? copy.sentChunked : copy.sentBody;
+
   return (
-    <div className="report">
+    <div className={`report${compact ? " report-compact" : ""}`}>
+      <header className="report-heading">
+        <h1>{snapshot.title || copy.untitled}</h1>
+        <a className="report-url" href={snapshot.url} target="_blank" rel="noreferrer">{snapshot.url}</a>
+        {!compact ? <p className="report-time">{copy.checkedAt} · {formatCheckedAt(record.createdAt, locale)}</p> : null}
+      </header>
       <div className="lanes">
-        <Lane title={copy.site} verdict={site} />
-        <Lane title={copy.body} verdict={page} />
+        <Lane title={copy.site} verdict={siteVerdict} />
+        <Lane title={copy.body} verdict={bodyVerdict} />
       </div>
-      {sendKind === "unread" ? (
-        <p className="notice">
-          {copy.truncatedNotice}
-        </p>
+      {!compact ? (
+        <section className="report-charts" aria-label={copy.chartDetails}>
+          <h2>{copy.chartDetails}</h2>
+          <ResultRadars
+            key={record.id}
+            items={record.report.items}
+            siteQuestionIds={siteIds}
+            bodyQuestionIds={bodyIds}
+          />
+        </section>
       ) : null}
-      {sendKind === "chunked" ? (
-        <p className="help chunked-note">
-          {copy.chunkedNotice} ({copy.windows(inspection?.windowCount ?? 0)})
-        </p>
+      {sendKind === "unread" ? <p className="notice">{copy.truncatedNotice}</p> : null}
+      {sendKind === "chunked" ? <p className="help chunked-note">{copy.chunkedNotice} {copy.synthesisHelp}</p> : null}
+      <p className="help result-help">{copy.resultHelp}</p>
+      <ItemList items={record.report.items} siteIds={siteIds} bodyIds={bodyIds} snapshot={snapshot} compact={compact} />
+      <ReviewedBody record={record} compact={compact} label={sentLabel} />
+      {!compact ? <PageInformation snapshot={snapshot} copy={copy} /> : null}
+      {!compact ? (
+        <details className="report-disclosure processing-details">
+          <summary>{copy.technicalDetails}</summary>
+          <dl className="metadata-list">
+            <div className="metadata-row"><dt>{copy.processing}</dt><dd>Jev {record.report.timing.jevMs} ms</dd></div>
+            <div className="metadata-row"><dt>{copy.input}</dt><dd>{record.report.usage.input_tokens}</dd></div>
+            <div className="metadata-row"><dt>{copy.output}</dt><dd>{record.report.usage.output_tokens}</dd></div>
+            <div className="metadata-row"><dt>{copy.extractionStatus}</dt><dd>{snapshot.textTruncated ? copy.incomplete : copy.complete}</dd></div>
+          </dl>
+        </details>
       ) : null}
-      <ResultRadars
-        key={record.id}
-        items={record.report.items}
-        compact={compact}
-        siteQuestionIds={siteIds}
-        bodyQuestionIds={bodyIds}
-      />
-      <table className="meta-table">
-        <tbody>
-          <tr className="identity-title">
-            <th>{copy.title}</th>
-            <td>{record.snapshot.title || copy.untitled}</td>
-          </tr>
-          <tr className="identity-url">
-            <th>URL</th>
-            <td className="url">{record.snapshot.url}</td>
-          </tr>
-          <tr>
-            <th>{copy.wordCountLabel}</th>
-            <td>
-              {snapshot.wordCount} {copy.words}
-            </td>
-          </tr>
-          <tr>
-            <th>{copy.https}</th>
-            <td>{snapshot.isHttps ? copy.present : copy.absent}</td>
-          </tr>
-          <tr>
-            <th>{copy.author}</th>
-            <td>{snapshot.hasAuthor ? copy.present : copy.absent}</td>
-          </tr>
-          <tr>
-            <th>{copy.published}</th>
-            <td>{snapshot.publishedAt || copy.absent}</td>
-          </tr>
-          <tr>
-            <th>{copy.pageKindLabel}</th>
-            <td>{kindLabel(snapshot.pageKind, copy)}</td>
-          </tr>
-          <tr>
-            <th>{copy.hosts}</th>
-            <td>{hostLine(snapshot.outboundHosts, copy)}</td>
-          </tr>
-          {compact ? null : (
-            <tr>
-              <th>{copy.processing}</th>
-              <td>
-                Jev {record.report.timing.jevMs} ms / {copy.input} {record.report.usage.input_tokens} / {copy.output}{" "}
-                {record.report.usage.output_tokens}
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-      <ItemList items={record.report.items} siteIds={siteIds} bodyIds={bodyIds} />
     </div>
   );
 }

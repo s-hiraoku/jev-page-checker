@@ -1,6 +1,6 @@
 import { useLayoutEffect, useState } from "react";
 import { worstVerdict } from "../lib/groups.js";
-import { questionAxisLabel, questionLabel, VERDICT_LABELS } from "../lib/labels.js";
+import { questionAxisLabel, questionLabel } from "../lib/labels.js";
 import { polarPoint, radarAxes, type RadarAxis } from "../lib/radar-values.js";
 import type { ItemResult, Verdict } from "../lib/checkkit.js";
 import { useCopy, useLocale } from "./useLocale.js";
@@ -70,10 +70,15 @@ function labelLayout(index: number, total: number, radius: number): { x: number;
   return { x: point.x, y: point.y + (unit.y > 0.35 ? 4 : unit.y < -0.35 ? -2 : 3), anchor };
 }
 
-function describeAxes(title: string, axes: readonly RadarAxis[], label: (title: string, parts: string) => string): string {
+function describeAxes(
+  title: string,
+  axes: readonly RadarAxis[],
+  label: (title: string, parts: string) => string,
+  verdictLabels: ReturnType<typeof useCopy>["verdictLabels"],
+): string {
   const parts = axes.map((axis) => {
-    const verdict = axis.verdict === null ? "—" : VERDICT_LABELS[axis.verdict];
-    const value = axis.value === null ? "N/A" : axis.value.toFixed(2);
+    const verdict = axis.verdict === null ? "—" : verdictLabels[axis.verdict];
+    const value = axis.value === null ? verdictLabels.not_applicable : axis.value.toFixed(2);
     return `${axis.fullLabel} ${verdict} ${value}`;
   });
   return label(title, parts.join(". "));
@@ -118,7 +123,7 @@ export function RadarChart({
         viewBox={`${-size / 2} ${-size / 2} ${size} ${size}`}
         width="100%"
         role="img"
-        aria-label={describeAxes(title, axes, copy.radarLabel)}
+        aria-label={describeAxes(title, axes, copy.radarLabel, copy.verdictLabels)}
       >
         <g className="radar-grid" aria-hidden="true">
           {grid.map((points) => (

@@ -17,6 +17,7 @@ function pageFromHash(): "side" | "options" | "details" | "history" {
   if (window.location.hash === "#options") return "options";
   if (window.location.hash === "#details") return "details";
   if (window.location.hash === "#history") return "history";
+  if (window.location.hash && window.location.hash !== "#side") return "details";
   return "side";
 }
 

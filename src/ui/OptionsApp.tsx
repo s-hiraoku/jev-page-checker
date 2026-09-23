@@ -18,7 +18,7 @@ export function OptionsApp({ bridge }: { bridge: Bridge }) {
   }
 
   return (
-    <AppChrome wide meta={`Settings · v${session.definitionVersion}`} theme={theme} locale={locale}>
+    <AppChrome wide meta={`v${session.definitionVersion}`} theme={theme} locale={locale}>
       <SettingsForm
         settings={session.settings}
         questions={session.questions}

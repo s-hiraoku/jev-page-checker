@@ -1,7 +1,10 @@
 export interface PageSpan {
   id: string;
   text: string;
+  source: PageSpanSource;
 }
+
+export type PageSpanSource = "title" | "siteName" | "author" | "metaDescription" | "body";
 
 const MAX_SPANS = 8;
 const MAX_SITE_SPANS = 12;
@@ -35,7 +38,7 @@ function rankSpans(sentences: readonly string[], limit: number): PageSpan[] {
     .sort((left, right) => right.score - left.score || left.index - right.index)
     .slice(0, limit)
     .sort((left, right) => left.index - right.index);
-  return ranked.map((span, index) => ({ id: `s${index + 1}`, text: span.sentence }));
+  return ranked.map((span, index) => ({ id: `s${index + 1}`, text: span.sentence, source: "body" }));
 }
 
 /**
@@ -66,16 +69,16 @@ export interface SiteSpanFields {
  * as the page showed them. A short chrome field is kept: it is the whole label, not a fragment.
  */
 export function extractSiteSpans(fields: SiteSpanFields): PageSpan[] {
-  const chrome = [fields.title, fields.siteName, fields.author, fields.metaDescription]
-    .map((value) => value?.trim() ?? "")
-    .filter((value) => value.length > 0);
-  const body = extractSpans(fields.text ?? "").map((span) => span.text);
-  const texts: string[] = [];
+  const chrome = (["title", "siteName", "author", "metaDescription"] as const)
+    .map((source) => ({ text: fields[source]?.trim() ?? "", source }))
+    .filter((span) => span.text.length > 0);
+  const body = extractSpans(fields.text ?? "");
+  const spans: Omit<PageSpan, "id">[] = [];
   const seen = new Set<string>();
-  for (const text of [...chrome, ...body]) {
-    if (seen.has(text)) continue;
-    seen.add(text);
-    texts.push(text);
+  for (const span of [...chrome, ...body]) {
+    if (seen.has(span.text)) continue;
+    seen.add(span.text);
+    spans.push(span);
   }
-  return texts.slice(0, MAX_SITE_SPANS).map((text, index) => ({ id: `s${index + 1}`, text }));
+  return spans.slice(0, MAX_SITE_SPANS).map((span, index) => ({ ...span, id: `s${index + 1}` }));
 }

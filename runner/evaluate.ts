@@ -181,8 +181,8 @@ function assignCites(
   answers: Readonly<Record<string, JevAnswer | undefined>>,
   spansByCite: ReadonlyMap<string, readonly PageSpan[]>,
   verdicts: ReadonlyMap<string, Verdict>,
-): Map<string, string> {
-  const cites = new Map<string, string>();
+): Map<string, { text: string; source: "jev" | "related"; location: PageSpan["source"] }> {
+  const cites = new Map<string, { text: string; source: "jev" | "related"; location: PageSpan["source"] }>();
   const chosen = new Map<string, PageSpan>();
   for (const check of checks) {
     const parent = check.citeFor;
@@ -197,7 +197,7 @@ function assignCites(
     const span = chosen.get(parent);
     if (span !== undefined) {
       passTexts.add(span.text);
-      cites.set(parent, span.text);
+      cites.set(parent, { text: span.text, source: "jev", location: span.source });
     }
   }
   for (const check of checks) {
@@ -205,27 +205,29 @@ function assignCites(
     if (parent === undefined || !isAlertVerdict(verdicts.get(parent))) continue;
     const span = chosen.get(parent);
     if (span === undefined || passTexts.has(span.text)) continue;
-    cites.set(parent, span.text);
+    cites.set(parent, { text: span.text, source: "jev", location: span.source });
   }
   for (const check of checks) {
     const parent = check.citeFor;
     if (parent === undefined || cites.has(parent) || !isAlertVerdict(verdicts.get(parent))) continue;
     const spans = spansByCite.get(check.id) ?? [];
-    const used = new Set(cites.values());
+    const used = new Set([...cites.values()].map((cite) => cite.text));
     const span =
       spans.find((item) => !passTexts.has(item.text) && !used.has(item.text)) ??
       spans.find((item) => !passTexts.has(item.text)) ??
       spans.find((item) => !used.has(item.text)) ??
       spans[0];
-    if (span !== undefined) cites.set(parent, span.text);
+    if (span !== undefined) cites.set(parent, { text: span.text, source: "related", location: span.source });
   }
   for (const check of checks) {
     const parent = check.citeFor;
     if (parent === undefined || cites.has(parent) || verdicts.get(parent) !== "pass") continue;
     const spans = spansByCite.get(check.id) ?? [];
-    const used = new Set(cites.values());
+    const used = new Set([...cites.values()].map((cite) => cite.text));
     const span = spans.find((item) => !used.has(item.text)) ?? chosen.get(parent);
-    if (span !== undefined) cites.set(parent, span.text);
+    if (span !== undefined) {
+      cites.set(parent, { text: span.text, source: chosen.get(parent)?.text === span.text ? "jev" : "related", location: span.source });
+    }
   }
   return cites;
 }
@@ -341,7 +343,7 @@ export async function evaluate(definition: ApprovedDefinition, state: EntryType,
       ...judge(check, answer),
       answer,
       basis: answerBasis(check, answer) || undefined,
-      ...(cite === undefined ? {} : { cite }),
+      ...(cite === undefined ? {} : { cite: cite.text, citeSource: cite.source, citeLocation: cite.location }),
     };
   });
   return {

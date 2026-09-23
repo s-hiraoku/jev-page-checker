@@ -70,101 +70,114 @@ function SettingsFields({
   const copy = useCopy();
   return (
     <form
+      className="settings-form"
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit();
       }}
     >
-      <p className="help">{copy.keyHelp}</p>
+      <header className="settings-intro">
+        <h1 className="page-title stamp">{copy.settings}</h1>
+        <p className="lede">{copy.settingsIntro}</p>
+        <p className="help">{copy.keyHelp}</p>
+      </header>
 
-      <fieldset className="fieldset">
-        <legend>{copy.connection}</legend>
-        <label className="field">
-          <span>{copy.apiKey}</span>
-          <input
-            type="password"
-            autoComplete="off"
-            value={draft.apiKey}
-            onChange={(event) => update("apiKey", event.target.value)}
-          />
-        </label>
-      </fieldset>
+      <div className="settings-grid">
+        <fieldset className="fieldset settings-card">
+          <legend>{copy.connection}</legend>
+          <p className="settings-card-help">{copy.connectionHelp}</p>
+          <label className="field">
+            <span>{copy.apiKey}</span>
+            <input
+              type="password"
+              autoComplete="off"
+              value={draft.apiKey}
+              onChange={(event) => update("apiKey", event.target.value)}
+            />
+          </label>
+        </fieldset>
 
-      <fieldset className="fieldset">
-        <legend>{copy.appearance}</legend>
-        <label className="field">
-          <span>{copy.theme}</span>
-          <select
-            aria-label={copy.theme}
-            value={draft.theme}
-            onChange={(event) => update("theme", parseTheme(event.target.value))}
-          >
-            <option value="system">{copy.themeSystem}</option>
-            <option value="light">{copy.themeLight}</option>
-            <option value="dark">{copy.themeDark}</option>
-          </select>
-        </label>
-        <p className="help">{copy.themeHelp}</p>
-        <label className="field">
-          <span>{copy.locale}</span>
-          <select
-            aria-label={copy.locale}
-            value={draft.locale}
-            onChange={(event) => update("locale", parseLocale(event.target.value))}
-          >
-            <option value="system">{copy.localeSystem}</option>
-            <option value="ja">日本語</option>
-            <option value="en">English</option>
-          </select>
-        </label>
-        <p className="help">{copy.localeHelp}</p>
-      </fieldset>
+        <fieldset className="fieldset settings-card">
+          <legend>{copy.appearance}</legend>
+          <label className="field">
+            <span>{copy.theme}</span>
+            <select
+              aria-label={copy.theme}
+              value={draft.theme}
+              onChange={(event) => update("theme", parseTheme(event.target.value))}
+            >
+              <option value="system">{copy.themeSystem}</option>
+              <option value="light">{copy.themeLight}</option>
+              <option value="dark">{copy.themeDark}</option>
+            </select>
+            <small>{copy.themeHelp}</small>
+          </label>
+          <label className="field">
+            <span>{copy.locale}</span>
+            <select
+              aria-label={copy.locale}
+              value={draft.locale}
+              onChange={(event) => update("locale", parseLocale(event.target.value))}
+            >
+              <option value="system">{copy.localeSystem}</option>
+              <option value="ja">日本語</option>
+              <option value="en">English</option>
+            </select>
+            <small>{copy.localeHelp}</small>
+          </label>
+        </fieldset>
 
-      <fieldset className="fieldset">
-        <legend>{copy.behavior}</legend>
-        <label className="toggle">
-          <input type="checkbox" checked={draft.followTab} onChange={(event) => update("followTab", event.target.checked)} />
-          {copy.followTab}
-        </label>
-        <label className="toggle">
-          <input
-            type="checkbox"
-            checked={draft.recheckOnChange}
-            onChange={(event) => update("recheckOnChange", event.target.checked)}
-          />
-          {copy.recheckOnChange}
-        </label>
-        <label className="field">
-          <span>{copy.debounceMs}</span>
-          <input
-            type="number"
-            value={draft.debounceMs}
-            onChange={(event) => update("debounceMs", Number(event.target.value))}
-          />
-        </label>
-        <p className="help">{copy.jevBudgetHelp}</p>
-        <label className="field">
-          <span>{copy.minWords}</span>
-          <input type="number" value={draft.minWords} onChange={(event) => update("minWords", Number(event.target.value))} />
-        </label>
-      </fieldset>
+        <fieldset className="fieldset settings-card settings-behavior">
+          <legend>{copy.behavior}</legend>
+          <label className="setting-toggle">
+            <input type="checkbox" checked={draft.followTab} onChange={(event) => update("followTab", event.target.checked)} />
+            <span><strong>{copy.followTab}</strong><small>{copy.followTabHelp}</small></span>
+          </label>
+          <label className="setting-toggle">
+            <input
+              type="checkbox"
+              checked={draft.recheckOnChange}
+              onChange={(event) => update("recheckOnChange", event.target.checked)}
+            />
+            <span><strong>{copy.recheckOnChange}</strong><small>{copy.recheckOnChangeHelp}</small></span>
+          </label>
+          <div className="settings-number-grid">
+            <label className="field">
+              <span>{copy.debounceMs}</span>
+              <input type="number" min={250} max={15000} step={250} value={draft.debounceMs} onChange={(event) => update("debounceMs", Number(event.target.value))} />
+              <small>{copy.debounceHelp}</small>
+            </label>
+            <label className="field">
+              <span>{copy.minWords}</span>
+              <input type="number" min={10} max={400} value={draft.minWords} onChange={(event) => update("minWords", Number(event.target.value))} />
+              <small>{copy.minWordsHelp}</small>
+            </label>
+          </div>
+          <details className="settings-limits">
+            <summary>{copy.jevLimitsTitle}</summary>
+            <p className="help">{copy.jevBudgetHelp}</p>
+          </details>
+        </fieldset>
+      </div>
 
       <ChecklistView questions={questions} />
 
-      <label className="toggle">
-        <input
-          type="checkbox"
-          checked={approved}
-          onChange={(event) => update("ackedVersion", event.target.checked ? definitionVersion : null)}
-        />
-        {copy.ackLabel}
-      </label>
+      <section className="settings-approval">
+        <div>
+          <h2>{copy.approvalTitle}</h2>
+          <p className="help">{copy.approvalHelp}</p>
+        </div>
+        <label className="setting-toggle approval-toggle">
+          <input type="checkbox" checked={approved} onChange={(event) => update("ackedVersion", event.target.checked ? definitionVersion : null)} />
+          <span><strong>{copy.ackLabel}</strong></span>
+        </label>
+      </section>
 
-      <div className="toolbar">
+      <div className="toolbar settings-toolbar">
         <button className="btn" type="submit" disabled={busy}>
           {copy.save}
         </button>
-        {message ? <p className="help">{message === "saved" ? copy.saved : message}</p> : null}
+        {message ? <p className="help" role="status" aria-live="polite">{message === "saved" ? copy.saved : message}</p> : null}
       </div>
     </form>
   );

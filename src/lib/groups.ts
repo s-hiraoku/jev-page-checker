@@ -89,8 +89,17 @@ export function mergeConservativeItem(versions: readonly ItemResult[]): ItemResu
   for (const item of versions.slice(1)) {
     if (RANK[item.verdict] > RANK[picked.verdict]) picked = item;
   }
-  const cite = picked.cite ?? versions.find((item) => item.cite !== undefined)?.cite;
-  const withCite = cite !== undefined && picked.cite === undefined ? { ...picked, cite } : picked;
+  const citedItem = picked.cite === undefined ? versions.find((item) => item.cite !== undefined) : picked;
+  const cite = citedItem?.cite;
+  const withCite =
+    cite !== undefined && picked.cite === undefined
+      ? {
+          ...picked,
+          cite,
+          ...(citedItem?.citeSource === undefined ? {} : { citeSource: citedItem.citeSource }),
+          ...(citedItem?.citeLocation === undefined ? {} : { citeLocation: citedItem.citeLocation }),
+        }
+      : picked;
   if (versions.length === 1) return withCite;
   return {
     ...withCite,
