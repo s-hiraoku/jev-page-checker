@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { parseDefinition, type JevAnswer, type Verdict } from "./checkkit.js";
-import { REMARK_IDS, basisEntries, basisKey, basisLabel, evidenceReadout, instructionLabel, verdictRemark } from "./labels.js";
+import { REMARK_IDS, appliedCriterion, basisEntries, basisKey, basisLabel, evidenceReadout, instructionLabel, verdictRemark } from "./labels.js";
+import { CATEGORY_RUBRICS, CONTENT_CATEGORY_IDS } from "./category-rubrics.js";
 
 function choiceAnswer(choice: string, confidence = 1): JevAnswer {
   return { type: "choice", choice, confidence, probabilities: { [choice]: confidence } };
@@ -74,6 +75,37 @@ test("evidenceReadout states a short remark for that question and that verdict",
       }
     }
   }
+});
+
+test("category checks have a remark for every verdict in both locales", () => {
+  const verdicts: Verdict[] = ["pass", "review", "fail", "error", "not_applicable"];
+  for (const categoryId of CONTENT_CATEGORY_IDS) {
+    const entries = [...CATEGORY_RUBRICS[categoryId].items, ...CATEGORY_RUBRICS[categoryId].conditionalProbes];
+    for (const entry of entries) {
+      for (const verdict of verdicts) {
+        for (const locale of ["ja", "en"] as const) {
+          const remark = verdictRemark(entry.id, verdict, locale);
+          const paragraphs = basisEntries(entry.id, locale).map((item) => item.text);
+          assert.ok(remark.length > 0, `${entry.id} ${verdict} ${locale}`);
+          assert.equal(paragraphs.includes(remark), false, `${entry.id} ${verdict} ${locale}`);
+          assert.ok(remark.includes(entry.label[locale]), `${entry.id} ${locale}`);
+        }
+      }
+      const review = appliedCriterion(entry.id, choiceAnswer("review"), "review", "ja");
+      assert.match(review, /ページの記述だけでは判断できない/);
+      assert.equal(review.includes("Criterion:"), false);
+    }
+  }
+});
+
+test("Japanese category instructions distinguish review from alert without asking Jev for prose", () => {
+  const japanese = instructionLabel("reporting_attribution", "ja", "Assess whether the source is identified.");
+  assert.match(japanese, /情報源の帰属/);
+  assert.match(japanese, /要確認/);
+  assert.match(japanese, /警告/);
+  assert.equal(japanese.includes("Assess whether"), false);
+  const english = instructionLabel("reporting_attribution", "en", "Assess whether the source is identified.");
+  assert.equal(english, "Assess whether the source is identified.");
 });
 
 test("basisLabel falls back to the stored English basis when the answer is missing", () => {

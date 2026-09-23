@@ -257,10 +257,34 @@ a:hover {
   border-top: 1px solid var(--line);
 }
 
+.report-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
 .lanes {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+}
+
+.lane-remarks {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.lane-remarks li + li {
+  margin-top: 2px;
 }
 
 .lane {
@@ -330,6 +354,12 @@ a:hover {
   line-height: 1.35;
   text-align: center;
   font-variant-numeric: tabular-nums lining-nums;
+}
+
+.chip-large {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .chip-pass { color: var(--pass); }
@@ -1177,19 +1207,57 @@ a:hover {
 .result-fail { border-inline-start-color: var(--fail); }
 .result-error { border-inline-start-color: var(--error); }
 
-.result-card-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+.result-block {
+  margin-top: 12px;
 }
 
-.result-card-head h3 {
+.result-block:first-child {
+  margin-top: 0;
+}
+
+.result-block h3 {
   min-width: 0;
-  margin: 0;
+  margin: 2px 0 0;
   font-size: 0.98rem;
   line-height: 1.4;
   text-wrap: pretty;
+}
+
+.result-block h4 {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+}
+
+.result-criterion,
+.result-level,
+.evidence-empty {
+  margin: 4px 0 0;
+  line-height: 1.5;
+}
+
+.result-level,
+.evidence-empty,
+.result-id {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.result-details {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.result-details summary {
+  width: fit-content;
+  cursor: pointer;
+}
+
+.result-id {
+  margin: 6px 0 0;
 }
 
 .answer-view {

@@ -15,8 +15,8 @@ export function AppHeader({ meta }: { meta?: string }) {
   );
 }
 
-export function VerdictChip({ verdict }: { verdict: Verdict }) {
-  return <span className={`chip chip-${verdict}`}>{useCopy().verdictLabels[verdict]}</span>;
+export function VerdictChip({ verdict, large = false }: { verdict: Verdict; large?: boolean }) {
+  return <span className={`chip chip-${verdict}${large ? " chip-large" : ""}`}>{useCopy().verdictLabels[verdict]}</span>;
 }
 
 export function Lane({ title, verdict }: { title: string; verdict: Verdict }) {
@@ -29,7 +29,7 @@ export function Lane({ title, verdict }: { title: string; verdict: Verdict }) {
   );
 }
 
-export function AnswerView({ id, answer, definitionVersion }: { id: string; answer?: JevAnswer; definitionVersion?: number }) {
+export function AnswerView({ id, answer, definitionVersion, metrics = false }: { id: string; answer?: JevAnswer; definitionVersion?: number; metrics?: boolean }) {
   const locale = useLocale();
   const copy = useCopy();
   if (answer === undefined) return null;
@@ -44,7 +44,7 @@ export function AnswerView({ id, answer, definitionVersion }: { id: string; answ
   if (answer.type === "choice") {
     return (
       <div className="answer-view">
-        <strong className="answer-label">{choiceLabel(id, answer.choice, locale, definitionVersion)}</strong>
+        {metrics ? null : <strong className="answer-label">{choiceLabel(id, answer.choice, locale, definitionVersion)}</strong>}
         <p className="answer-metric"><span>{copy.answerConfidence}</span><strong>{percent(answer.confidence, locale)}</strong></p>
         <details className="answer-distribution">
           <summary>{copy.probabilityDetails}</summary>

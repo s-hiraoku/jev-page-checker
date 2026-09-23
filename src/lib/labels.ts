@@ -1,7 +1,7 @@
 import type { JevAnswer, Verdict } from "./checkkit.js";
 import { copyFor } from "./copy.js";
 import type { ResolvedLocale } from "./locale.js";
-import { CATEGORY_RUBRICS } from "./category-rubrics.js";
+import { rubricEntry, type RubricVerdict } from "./category-rubrics.js";
 
 export const APP_NAME = "Audit";
 export const APP_NAME_FULL = "Jev Audit";
@@ -137,20 +137,14 @@ const SPECIFIC_LABELS: Record<ResolvedLocale, Record<string, string>> = {
 
 export function questionLabel(id: string, locale: ResolvedLocale = "ja", definitionVersion?: number): string {
   if (id === "site_purpose" && definitionVersion === 8) return LEGACY_V8_SITE_PURPOSE_LABELS[locale];
-  const category = Object.values(CATEGORY_RUBRICS).find((rubric) => [...rubric.items, ...rubric.conditionalProbes].some((entry) => entry.id === id || `${entry.id}_cite` === id));
-  if (category !== undefined) {
-    const entry = [...category.items, ...category.conditionalProbes].find((item) => item.id === id || `${item.id}_cite` === id);
-    if (entry !== undefined) return entry.label[locale];
-  }
+  const entry = rubricEntry(id);
+  if (entry !== undefined) return entry.label[locale];
   return QUESTION_LABELS[locale][id] ?? id;
 }
 
 export function questionAxisLabel(id: string, locale: ResolvedLocale = "ja", definitionVersion?: number): string {
-  const category = Object.values(CATEGORY_RUBRICS).find((rubric) => [...rubric.items, ...rubric.conditionalProbes].some((entry) => entry.id === id || `${entry.id}_cite` === id));
-  if (category !== undefined) {
-    const entry = [...category.items, ...category.conditionalProbes].find((item) => item.id === id || `${item.id}_cite` === id);
-    if (entry !== undefined) return entry.axisLabel[locale];
-  }
+  const entry = rubricEntry(id);
+  if (entry !== undefined) return entry.axisLabel[locale];
   return QUESTION_AXIS_LABELS[locale][id] ?? questionLabel(id, locale, definitionVersion);
 }
 
@@ -363,6 +357,13 @@ const VERDICT_REMARKS: Record<ResolvedLocale, Record<string, Record<Verdict, str
       error: "断定の強さと根拠を判定できなかった。",
       not_applicable: "記事がないので、この問は聞いていない。",
     },
+    content_classification: {
+      pass: "本文の種類が決まっている。",
+      review: "本文の種類を、このページの記述だけでは決められない。",
+      fail: "本文の種類は、警告に当たる。",
+      error: "本文の種類を判定できなかった。",
+      not_applicable: "分類する一本の本文がない。",
+    },
   },
   en: {
     identifiable_publisher: {
@@ -428,8 +429,71 @@ const VERDICT_REMARKS: Record<ResolvedLocale, Record<string, Record<Verdict, str
       error: "The wording and its evidence could not be checked.",
       not_applicable: "Not asked. This page is not one piece of writing.",
     },
+    content_classification: {
+      pass: "The body has a content category.",
+      review: "The content category cannot be decided from this page.",
+      fail: "The content category is an alert.",
+      error: "The content category could not be checked.",
+      not_applicable: "There is no single body to classify.",
+    },
   },
 };
+
+const CATEGORY_REMARK: Record<ResolvedLocale, Record<Verdict, (label: string) => string>> = {
+  ja: {
+    pass: (label) => `${label}は、基準を満たしている。`,
+    review: (label) => `${label}は、要確認である。`,
+    fail: (label) => `${label}は、警告に当たる。`,
+    error: (label) => `${label}の判定は、完了していない。`,
+    not_applicable: (label) => `${label}は、対象外である。`,
+  },
+  en: {
+    pass: (label) => `${label} meets the criterion.`,
+    review: (label) => `${label} needs review.`,
+    fail: (label) => `${label} is an alert.`,
+    error: (label) => `${label} could not be checked.`,
+    not_applicable: (label) => `${label} does not apply.`,
+  },
+};
+
+const CATEGORY_CRITERION: Record<ResolvedLocale, Record<RubricVerdict, (label: string) => string>> = {
+  ja: {
+    pass: (label) => `${label}が、ページの記述から分かる。`,
+    review: (label) => `${label}は、ページの記述だけでは判断できない。足りないことを誤りとはしない。`,
+    alert: (label) => `${label}について、ページ自身が食い違うか、読者を誤らせる記述がある。記述が足りないだけでは警告にしない。`,
+    not_applicable: (label) => `${label}に当たる記述は、このページにない。`,
+  },
+  en: {
+    pass: (label) => `The page text shows ${label}.`,
+    review: (label) => `${label} cannot be decided from the page text. A missing detail is not treated as false.`,
+    alert: (label) => `The page itself contradicts or misleads about ${label}. Missing text alone is not an alert.`,
+    not_applicable: (label) => `${label} is absent from this page.`,
+  },
+};
+
+function rubricVerdict(verdict: Verdict): RubricVerdict | undefined {
+  if (verdict === "fail") return "alert";
+  if (verdict === "pass" || verdict === "review" || verdict === "not_applicable") return verdict;
+  return undefined;
+}
+
+/** Human criterion for the level that applied. Category items use the label × verdict template. */
+export function appliedCriterion(
+  id: string,
+  answer: JevAnswer | undefined,
+  verdict: Verdict,
+  locale: ResolvedLocale = "ja",
+): string {
+  const entry = rubricEntry(id);
+  if (entry !== undefined && entry.id === id) {
+    const selected = basisKey(answer);
+    const key = selected === "pass" || selected === "review" || selected === "alert" || selected === "not_applicable"
+      ? selected
+      : rubricVerdict(verdict);
+    if (key !== undefined) return CATEGORY_CRITERION[locale][key](entry.label[locale]);
+  }
+  return basisLabel(id, answer, locale, "");
+}
 
 const LEGACY_V8_SITE_PURPOSE_REMARKS: Record<ResolvedLocale, Record<Verdict, string>> = {
   ja: {
@@ -448,9 +512,11 @@ const LEGACY_V8_SITE_PURPOSE_REMARKS: Record<ResolvedLocale, Record<Verdict, str
   },
 };
 
-/** Short client remark for this question and this verdict. The same sentence for every URL. */
+/** Short client remark for this question, verdict, and criterion label. The same sentence for every URL. */
 export function verdictRemark(id: string, verdict: Verdict, locale: ResolvedLocale = "ja", definitionVersion?: number): string {
   if (id === "site_purpose" && definitionVersion === 8) return LEGACY_V8_SITE_PURPOSE_REMARKS[locale][verdict];
+  const entry = rubricEntry(id);
+  if (entry !== undefined && entry.id === id) return CATEGORY_REMARK[locale][verdict](entry.label[locale]);
   return VERDICT_REMARKS[locale][id]?.[verdict] ?? "";
 }
 
@@ -534,6 +600,10 @@ for (const id of CITE_IDS) {
 }
 
 export function instructionLabel(id: string, locale: ResolvedLocale, fallback: string): string {
+  const entry = rubricEntry(id);
+  if (entry !== undefined && entry.id === id && locale === "ja") {
+    return `${entry.label.ja}を、ページに書かれていることだけから見る。記述が足りなければ要確認。ページ自身が食い違うか、読者を誤らせるときだけ警告。`;
+  }
   if (locale !== "ja") return fallback;
   const citeJa = CITE_INSTRUCTION_JA[id];
   if (citeJa !== undefined) return citeJa;
@@ -541,12 +611,12 @@ export function instructionLabel(id: string, locale: ResolvedLocale, fallback: s
 }
 
 export function basisEntries(id: string, locale: ResolvedLocale = "ja"): { key: string; text: string }[] {
-  const table = BASIS_LABELS[locale][id] ?? BASIS_LABELS.en[id];
-  if (table === undefined) {
-    const category = Object.values(CATEGORY_RUBRICS).find((rubric) => [...rubric.items, ...rubric.conditionalProbes].some((entry) => entry.id === id));
-    const entry = category?.items.concat(category.conditionalProbes).find((item) => item.id === id);
-    if (entry !== undefined) return Object.entries(entry.criteria).map(([key, text]) => ({ key, text }));
-    return [];
+  const entry = rubricEntry(id);
+  if (entry !== undefined && entry.id === id) {
+    const keys: RubricVerdict[] = ["pass", "review", "alert", "not_applicable"];
+    return keys.map((key) => ({ key, text: CATEGORY_CRITERION[locale][key](entry.label[locale]) }));
   }
+  const table = BASIS_LABELS[locale][id] ?? BASIS_LABELS.en[id];
+  if (table === undefined) return [];
   return Object.keys(table).map((key) => ({ key, text: table[key] ?? "" }));
 }

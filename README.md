@@ -39,7 +39,7 @@ The checker shows a site lane and a body lane. Report shows each verdict, Jev's 
 
 ## 質問
 
-定義は `fixtures/page-credibility.checker.json` です。Jev には意味だけを聞きます。サイトの質問は 1 回にまとめます。主本文が入力枠に収まるときは 1 回で送ります。入力枠は、state と最長の質問で 32,000 トークン、1 回のリクエストで 64,000 トークンです。超えたら重ねて分割し、本文の 5 問を聞き、厳しめにまとめます。特定のサイト向けに合格線は動かしません。詳細は [`docs/judgement.md`](docs/judgement.md) です。
+定義の土台は `fixtures/page-credibility.checker.json` です。実行時は、そのサイト項目に、本文分類で選んだカテゴリの choice 項目を足します。その定義版は v10 です。本文の 11 分類は信頼スコアの分類ではありません。Jev には意味だけを聞きます。サイトの質問は 1 回にまとめます。主本文が入力枠に収まるときは 1 回で送ります。入力枠は、state と最長の質問で 32,000 トークン、1 回のリクエストで 64,000 トークンです。超えたら重ねて分割し、本文の 5 問を聞き、厳しめにまとめます。特定のサイト向けに合格線は動かしません。詳細は [`docs/judgement.md`](docs/judgement.md) です。
 
 | id | レーン | 型 | 聞くこと |
 | --- | --- | --- | --- |
@@ -63,7 +63,7 @@ HTTPS、著者、日付、語数、リンク密度、外部ホスト、主本文
 
 ### Questions
 
-The definition is `fixtures/page-credibility.checker.json`. Jev is asked for meaning only. The four site questions go in one request. A main body that fits the input window goes in one request. The window is 32,000 tokens for state plus the longest question, and 64,000 tokens per request. A longer body is split with overlap, the five body questions are asked, and the answers are combined strictly. The pass line is not moved for one site. See [`docs/judgement.md`](docs/judgement.md).
+The base definition is `fixtures/page-credibility.checker.json`. At runtime the site checks are joined with the choice checks for the page's content category. That definition is v10. The eleven content categories are not a trust score. Jev is asked for meaning only. The four site questions go in one request. A main body that fits the input window goes in one request. The window is 32,000 tokens for state plus the longest question, and 64,000 tokens per request. A longer body is split with overlap, the five body questions are asked, and the answers are combined strictly. The pass line is not moved for one site. See [`docs/judgement.md`](docs/judgement.md).
 
 | id | lane | type | question |
 | --- | --- | --- | --- |

@@ -39,16 +39,33 @@ const OPTIONAL_ITEM_IDS = new Set([
   "reference_examples", "discussion_sources",
   "creative_reality_boundary", "creative_satire_quote", "creative_real_world_action",
 ]);
-const item = (id: string, ja: string, en: string, axisJa: string, axisEn: string, instruction: string, c: RubricCriteria): CategoryRubricItem => ({
-  id, label: { ja, en }, axisKey: `${CONTENT_CATEGORY_IDS.find((category) => id.startsWith(`${category}_`)) ?? "category"}_${axisEn.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "")}`, axisLabel: { ja: axisJa, en: axisEn }, instruction,
-  required: !OPTIONAL_ITEM_IDS.has(id),
-  criteria: {
-    pass: `Pass when ${c.pass === C.required ? "the page clearly provides the evidence required for this criterion" : c.pass}. Criterion: ${instruction}`,
-    review: `Review when ${c.review === C.absent ? "the page does not provide enough evidence to decide this criterion; do not infer the missing detail" : c.review}. Criterion: ${instruction}`,
-    alert: `Alert only when ${c.alert === C.wrong ? "the page itself explicitly contradicts or materially misleads on this criterion; do not treat lack of evidence as proof of falsehood" : c.alert}. Criterion: ${instruction}`,
-    not_applicable: `${OPTIONAL_ITEM_IDS.has(id) ? "N/A only when the specific feature named here is genuinely absent; when present, assess it and use Review if evidence is insufficient." : "This criterion is required for the selected category. Missing information is Review, never N/A."} Criterion: ${instruction}`,
-  },
-});
+const item = (id: string, ja: string, en: string, axisJa: string, axisEn: string, asked: string, c: RubricCriteria): CategoryRubricItem => {
+  const instruction = `${asked.replace(/\.$/, "")}. Missing evidence is Review. Alert only when the page itself contradicts or materially misleads. Do not write new text.`;
+  const pass = c.pass === C.required ? `a reader can see “${en}” in the page text` : c.pass;
+  const review = c.review === C.absent
+    ? `the page does not show enough to decide “${en}”. A missing detail is not proof of falsehood`
+    : c.review;
+  const alert = c.alert === C.wrong
+    ? `the page itself contradicts or materially misleads a reader about “${en}”. Lack of evidence is not Alert`
+    : c.alert;
+  const notApplicable = OPTIONAL_ITEM_IDS.has(id)
+    ? "N/A only when the specific feature named here is genuinely absent; when present, assess it and use Review if evidence is insufficient."
+    : "This criterion is required for the selected category. Missing information is Review, never N/A.";
+  return {
+    id,
+    label: { ja, en },
+    axisKey: `${CONTENT_CATEGORY_IDS.find((category) => id.startsWith(`${category}_`)) ?? "category"}_${axisEn.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "")}`,
+    axisLabel: { ja: axisJa, en: axisEn },
+    instruction,
+    required: !OPTIONAL_ITEM_IDS.has(id),
+    criteria: {
+      pass: `Pass when ${pass}. ${instruction}`,
+      review: `Review when ${review}. ${instruction}`,
+      alert: `Alert only when ${alert}. ${instruction}`,
+      not_applicable: `${notApplicable} ${instruction}`,
+    },
+  };
+};
 const probe = (base: CategoryRubricItem, triggerQuestion: string, triggerInstruction: string): ConditionalProbe => ({ ...base, trigger: { question: triggerQuestion, instruction: `Inspect the page body. ${triggerInstruction}` } });
 
 const C = {
@@ -236,6 +253,15 @@ export function categoryChoiceDescriptions(): Record<string, string> {
 }
 
 export function getCategoryRubric(id: ContentCategoryId): CategoryRubric { return CATEGORY_RUBRICS[id]; }
+
+/** Verdict item or its cite question. Trigger ids stay unmatched so routing questions keep their own label. */
+export function rubricEntry(id: string): CategoryRubricItem | undefined {
+  for (const rubric of Object.values(CATEGORY_RUBRICS)) {
+    const entry = [...rubric.items, ...rubric.conditionalProbes].find((item) => item.id === id || `${item.id}_cite` === id);
+    if (entry !== undefined) return entry;
+  }
+  return undefined;
+}
 
 /** Localized axes, in stable first-seen order; every individual item remains in items. */
 export function categoryAxisLabels(id: ContentCategoryId): ReadonlyArray<{ key: string; label: BilingualLabel }> {

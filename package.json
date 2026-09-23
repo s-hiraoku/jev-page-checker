@@ -14,7 +14,7 @@
     "zip": "wxt build && python3 scripts/pack-chrome-zip.py",
     "typecheck": "wxt prepare && tsc --noEmit",
     "preview": "vite --config vite.preview.config.ts --port 4173",
-    "test": "node --import tsx --test src/lib/*.test.ts"
+    "test": "wxt prepare && node --import tsx --test src/lib/*.test.ts"
   },
   "dependencies": {
     "@typesafe-ai/sdk": "0.6.0",

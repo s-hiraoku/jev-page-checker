@@ -82,10 +82,10 @@ Prefer URL entry points over nav buttons when starting a recipe. Scene is a quer
 
 Stable handles (accessible names / labels from the real UI, not test ids):
 
-- App chrome: heading-equivalent `Audit` (mark `Jev` + name `Audit` from `labels.ts`), meta `v8` on the panel / `Report · v8` / `History · v8` / `Settings · v8`
+- App chrome: heading-equivalent `Audit` (mark `Jev` + name `Audit` from `labels.ts`). The banner reads `Jev Audit v10` on the panel, report, history, and settings.
 - Preview fixture row: `Pass`, `Fail`, `Essay`, `Listing`, `Truncated`, `Chunked`. Product chrome row: `Setup`, `Inspector`, `Settings`, `Report`, `History`. They are not one toolbar.
 - Side panel buttons: `Audit`, `Report`, `History`, `Settings` (gated panel uses the same `Settings` button)
-- Side panel copy: `サイト`, `本文`, `Pass`, `Alert`, `Review`, `N/A`. Ready Inspector has no score lede and no footer about following the tab. The outer column is still `判定`. Each item's inner table is `寸評` and `本文` only. The remark is a short fixed sentence for that question and that verdict, for example `責任者を、名指しできる。` It is not the criterion paragraph.
+- Side panel copy: `サイト`, `本文`, `通過`, `警告`, `要確認`, `対象外`. Ready Inspector has no score lede and no footer about following the tab. The summary line reads `サイト 通過 | 本文 通過 | 報道・事実報告` on the pass scene. Each item card is four blocks in order: `判定`, `基準`, `寸評`, `根拠`. The verdict is the large chip. The remark is a short fixed sentence for that question and that verdict, for example `ページから責任者が分かる。` It is not the criterion paragraph. Evidence quotes the page span. Confidence and the internal id are under `詳細`.
 - Pass title: `City delays river bridge opening after inspection, officials say`
 - Fail title: `Doctors hate this: one pill reverses aging in 11 days`
 - Setup gate: `先に、チェックリスト全体を承認してください。`
