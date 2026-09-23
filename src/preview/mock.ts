@@ -4,13 +4,32 @@ import { JEV_ENGLISH_CHARS_PER_TOKEN, bodyTokenBudget } from "../lib/jev-budget.
 import { checkReplay, REPLAY_CLOCK, type ReplayFixture } from "../lib/replay.js";
 import { DEFAULT_SETTINGS, parseSettings, type ExtensionSettings } from "../lib/settings.js";
 import { buildSessionPayload, withoutRecord, type SessionPayload, type StoredRecord } from "../lib/session.js";
+import type { ContentClassificationSummary } from "../../runner/types.js";
 import definitionRaw from "../../fixtures/page-credibility.checker.json";
 import failReplay from "../../fixtures/replay/page-credibility-fail.json";
 import passReplay from "../../fixtures/replay/page-credibility-pass.json";
 
 const definition = parseDefinition(definitionRaw);
 
+function previewClassification(replay: ReplayFixture): ContentClassificationSummary {
+  if (!replay.state.hasArticle || !replay.state.hasBody || replay.state.text.length === 0) {
+    return {
+      status: "not_applicable",
+      reasonCode: "no_single_body",
+      reason: "このページには分類できる本文がありません。",
+    };
+  }
+  const sales = /order|pill|buy|購入|注文/i.test(`${replay.state.title} ${replay.state.metaDescription}`);
+  return {
+    status: "classified",
+    primary: sales ? "sales" : "reporting",
+    confidence: 0.9,
+    evidence: { text: replay.state.title, source: "title" },
+  };
+}
+
 async function recordFrom(replay: ReplayFixture, id: string, createdAt: string): Promise<StoredRecord> {
+  const report = await checkReplay(definition, replay);
   return {
     id,
     tabId: 1,
@@ -19,7 +38,7 @@ async function recordFrom(replay: ReplayFixture, id: string, createdAt: string):
       extractedAt: REPLAY_CLOCK,
       textTruncated: replay.state.textTruncated ?? false,
     },
-    report: await checkReplay(definition, replay),
+    report: { ...report, classification: previewClassification(replay) },
     createdAt,
   };
 }
