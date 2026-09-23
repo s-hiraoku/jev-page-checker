@@ -1,5 +1,6 @@
 import type { ResolvedLocale } from "./locale.js";
 import type { Verdict } from "./checkkit.js";
+import type { SiteTypeReasonCode } from "./site-type.js";
 
 const ja = {
   loading: "読み込み中です。",
@@ -16,6 +17,14 @@ const ja = {
   audit: "チェック",
   site: "サイト",
   body: "本文",
+  siteTypeTitle: "サイト種別",
+  siteTypeReview: "保留",
+  siteTypeReasons: {
+    empty_page: "サイト種別を判断するタイトル、サイト名、著者、説明、本文がありません。",
+    missing_site_type: "サイト種別の回答がありません。",
+    unknown_site_type: "サイト種別の回答が選択肢にありません。",
+    site_type_error: "サイト種別の依頼に失敗したため、種別を保留しました。",
+  } satisfies Record<SiteTypeReasonCode, string>,
   classificationTitle: "本文の種類",
   classificationOld: "以前の記録には分類情報がありません。",
   classificationStatusReview: "分類保留",
@@ -217,6 +226,14 @@ const en: typeof ja = {
   audit: "Check page",
   site: "Site",
   body: "Body",
+  siteTypeTitle: "Site type",
+  siteTypeReview: "Needs review",
+  siteTypeReasons: {
+    empty_page: "The page has no title, site name, author, description, or text to classify.",
+    missing_site_type: "Jev did not return a site type choice.",
+    unknown_site_type: "Jev returned a site type outside the supplied classes.",
+    site_type_error: "The site type request failed, so the site type is held for review.",
+  },
   classificationTitle: "Content type",
   classificationOld: "This earlier report was not classified.",
   classificationStatusReview: "Classification needs review",

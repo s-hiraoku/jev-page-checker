@@ -4,6 +4,7 @@ import { bodySendKind } from "./groups.js";
 import { basisEntries, choiceLabel, questionLabel, verdictRemark } from "./labels.js";
 import { citeSource, displayCharacterRange } from "./report-evidence.js";
 import { CATEGORY_RUBRICS, type ContentCategoryId } from "./category-rubrics.js";
+import { isSiteTypeId, siteTypeLabel } from "./site-type.js";
 import type { ResolvedLocale } from "./locale.js";
 import type { StoredRecord } from "./session.js";
 import type { JevAnswer } from "./checkkit.js";
@@ -40,6 +41,21 @@ function answerLines(id: string, answer: JevAnswer | undefined, locale: Resolved
       .map(([key, value]) => `${rubricLabels.get(key) ?? (answer.legend as Record<string, string>)[key] ?? key} ${percentage(value, locale)}`)
       .join(" / ")}`,
   ];
+}
+
+function siteTypeLines(record: StoredRecord, locale: ResolvedLocale): string[] {
+  const siteType = record.report.siteType;
+  if (siteType === undefined) return [];
+  const copy = copyFor(locale);
+  if (siteType.status === "classified" && siteType.id !== undefined && isSiteTypeId(siteType.id)) {
+    return [`${copy.siteTypeTitle}: ${siteTypeLabel(siteType.id, locale)}`];
+  }
+  const lines = [`${copy.siteTypeTitle}: ${copy.siteTypeReview}`];
+  const reason = siteType.reasonCode !== undefined && Object.hasOwn(copy.siteTypeReasons, siteType.reasonCode)
+    ? copy.siteTypeReasons[siteType.reasonCode as keyof typeof copy.siteTypeReasons]
+    : siteType.reason;
+  if (reason) lines.push(`${copy.classificationReason}: ${reason}`);
+  return lines;
 }
 
 function classificationLines(record: StoredRecord, locale: ResolvedLocale): string[] {
@@ -104,6 +120,7 @@ export function reportDocument(record: StoredRecord, locale: ResolvedLocale): st
     `${copy.links}: ${snapshot.linkCount}`,
     `${copy.hosts}: ${hosts}`,
     "",
+    ...siteTypeLines(record, locale),
     ...classificationLines(record, locale),
     "",
   ];

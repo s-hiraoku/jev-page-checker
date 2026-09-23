@@ -22,6 +22,7 @@ import {
 } from "./groups.js";
 import { snapshotToState, type PageSnapshot } from "./page-state.js";
 import { classifyContent } from "./content-classifier.js";
+import { classifySiteType, siteTypeExcerpt, siteTypeSummary, type SiteTypeClassification } from "./site-type.js";
 import { CONTENT_CATEGORY_IDS, CATEGORY_RUBRICS, categoryChoiceDescriptions, type ContentCategoryId } from "./category-rubrics.js";
 import { triggerChecksForCategory } from "./category-definition.js";
 import { buildRequest } from "../../runner/jev.js";
@@ -164,6 +165,20 @@ async function activeConditionalProbes(
   return { active, uncertain, usage, jevMs };
 }
 
+async function readSiteType(snapshot: PageSnapshot, text: string, jev: JevGateway): Promise<SiteTypeClassification> {
+  try {
+    return await classifySiteType(snapshot, text, jev);
+  } catch {
+    return {
+      status: "review",
+      reasonCode: "site_type_error",
+      reason: "The site type request failed.",
+      usage: { input_tokens: 0, output_tokens: 0 },
+      timing: { wallMs: 0, jevMs: 0 },
+    };
+  }
+}
+
 async function checkCategorizedSnapshot(snapshot: PageSnapshot, definition: ApprovedDefinition, jev: JevGateway, split: ReturnType<typeof splitOverlappingChunks>): Promise<CheckReport> {
   let classification;
   try {
@@ -178,21 +193,30 @@ async function checkCategorizedSnapshot(snapshot: PageSnapshot, definition: Appr
       timing: { wallMs: 0, jevMs: 0 },
     };
   }
+  const siteText = split.windows[0]?.text ?? "";
+  const siteTypeResult = await readSiteType(snapshot, siteTypeExcerpt(snapshot.text, split.windows, bodyTokenBudget()), jev);
+  const siteType = siteTypeSummary(siteTypeResult);
   const siteIds = siteQuestionIds(definition.questions);
   const siteDefinition = withQuestions(definition, siteCheckIds(definition, siteIds));
-  const site = await evaluate(siteDefinition, stateForWindow(snapshot, split.windows[0]?.text ?? ""), jev);
+  const site = await evaluate(siteDefinition, stateForWindow(snapshot, siteText), jev);
   const emptyBody = (): CheckReport => ({
     ...site,
     items: [...site.items, ...(snapshot.hasArticle ? [{ id: "content_classification" as any, verdict: "review" as const, reason: classification.reason ?? "Content category needs review." }] : [])],
+    usage: addUsage(site.usage, siteTypeResult.usage),
+    timing: {
+      wallMs: site.timing.wallMs + siteTypeResult.timing.wallMs,
+      jevMs: site.timing.jevMs + siteTypeResult.timing.jevMs,
+    },
     classification,
+    siteType,
     inspection: { windowCount: split.windows.length, windows: split.windows.map(({ start, end }) => ({ start, end })), covered: split.covered, unreadRemainder: snapshot.textTruncated === true || !split.covered, siteQuestionIds: siteIds, bodyQuestionIds: snapshot.hasArticle ? ["content_classification"] : [] },
   });
   if (!snapshot.hasArticle || classification.status !== "classified" || !classification.primary) return emptyBody();
   const selected = [classification.primary, classification.secondary].filter((id): id is ContentCategoryId => CONTENT_CATEGORY_IDS.includes(id as ContentCategoryId));
   const active = new Set<string>();
   const uncertain = new Set<string>();
-  let usage = addUsage(site.usage, classification.usage);
-  let jevMs = site.timing.jevMs + classification.timing.jevMs;
+  let usage = addUsage(addUsage(site.usage, classification.usage), siteTypeResult.usage);
+  let jevMs = site.timing.jevMs + classification.timing.jevMs + siteTypeResult.timing.jevMs;
   for (const category of selected) {
     const probes = await activeConditionalProbes(snapshot, split.windows, category, jev);
     usage = addUsage(usage, probes.usage);
@@ -223,8 +247,9 @@ async function checkCategorizedSnapshot(snapshot: PageSnapshot, definition: Appr
     ...merged,
     items: [...site.items, ...bodyItems],
     usage: addUsage(usage, merged.usage),
-    timing: { wallMs: site.timing.wallMs + classification.timing.wallMs + merged.timing.wallMs, jevMs: jevMs + merged.timing.jevMs },
+    timing: { wallMs: site.timing.wallMs + classification.timing.wallMs + siteTypeResult.timing.wallMs + merged.timing.wallMs, jevMs: jevMs + merged.timing.jevMs },
     classification,
+    siteType,
     inspection: { windowCount: split.windows.length, windows: split.windows.map(({ start, end }) => ({ start, end })), covered: split.covered, unreadRemainder: snapshot.textTruncated === true || !split.covered, siteQuestionIds: siteIds, bodyQuestionIds: bodyIds, bodyQuestionGroups: bodyGroups },
   };
 }
