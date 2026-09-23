@@ -1700,6 +1700,34 @@ a:hover {
   background: var(--input);
 }
 
+.approval-warning {
+  width: min(28rem, calc(100vw - 32px));
+  margin: auto;
+  padding: 16px;
+  border: 1px solid var(--review);
+  border-left: 4px solid var(--review);
+  border-radius: var(--radius);
+  background: var(--review-soft);
+  color: var(--ink);
+  box-shadow: 0 18px 48px color-mix(in srgb, #000 40%, transparent);
+}
+
+.approval-warning::backdrop {
+  background: color-mix(in srgb, #0c1015 48%, transparent);
+}
+
+.approval-warning p {
+  margin: 0 0 12px;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.approval-warning .btn {
+  display: block;
+  margin-left: auto;
+}
+
 .settings-toolbar {
   position: sticky;
   z-index: 2;

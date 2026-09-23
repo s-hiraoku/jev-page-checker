@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Check } from "../lib/checkkit.js";
 import { unknownErrorMessage } from "../lib/errors.js";
 import { parseLocale, parseTheme, type ExtensionSettings } from "../lib/settings.js";
@@ -17,6 +17,7 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
   const [draft, setDraft] = useState(settings);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [approvalWarning, setApprovalWarning] = useState(false);
   const approved = draft.ackedVersion === definitionVersion;
   useTheme(draft.theme);
   const locale = useResolvedLocale(draft.locale);
@@ -32,15 +33,24 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
         approved={approved}
         busy={busy}
         message={message}
+        approvalWarning={approvalWarning}
         questions={questions}
         definitionVersion={definitionVersion}
         update={update}
+        onDismissWarning={() => setApprovalWarning(false)}
         onSubmit={() => {
           setBusy(true);
           setMessage(null);
+          const missingApproval = draft.ackedVersion !== definitionVersion;
           void onSave(draft)
-            .then(() => setMessage("saved"))
-            .catch((error: unknown) => setMessage(unknownErrorMessage(error)))
+            .then(() => {
+              setMessage("saved");
+              setApprovalWarning(missingApproval);
+            })
+            .catch((error: unknown) => {
+              setMessage(unknownErrorMessage(error));
+              setApprovalWarning(false);
+            })
             .finally(() => setBusy(false));
         }}
       />
@@ -53,18 +63,22 @@ function SettingsFields({
   approved,
   busy,
   message,
+  approvalWarning,
   questions,
   definitionVersion,
   update,
+  onDismissWarning,
   onSubmit,
 }: {
   draft: ExtensionSettings;
   approved: boolean;
   busy: boolean;
   message: string | null;
+  approvalWarning: boolean;
   questions: readonly Check[];
   definitionVersion: number;
   update: <K extends keyof ExtensionSettings>(key: K, value: ExtensionSettings[K]) => void;
+  onDismissWarning: () => void;
   onSubmit: () => void;
 }) {
   const copy = useCopy();
@@ -160,18 +174,24 @@ function SettingsFields({
         </fieldset>
       </div>
 
-      <ChecklistView questions={questions} />
-
-      <section className="settings-approval">
-        <div>
-          <h2>{copy.approvalTitle}</h2>
-          <p className="help">{copy.approvalHelp}</p>
-        </div>
-        <label className="setting-toggle approval-toggle">
-          <input type="checkbox" checked={approved} onChange={(event) => update("ackedVersion", event.target.checked ? definitionVersion : null)} />
-          <span><strong>{copy.ackLabel}</strong></span>
-        </label>
-      </section>
+      <ChecklistView
+        questions={questions}
+        afterHeading={
+          <>
+            <section className="settings-approval">
+              <div>
+                <h2>{copy.approvalTitle}</h2>
+                <p className="help">{copy.approvalHelp}</p>
+              </div>
+              <label className="setting-toggle approval-toggle">
+                <input type="checkbox" checked={approved} onChange={(event) => update("ackedVersion", event.target.checked ? definitionVersion : null)} />
+                <span><strong>{copy.ackLabel}</strong></span>
+              </label>
+            </section>
+            {approvalWarning ? <ApprovalWarningDialog onClose={onDismissWarning} /> : null}
+          </>
+        }
+      />
 
       <div className="toolbar settings-toolbar">
         <button className="btn" type="submit" disabled={busy}>
@@ -180,5 +200,37 @@ function SettingsFields({
         {message ? <p className="help" role="status" aria-live="polite">{message === "saved" ? copy.saved : message}</p> : null}
       </div>
     </form>
+  );
+}
+
+function ApprovalWarningDialog({ onClose }: { onClose: () => void }) {
+  const copy = useCopy();
+  const ref = useRef<HTMLDialogElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    const dialog = ref.current;
+    if (!dialog) return;
+    let ignoreClose = false;
+    const onDialogClose = () => {
+      if (!ignoreClose) onCloseRef.current();
+    };
+    dialog.addEventListener("close", onDialogClose);
+    if (!dialog.open) dialog.showModal();
+    return () => {
+      ignoreClose = true;
+      dialog.removeEventListener("close", onDialogClose);
+      if (dialog.open) dialog.close();
+    };
+  }, []);
+
+  return (
+    <dialog ref={ref} className="approval-warning" aria-labelledby="approval-warning-text">
+      <p id="approval-warning-text">{copy.approvalUncheckedWarning}</p>
+      <button type="button" className="btn" onClick={() => ref.current?.close()}>
+        {copy.dismiss}
+      </button>
+    </dialog>
   );
 }
