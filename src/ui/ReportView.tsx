@@ -4,6 +4,7 @@ import { formatCheckedAt } from "../lib/format.js";
 import type { PageKind, PageSnapshot } from "../lib/page-state.js";
 import type { ItemResult, Verdict } from "../lib/checkkit.js";
 import { CATEGORY_RUBRICS, type ContentCategoryId } from "../lib/category-rubrics.js";
+import { isSiteTypeId, siteTypeLabel } from "../lib/site-type.js";
 import { verdictRemark } from "../lib/labels.js";
 import type { ResolvedLocale } from "../lib/locale.js";
 import type { StoredRecord } from "../lib/session.js";
@@ -50,6 +51,15 @@ function summaryCategory(record: StoredRecord, locale: ResolvedLocale, copy: Cop
   if (classification.status === "not_applicable") return copy.classificationStatusNotApplicable;
   if (classification.primary) return classificationCategory(classification.primary, locale);
   return copy.classificationStatusReview;
+}
+
+function siteTypeText(record: StoredRecord, locale: ResolvedLocale, copy: Copy): string | undefined {
+  const siteType = record.report.siteType;
+  if (siteType === undefined) return undefined;
+  if (siteType.status === "classified" && siteType.id !== undefined && isSiteTypeId(siteType.id)) {
+    return `${copy.siteTypeTitle} ${siteTypeLabel(siteType.id, locale)}`;
+  }
+  return `${copy.siteTypeTitle} ${copy.siteTypeReview}`;
 }
 
 function LaneRemarks({ lines }: { lines: readonly string[] }) {
@@ -206,6 +216,7 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
   const siteLines = laneRemarkLines(record.report.items, siteIds, remarkFor);
   const bodyLines = laneRemarkLines(record.report.items, bodyIds, remarkFor);
   const categoryTitle = summaryCategory(record, locale, copy);
+  const siteTypeLine = siteTypeText(record, locale, copy);
   const sendKind = bodySendKind(inspection);
   const snapshot = record.snapshot;
   const sentLabel = sendKind === "unread" ? copy.sentUnread : sendKind === "chunked" ? copy.sentChunked : copy.sentBody;
@@ -228,6 +239,7 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
         <div className="lane-stack">
           <Lane title={copy.site} verdict={siteVerdict} />
           <LaneRemarks lines={siteLines} />
+          {siteTypeLine ? <p className="site-type-line">{siteTypeLine}</p> : null}
         </div>
         <div className="lane-stack">
           <Lane title={copy.body} verdict={bodyVerdict} />
