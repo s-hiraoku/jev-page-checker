@@ -13,6 +13,7 @@ import {
   softenSynthesisErrors,
   withholdBodyPassOnTruncation,
   worseVerdict,
+  laneRemarkLines,
   worstVerdict,
 } from "./groups.js";
 
@@ -52,6 +53,26 @@ test("worstVerdict prefers fail over review over pass and ignores the other lane
   assert.equal(worstVerdict(items, siteIds), "review");
   assert.equal(worstVerdict(items, bodyIds), "fail");
   assert.equal(worstVerdict([item("self_consistent", "not_applicable")], bodyIds), "not_applicable");
+});
+
+test("laneRemarkLines keeps the worst three remarks and skips not-applicable while another verdict exists", () => {
+  const items = [
+    item("identifiable_publisher", "pass"),
+    item("honest_identity", "fail"),
+    item("site_purpose", "review"),
+    item("disclosed_incentives", "pass"),
+    item("evidence_for_claims", "not_applicable"),
+  ];
+  assert.deepEqual(laneRemarkLines(items, [...siteIds, ...bodyIds], (id, verdict) => `${id}:${verdict}`), [
+    "honest_identity:fail",
+    "site_purpose:review",
+    "disclosed_incentives:pass",
+  ]);
+  assert.deepEqual(laneRemarkLines(items, ["evidence_for_claims"], (id, verdict) => `${verdict}:${id}`), [
+    "not_applicable:evidence_for_claims",
+  ]);
+  assert.deepEqual(laneRemarkLines(items, siteIds, () => "same"), ["same"]);
+  assert.deepEqual(laneRemarkLines(items, siteIds, () => "  "), []);
 });
 
 test("worseVerdict compares two verdicts without inventing question ids", () => {

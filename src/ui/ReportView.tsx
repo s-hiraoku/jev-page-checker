@@ -1,9 +1,11 @@
 import type { Copy } from "../lib/copy.js";
-import { bodySendKind, worstVerdict } from "../lib/groups.js";
+import { bodySendKind, laneRemarkLines, worstVerdict } from "../lib/groups.js";
 import { formatCheckedAt } from "../lib/format.js";
 import type { PageKind, PageSnapshot } from "../lib/page-state.js";
-import type { ItemResult } from "../lib/checkkit.js";
+import type { ItemResult, Verdict } from "../lib/checkkit.js";
 import { CATEGORY_RUBRICS, type ContentCategoryId } from "../lib/category-rubrics.js";
+import { verdictRemark } from "../lib/labels.js";
+import type { ResolvedLocale } from "../lib/locale.js";
 import type { StoredRecord } from "../lib/session.js";
 import { citeSource, displayCharacterRange } from "../lib/report-evidence.js";
 import { ItemList } from "./ItemList.js";
@@ -40,6 +42,24 @@ function classificationReason(code: string | undefined, reason: string | undefin
     return copy.classificationReasons[code as keyof typeof copy.classificationReasons];
   }
   return reason;
+}
+
+function summaryCategory(record: StoredRecord, locale: ResolvedLocale, copy: Copy): string {
+  const classification = record.report.classification;
+  if (classification === undefined) return copy.classificationOld;
+  if (classification.status === "not_applicable") return copy.classificationStatusNotApplicable;
+  if (classification.primary) return classificationCategory(classification.primary, locale);
+  return copy.classificationStatusReview;
+}
+
+function LaneRemarks({ lines }: { lines: readonly string[] }) {
+  const copy = useCopy();
+  if (lines.length === 0) return null;
+  return (
+    <ul className="lane-remarks" aria-label={copy.remark}>
+      {lines.map((line) => <li key={line}>{line}</li>)}
+    </ul>
+  );
 }
 
 function ClassificationResult({ record, compact }: { record: StoredRecord; compact: boolean }) {
@@ -182,6 +202,10 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
   const bodyIds = inspection?.bodyQuestionIds ?? [];
   const siteVerdict = worstVerdict(record.report.items, siteIds);
   const bodyVerdict = worstVerdict(record.report.items, bodyIds);
+  const remarkFor = (id: string, verdict: Verdict) => verdictRemark(id, verdict, locale, record.report.definition.version);
+  const siteLines = laneRemarkLines(record.report.items, siteIds, remarkFor);
+  const bodyLines = laneRemarkLines(record.report.items, bodyIds, remarkFor);
+  const categoryTitle = summaryCategory(record, locale, copy);
   const sendKind = bodySendKind(inspection);
   const snapshot = record.snapshot;
   const sentLabel = sendKind === "unread" ? copy.sentUnread : sendKind === "chunked" ? copy.sentChunked : copy.sentBody;
@@ -193,9 +217,22 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
         <a className="report-url" href={snapshot.url} target="_blank" rel="noreferrer">{snapshot.url}</a>
         {!compact ? <p className="report-time">{copy.checkedAt} · {formatCheckedAt(record.createdAt, locale)}</p> : null}
       </header>
+      <p className="report-summary">
+        <span>{copy.site} {copy.verdictLabels[siteVerdict]}</span>
+        <span aria-hidden="true">|</span>
+        <span>{copy.body} {copy.verdictLabels[bodyVerdict]}</span>
+        <span aria-hidden="true">|</span>
+        <span>{categoryTitle}</span>
+      </p>
       <div className="lanes">
-        <Lane title={copy.site} verdict={siteVerdict} />
-        <Lane title={copy.body} verdict={bodyVerdict} />
+        <div className="lane-stack">
+          <Lane title={copy.site} verdict={siteVerdict} />
+          <LaneRemarks lines={siteLines} />
+        </div>
+        <div className="lane-stack">
+          <Lane title={copy.body} verdict={bodyVerdict} />
+          <LaneRemarks lines={bodyLines} />
+        </div>
       </div>
       <ClassificationResult record={record} compact={compact} />
       <section className="report-charts" aria-label={copy.chartDetails}>

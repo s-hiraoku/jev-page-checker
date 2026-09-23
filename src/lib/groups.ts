@@ -46,6 +46,31 @@ export function worstVerdict(items: readonly { id: string; verdict: Verdict }[],
   return worst;
 }
 
+/** Up to three remark lines for one lane, worst verdict first. Not-applicable lines fill only an otherwise empty lane. */
+export function laneRemarkLines(
+  items: readonly { id: string; verdict: Verdict }[],
+  ids: readonly string[],
+  remark: (id: string, verdict: Verdict) => string,
+  limit = 3,
+): string[] {
+  const allowed = new Set(ids);
+  const ranked = items
+    .filter((item) => allowed.has(item.id))
+    .sort((left, right) => RANK[right.verdict] - RANK[left.verdict] || left.id.localeCompare(right.id));
+  const lines: string[] = [];
+  const take = (pool: readonly { id: string; verdict: Verdict }[]) => {
+    for (const item of pool) {
+      const line = remark(item.id, item.verdict).trim();
+      if (line.length === 0 || lines.includes(line)) continue;
+      lines.push(line);
+      if (lines.length === limit) return;
+    }
+  };
+  const applicable = ranked.filter((item) => item.verdict !== "not_applicable");
+  take(applicable.length > 0 ? applicable : ranked);
+  return lines;
+}
+
 export function bodySendKind(inspection: ReportInspection | undefined): "unread" | "chunked" | "whole" {
   if (inspection === undefined) return "whole";
   if (inspection.unreadRemainder) return "unread";
