@@ -109,13 +109,22 @@ test("accepts a short article with exact title evidence and no fabricated body o
   assert.deepEqual(result.evidence, { text: page.title, source: "title" });
 });
 
-test("keeps a secondary category only when it ranks strictly below the primary", async () => {
+test("keeps a material secondary even when its separate choice is more confident than the primary", async () => {
   const kept = await classifyContent(snapshot(), [windowFor(body)], scriptedGateway(() => choices("reporting", "guide", "s1", 0.9, 0.7)), categories);
   assert.equal(kept.status, "classified");
   assert.equal(kept.primary, "reporting");
   assert.equal(kept.secondary, "guide");
   assert.equal(kept.secondaryConfidence, 0.7);
-  const tied = await classifyContent(snapshot(), [windowFor(body)], scriptedGateway(() => choices("reporting", "guide")), categories);
+  const lowPrimary = await classifyContent(snapshot(), [windowFor(body)], scriptedGateway(() => ({
+    ...distributed({ reporting: 0.55, guide: 0.45 }, "reporting"),
+    content_secondary: { type: "choice", choice: "guide", confidence: 0.7, probabilities: { guide: 0.7, none: 0.3 } },
+  })), categories);
+  assert.equal(lowPrimary.status, "classified");
+  assert.equal(lowPrimary.secondary, "guide");
+  const tied = await classifyContent(snapshot(), [windowFor(body)], scriptedGateway(() => ({
+    ...choices("reporting"),
+    content_secondary: { type: "choice", choice: "guide", confidence: 0.5, probabilities: { guide: 0.5, none: 0.5 } },
+  })), categories);
   assert.equal(tied.status, "classified");
   assert.equal(tied.primary, "reporting");
   assert.equal(tied.secondary, undefined);
@@ -153,6 +162,9 @@ test("holds Jev labels that are outside the supplied category options", async ()
   assert.equal(result.status, "review");
   assert.equal(result.reasonCode, "unknown_primary");
   assert.match(result.reason ?? "", /outside the supplied options/);
+  const unknownLeader = await classifyContent(snapshot(), [windowFor(body)], scriptedGateway(() => distributed({ invented_category: 0.6, reporting: 0.4 }, "reporting")), categories);
+  assert.equal(unknownLeader.status, "review");
+  assert.equal(unknownLeader.reasonCode, "unknown_primary");
 });
 
 test("breaks a tie across windows into one primary category", async () => {
@@ -164,6 +176,25 @@ test("breaks a tie across windows into one primary category", async () => {
   assert.equal(result.secondary, undefined);
   assert.equal(result.windows.length, 2);
   assert.equal(gateway.calls, 2);
+});
+
+test("does not classify a page from a minority window when most windows lead with unclear", async () => {
+  const windows = [windowFor(body), windowFor(body), windowFor(body)];
+  const gateway = scriptedGateway((call) => choices(call === 2 ? "reporting" : "unclear"));
+  const result = await classifyContent(snapshot(), windows, gateway, categories);
+  assert.equal(result.status, "review");
+  assert.equal(result.reasonCode, "unclear_category");
+  assert.equal(result.windows.length, 3);
+});
+
+test("an unclear window cannot add a secondary category to a classified majority", async () => {
+  const gateway = scriptedGateway((call) => call === 3
+    ? choices("unclear", "guide", "s1", 0.8, 0.7)
+    : choices("reporting"));
+  const result = await classifyContent(snapshot(), [windowFor(body), windowFor(body), windowFor(body)], gateway, categories);
+  assert.equal(result.status, "classified");
+  assert.equal(result.primary, "reporting");
+  assert.equal(result.secondary, undefined);
 });
 
 test("keeps a lower secondary category when another window names the same primary", async () => {

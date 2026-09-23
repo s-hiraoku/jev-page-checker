@@ -141,11 +141,14 @@ function rankedLabel(
   allowed: ReadonlySet<string>,
   order: readonly string[],
 ): RankedLabel | "unknown" {
+  if (!allowed.has(answer.choice) && answer.choice !== UNCLEAR) return "unknown";
   const scores = new Map<string, number>();
   for (const [label, value] of Object.entries(answer.probabilities)) {
-    if (Number.isFinite(value) && (allowed.has(label) || label === UNCLEAR)) scores.set(label, value);
+    if ((!allowed.has(label) && label !== UNCLEAR) || !Number.isFinite(value) || value < 0 || value > 1) return "unknown";
+    scores.set(label, value);
   }
-  if ((allowed.has(answer.choice) || answer.choice === UNCLEAR) && !scores.has(answer.choice)) {
+  if (!scores.has(answer.choice)) {
+    if (!Number.isFinite(answer.confidence) || answer.confidence < 0 || answer.confidence > 1) return "unknown";
     scores.set(answer.choice, answer.confidence);
   }
   if (scores.size === 0) return "unknown";
@@ -165,11 +168,24 @@ function rankedSecondary(
   order: readonly string[],
   primary: RankedLabel,
 ): RankedLabel | "unknown" | undefined {
-  if (answer.choice === NONE || primary.id === UNCLEAR) return undefined;
-  const ranked = rankedLabel(answer, allowed, order);
-  if (ranked === "unknown") return "unknown";
-  if (ranked.id === UNCLEAR || ranked.id === primary.id || ranked.score >= primary.score) return undefined;
-  return ranked;
+  if (!allowed.has(answer.choice) && answer.choice !== NONE) return "unknown";
+  if (primary.id === UNCLEAR) return undefined;
+  const scores = new Map<string, number>();
+  for (const [label, value] of Object.entries(answer.probabilities)) {
+    if ((!allowed.has(label) && label !== NONE) || !Number.isFinite(value) || value < 0 || value > 1) return "unknown";
+    scores.set(label, value);
+  }
+  if (!scores.has(answer.choice)) {
+    if (!Number.isFinite(answer.confidence) || answer.confidence < 0 || answer.confidence > 1) return "unknown";
+    scores.set(answer.choice, answer.confidence);
+  }
+  const best = Math.max(...scores.values());
+  if (scores.get(NONE) === best || scores.get(primary.id) === best) return undefined;
+  const leaders = [...scores.keys()].filter((label) => label !== NONE && label !== primary.id && scores.get(label) === best);
+  const id = leaders.includes(answer.choice)
+    ? answer.choice
+    : leaders.sort((left, right) => orderIndex(left, order) - orderIndex(right, order))[0];
+  return id === undefined ? undefined : { id, score: best };
 }
 
 function rankTally(tally: ReadonlyMap<string, { count: number; score: number }>, order: readonly string[]): string | undefined {
@@ -286,14 +302,14 @@ export async function classifyContent(
 
   const tally = new Map<string, { count: number; score: number }>();
   for (const result of resultWindows) {
-    if (result.primary === undefined || result.primary === UNCLEAR) continue;
+    if (result.primary === undefined) continue;
     const current = tally.get(result.primary) ?? { count: 0, score: 0 };
     current.count += 1;
     current.score += result.confidence ?? 0;
     tally.set(result.primary, current);
   }
   const primary = rankTally(tally, order);
-  if (primary === undefined) {
+  if (primary === undefined || primary === UNCLEAR) {
     return review("unclear_category", "The leading category is unclear.", resultWindows, usage, started, jevMs);
   }
   const winnerWindows = resultWindows.filter((item) => item.primary === primary);
@@ -301,7 +317,6 @@ export async function classifyContent(
   const secondaryTally = new Map<string, { count: number; score: number }>();
   for (const result of resultWindows) {
     if (result.secondary === undefined || result.secondary === primary) continue;
-    if ((result.secondaryConfidence ?? 0) >= primaryScore) continue;
     const current = secondaryTally.get(result.secondary) ?? { count: 0, score: 0 };
     current.count += 1;
     current.score += result.secondaryConfidence ?? 0;
