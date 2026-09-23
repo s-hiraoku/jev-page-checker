@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { Check } from "../lib/checkkit.js";
 import { unknownErrorMessage } from "../lib/errors.js";
 import { parseLocale, parseTheme, type ExtensionSettings } from "../lib/settings.js";
@@ -205,30 +205,10 @@ function SettingsFields({
 
 function ApprovalWarningDialog({ onClose }: { onClose: () => void }) {
   const copy = useCopy();
-  const ref = useRef<HTMLDialogElement>(null);
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
-
-  useEffect(() => {
-    const dialog = ref.current;
-    if (!dialog) return;
-    let ignoreClose = false;
-    const onDialogClose = () => {
-      if (!ignoreClose) onCloseRef.current();
-    };
-    dialog.addEventListener("close", onDialogClose);
-    if (!dialog.open) dialog.showModal();
-    return () => {
-      ignoreClose = true;
-      dialog.removeEventListener("close", onDialogClose);
-      if (dialog.open) dialog.close();
-    };
-  }, []);
-
   return (
-    <dialog ref={ref} className="approval-warning" aria-labelledby="approval-warning-text">
+    <dialog open className="approval-warning" aria-labelledby="approval-warning-text">
       <p id="approval-warning-text">{copy.approvalUncheckedWarning}</p>
-      <button type="button" className="btn" onClick={() => ref.current?.close()}>
+      <button type="button" className="btn" onClick={onClose}>
         {copy.dismiss}
       </button>
     </dialog>
