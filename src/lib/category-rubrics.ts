@@ -24,7 +24,6 @@ export interface ConditionalProbe extends CategoryRubricItem {
 }
 export interface CategoryRubric {
   label: BilingualLabel;
-  /** What this category is for. Shared by every URL; not an evaluation question. */
   purpose: BilingualLabel;
   items: readonly CategoryRubricItem[];
   conditionalProbes: readonly ConditionalProbe[];
@@ -229,7 +228,6 @@ export const CATEGORY_RUBRICS = Object.fromEntries(
   }]),
 ) as unknown as Readonly<Record<ContentCategoryId, CategoryRubric>>;
 
-/** Choice text for the primary category. Purposes differ; evaluation questions are not reused here. */
 export function categoryChoiceDescriptions(): Record<string, string> {
   return Object.fromEntries(CONTENT_CATEGORY_IDS.map((id) => {
     const rubric = CATEGORY_RUBRICS[id];
