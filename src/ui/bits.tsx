@@ -29,7 +29,7 @@ export function Lane({ title, verdict }: { title: string; verdict: Verdict }) {
   );
 }
 
-export function AnswerView({ id, answer }: { id: string; answer?: JevAnswer }) {
+export function AnswerView({ id, answer, definitionVersion }: { id: string; answer?: JevAnswer; definitionVersion?: number }) {
   const locale = useLocale();
   const copy = useCopy();
   if (answer === undefined) return null;
@@ -44,7 +44,7 @@ export function AnswerView({ id, answer }: { id: string; answer?: JevAnswer }) {
   if (answer.type === "choice") {
     return (
       <div className="answer-view">
-        <strong className="answer-label">{choiceLabel(id, answer.choice, locale)}</strong>
+        <strong className="answer-label">{choiceLabel(id, answer.choice, locale, definitionVersion)}</strong>
         <p className="answer-metric"><span>{copy.answerConfidence}</span><strong>{percent(answer.confidence, locale)}</strong></p>
         <details className="answer-distribution">
           <summary>{copy.probabilityDetails}</summary>
@@ -53,7 +53,7 @@ export function AnswerView({ id, answer }: { id: string; answer?: JevAnswer }) {
               .sort((left, right) => right[1] - left[1])
               .map(([key, probability]) => (
                 <li key={key}>
-                  <span>{choiceLabel(id, key, locale)}</span>
+                  <span>{choiceLabel(id, key, locale, definitionVersion)}</span>
                   <strong>{percent(probability, locale)}</strong>
                 </li>
               ))}

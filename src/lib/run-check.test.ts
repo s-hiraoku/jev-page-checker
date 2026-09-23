@@ -235,7 +235,7 @@ test("each cite question asks for the sentence that bears on that question", () 
   }
 });
 
-test("a miracle-cure sales page fails site safety and body scrutiny", async () => {
+test("a miracle-cure sales page fails safety and body scrutiny without penalizing clear purpose", async () => {
   const report = await reportOf("page-credibility-fail.json");
   assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "fail");
   assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "fail");
@@ -251,9 +251,9 @@ test("a miracle-cure sales page fails site safety and body scrutiny", async () =
     report.items.find((item) => item.id === "unsourced_specifics")?.cite,
   );
   assert.match(report.items.find((item) => item.id === "self_consistent")?.cite ?? "", /three days/);
-  assert.match(report.items.find((item) => item.id === "certainty_matches_evidence")?.cite ?? "", /six-month supply/);
+  assert.match(report.items.find((item) => item.id === "certainty_matches_evidence")?.cite ?? "", /one unmarked capsule reverses aging in 11 days/);
   assert.match(report.items.find((item) => item.id === "identifiable_publisher")?.cite ?? "", /manufacturer is named/);
-  assert.equal(report.items.find((item) => item.id === "site_purpose")?.verdict, "review");
+  assert.equal(report.items.find((item) => item.id === "site_purpose")?.verdict, "pass");
   assert.match(report.items.find((item) => item.id === "site_purpose")?.cite ?? "", /six-month supply/);
   assert.equal(report.items.find((item) => item.id === "disclosed_incentives")?.verdict, "fail");
   assert.match(report.items.find((item) => item.id === "disclosed_incentives")?.cite ?? "", /Order now/);

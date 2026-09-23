@@ -12,7 +12,7 @@ import type {
 import type { PageSpanSource } from "./spans.js";
 
 export type Verdict = "pass" | "fail" | "review" | "not_applicable" | "error";
-export type MappedVerdict = Extract<Verdict, "pass" | "fail" | "review">;
+export type MappedVerdict = Extract<Verdict, "pass" | "fail" | "review" | "not_applicable">;
 
 export type CheckerId = string & { readonly __brand: "CheckerId" };
 export type QuestionId = string & { readonly __brand: "QuestionId" };
@@ -97,6 +97,26 @@ export interface ReportInspection {
   unreadRemainder: boolean;
   siteQuestionIds: readonly string[];
   bodyQuestionIds: readonly string[];
+  /** Category-specific body groups used to keep primary and secondary radars separate. */
+  bodyQuestionGroups?: readonly { categoryId: string; questionIds: readonly string[] }[];
+}
+
+/** Optional content classification captured when the report was created. */
+export interface ContentClassificationSummary {
+  status: "classified" | "review" | "not_applicable";
+  reasonCode?: string;
+  reason?: string;
+  primary?: string;
+  secondary?: string;
+  confidence?: number;
+  secondaryConfidence?: number;
+  evidence?: {
+    text: string;
+    source: PageSpanSource;
+    /** Present only for a citation from the body. */
+    start?: number;
+    end?: number;
+  };
 }
 
 export interface CheckReport {
@@ -105,4 +125,5 @@ export interface CheckReport {
   usage: Usage;
   timing: { wallMs: number; jevMs: number };
   inspection?: ReportInspection;
+  classification?: ContentClassificationSummary;
 }

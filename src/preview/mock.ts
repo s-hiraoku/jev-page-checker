@@ -1,16 +1,41 @@
 import { parseDefinition } from "../lib/checkkit.js";
+import { buildCategoryDefinition } from "../lib/category-definition.js";
 import type { Bridge } from "../lib/bridge.js";
 import { JEV_ENGLISH_CHARS_PER_TOKEN, bodyTokenBudget } from "../lib/jev-budget.js";
 import { checkReplay, REPLAY_CLOCK, type ReplayFixture } from "../lib/replay.js";
 import { DEFAULT_SETTINGS, parseSettings, type ExtensionSettings } from "../lib/settings.js";
 import { buildSessionPayload, withoutRecord, type SessionPayload, type StoredRecord } from "../lib/session.js";
+import type { ContentClassificationSummary } from "../../runner/types.js";
 import definitionRaw from "../../fixtures/page-credibility.checker.json";
 import failReplay from "../../fixtures/replay/page-credibility-fail.json";
 import passReplay from "../../fixtures/replay/page-credibility-pass.json";
 
-const definition = parseDefinition(definitionRaw);
+const legacyDefinition = parseDefinition(definitionRaw);
+// Preview fixtures keep their v8 Jev answers; the shell and Settings page still
+// expose the current v9 question list used by the extension runtime.
+const definition = buildCategoryDefinition(legacyDefinition);
+
+function previewClassification(replay: ReplayFixture): ContentClassificationSummary {
+  if (!replay.state.hasArticle || !replay.state.hasBody || replay.state.text.length === 0) {
+    return {
+      status: "not_applicable",
+      reasonCode: "no_single_body",
+      reason: "このページには分類できる本文がありません。",
+    };
+  }
+  const sales = /order|pill|buy|購入|注文/i.test(`${replay.state.title} ${replay.state.metaDescription}`);
+  return {
+    status: "classified",
+    primary: sales ? "sales" : "reporting",
+    confidence: 0.9,
+    evidence: { text: replay.state.title, source: "title" },
+  };
+}
 
 async function recordFrom(replay: ReplayFixture, id: string, createdAt: string): Promise<StoredRecord> {
+  const report = await checkReplay(legacyDefinition, replay);
+  const classification = previewClassification(replay);
+  const bodyQuestionIds = report.inspection?.bodyQuestionIds ?? [];
   return {
     id,
     tabId: 1,
@@ -19,7 +44,13 @@ async function recordFrom(replay: ReplayFixture, id: string, createdAt: string):
       extractedAt: REPLAY_CLOCK,
       textTruncated: replay.state.textTruncated ?? false,
     },
-    report: await checkReplay(definition, replay),
+    report: {
+      ...report,
+      classification,
+      inspection: report.inspection === undefined || classification.primary === undefined || bodyQuestionIds.length === 0
+        ? report.inspection
+        : { ...report.inspection, bodyQuestionGroups: [{ categoryId: classification.primary, questionIds: bodyQuestionIds }] },
+    },
     createdAt,
   };
 }

@@ -3,6 +3,7 @@ import { bodySendKind, worstVerdict } from "../lib/groups.js";
 import { formatCheckedAt } from "../lib/format.js";
 import type { PageKind, PageSnapshot } from "../lib/page-state.js";
 import type { ItemResult } from "../lib/checkkit.js";
+import { CATEGORY_RUBRICS, type ContentCategoryId } from "../lib/category-rubrics.js";
 import type { StoredRecord } from "../lib/session.js";
 import { citeSource, displayCharacterRange } from "../lib/report-evidence.js";
 import { ItemList } from "./ItemList.js";
@@ -16,6 +17,68 @@ function kindLabel(kind: PageKind, copy: Copy): string {
 
 function hostLine(hosts: readonly string[], copy: Copy): string {
   return hosts.length === 0 ? copy.noHosts : hosts.join(", ");
+}
+
+function classificationCategory(id: string, locale: string): string {
+  const rubric = CATEGORY_RUBRICS[id as ContentCategoryId];
+  return rubric?.label[locale === "ja" ? "ja" : "en"] ?? id;
+}
+
+function classificationSource(source: string, copy: Copy): string {
+  switch (source) {
+    case "title": return copy.sourceTitle;
+    case "metaDescription": return copy.sourceDescription;
+    case "body": return copy.sourceBody;
+    case "siteName": return copy.sourceSiteName;
+    case "author": return copy.sourceAuthor;
+    default: return copy.sourcePage;
+  }
+}
+
+function classificationReason(code: string | undefined, reason: string | undefined, copy: Copy): string | undefined {
+  if (code !== undefined && Object.hasOwn(copy.classificationReasons, code)) {
+    return copy.classificationReasons[code as keyof typeof copy.classificationReasons];
+  }
+  return reason;
+}
+
+function ClassificationResult({ record, compact }: { record: StoredRecord; compact: boolean }) {
+  const copy = useCopy();
+  const locale = useLocale();
+  const classification = record.report.classification;
+  const reason = classificationReason(classification?.reasonCode, classification?.reason, copy);
+  const percent = (value: number) => new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 }).format(value);
+  return (
+    <section className="classification-result" id="content-classification" aria-labelledby="classification-heading">
+      <h2 id="classification-heading">{copy.classificationTitle}</h2>
+      {!classification ? <p>{copy.classificationOld}</p> : (
+        <>
+          {classification.status === "review" ? <p className="classification-status review">{copy.classificationStatusReview}</p> : null}
+          {classification.status === "not_applicable" ? <p className="classification-status">{copy.classificationStatusNotApplicable}</p> : null}
+          <dl className="classification-fields">
+            {classification.primary ? <div><dt>{copy.classificationPrimary}</dt><dd>{classificationCategory(classification.primary, locale)}</dd></div> : null}
+            {classification.secondary ? <div><dt>{copy.classificationSecondary}</dt><dd>{classificationCategory(classification.secondary, locale)}</dd></div> : null}
+          </dl>
+          {classification.evidence ? (
+            <figure className="classification-evidence">
+              <figcaption>{copy.classificationEvidence} · {classificationSource(classification.evidence.source, copy)}</figcaption>
+              <blockquote>{classification.evidence.text}</blockquote>
+            </figure>
+          ) : null}
+          {reason ? <p className="classification-reason">{copy.classificationReason}: {reason}</p> : null}
+          {!compact && classification.confidence !== undefined ? (
+            <dl className="classification-fields">
+              <div><dt>{copy.classificationConfidence}</dt><dd>{percent(classification.confidence)}</dd></div>
+              {classification.secondaryConfidence !== undefined ? <div><dt>{copy.classificationSecondary} · {copy.classificationConfidence}</dt><dd>{percent(classification.secondaryConfidence)}</dd></div> : null}
+            </dl>
+          ) : null}
+          {!compact && (classification.confidence !== undefined || classification.secondaryConfidence !== undefined) ? (
+            <p className="help classification-confidence-help">{copy.classificationConfidenceHelp}</p>
+          ) : null}
+        </>
+      )}
+    </section>
+  );
 }
 
 function HighlightedBody({ text, items, snapshot }: { text: string; items: readonly ItemResult[]; snapshot: PageSnapshot }) {
@@ -134,6 +197,7 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
         <Lane title={copy.site} verdict={siteVerdict} />
         <Lane title={copy.body} verdict={bodyVerdict} />
       </div>
+      <ClassificationResult record={record} compact={compact} />
       <section className="report-charts" aria-label={copy.chartDetails}>
         <h2>{copy.chartDetails}</h2>
         <ResultRadars
@@ -142,12 +206,14 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
           compact={compact}
           siteQuestionIds={siteIds}
           bodyQuestionIds={bodyIds}
+          bodyQuestionGroups={inspection?.bodyQuestionGroups}
+          definitionVersion={record.report.definition.version}
         />
       </section>
       {sendKind === "unread" ? <p className="notice">{copy.truncatedNotice}</p> : null}
       {sendKind === "chunked" ? <p className="help chunked-note">{copy.chunkedNotice} {copy.synthesisHelp}</p> : null}
       <p className="help result-help">{copy.resultHelp}</p>
-      <ItemList items={record.report.items} siteIds={siteIds} bodyIds={bodyIds} snapshot={snapshot} compact={compact} />
+      <ItemList items={record.report.items} siteIds={siteIds} bodyIds={bodyIds} snapshot={snapshot} compact={compact} definitionVersion={record.report.definition.version} />
       <ReviewedBody record={record} compact={compact} label={sentLabel} />
       {!compact ? <PageInformation snapshot={snapshot} copy={copy} /> : null}
       {!compact ? (

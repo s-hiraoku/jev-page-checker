@@ -47,7 +47,7 @@ function isScoreCriteria(value: unknown): value is ScoreCriteria {
   return Array.isArray(value) && value.length >= 2 && value.every(isEntryType);
 }
 
-const MAPPED_VERDICTS: Record<MappedVerdict, null> = { pass: null, fail: null, review: null };
+const MAPPED_VERDICTS: Record<MappedVerdict, null> = { pass: null, fail: null, review: null, not_applicable: null };
 
 function isMappedVerdict(value: unknown): value is MappedVerdict {
   return typeof value === "string" && Object.hasOwn(MAPPED_VERDICTS, value);
@@ -131,11 +131,16 @@ function parseChoiceCriteria(raw: unknown, field: string): ChoiceCriteria {
   );
 }
 
-function parseOptions(raw: unknown, field: string): Record<string, MappedVerdict> {
-  if (!isRecord(raw)) throw malformed(field, "an object mapping labels to pass, fail, or review");
+function parseOptions(raw: unknown, criteria: ChoiceCriteria, field: string): Record<string, MappedVerdict> {
+  if (!isRecord(raw)) throw malformed(field, "an object mapping every choice label to pass, fail, review, or not_applicable");
+  const labels = Object.keys(criteria);
+  const optionLabels = Object.keys(raw);
+  if (labels.some((label) => !Object.hasOwn(raw, label)) || optionLabels.some((label) => !Object.hasOwn(criteria, label))) {
+    throw malformed(field, "an exact mapping for every criteria label, with no extra labels");
+  }
   return Object.fromEntries(
     Object.entries(raw).map(([label, verdict]) => {
-      if (!isMappedVerdict(verdict)) throw malformed(`${field}.${label}`, '"pass", "fail", or "review"');
+      if (!isMappedVerdict(verdict)) throw malformed(`${field}.${label}`, '"pass", "fail", "review", or "not_applicable"');
       return [label, verdict] as const;
     }),
   );
@@ -159,15 +164,17 @@ function parseCheck(raw: unknown, field: string): Check {
         criteria: raw.criteria === undefined ? undefined : parseNoulCriteria(raw.criteria, `${field}.criteria`),
         ...requireBands(optionalNumber(raw.passAt, `${field}.passAt`), optionalNumber(raw.failAt, `${field}.failAt`), field),
       };
-    case "choice":
+    case "choice": {
+      const criteria = parseChoiceCriteria(raw.criteria, `${field}.criteria`);
       return {
         ...base,
         type: "choice",
-        criteria: parseChoiceCriteria(raw.criteria, `${field}.criteria`),
-        options: parseOptions(raw.options, `${field}.options`),
+        criteria,
+        options: parseOptions(raw.options, criteria, `${field}.options`),
         confidenceFloor: optionalNumber(raw.confidenceFloor, `${field}.confidenceFloor`),
         citeFor: raw.citeFor === undefined ? undefined : (requireString(raw.citeFor, `${field}.citeFor`) as QuestionId),
       };
+    }
     case "score": {
       const criteria = raw.criteria;
       if (!isScoreCriteria(criteria)) throw malformed(`${field}.criteria`, "a list of at least two descriptions");

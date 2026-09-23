@@ -3,6 +3,7 @@ import { formatCheckedAt } from "./format.js";
 import { bodySendKind } from "./groups.js";
 import { basisEntries, choiceLabel, questionLabel, verdictRemark } from "./labels.js";
 import { citeSource, displayCharacterRange } from "./report-evidence.js";
+import { CATEGORY_RUBRICS, type ContentCategoryId } from "./category-rubrics.js";
 import type { ResolvedLocale } from "./locale.js";
 import type { StoredRecord } from "./session.js";
 import type { JevAnswer } from "./checkkit.js";
@@ -16,17 +17,17 @@ function percentage(value: number, locale: ResolvedLocale): string {
   return new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 }).format(value);
 }
 
-function answerLines(id: string, answer: JevAnswer | undefined, locale: ResolvedLocale): string[] {
+function answerLines(id: string, answer: JevAnswer | undefined, locale: ResolvedLocale, definitionVersion?: number): string[] {
   if (answer === undefined) return [];
   const copy = copyFor(locale);
   if (answer.type === "noul") return [`${copy.answerProbability}: ${percentage(answer.noul, locale)}`];
   if (answer.type === "choice") {
     return [
-      `${copy.answerSelection}: ${choiceLabel(id, answer.choice, locale)}`,
+      `${copy.answerSelection}: ${choiceLabel(id, answer.choice, locale, definitionVersion)}`,
       `${copy.answerConfidence}: ${percentage(answer.confidence, locale)}`,
       `${copy.probabilityDetails}: ${Object.entries(answer.probabilities)
         .sort((left, right) => right[1] - left[1])
-        .map(([key, value]) => `${choiceLabel(id, key, locale)} ${percentage(value, locale)}`)
+        .map(([key, value]) => `${choiceLabel(id, key, locale, definitionVersion)} ${percentage(value, locale)}`)
         .join(" / ")}`,
     ];
   }
@@ -41,6 +42,41 @@ function answerLines(id: string, answer: JevAnswer | undefined, locale: Resolved
   ];
 }
 
+function classificationLines(record: StoredRecord, locale: ResolvedLocale): string[] {
+  const copy = copyFor(locale);
+  const classification = record.report.classification;
+  if (classification === undefined) return [`${copy.classificationTitle}: ${copy.classificationOld}`];
+  const category = (id: string) => CATEGORY_RUBRICS[id as ContentCategoryId]?.label[locale] ?? id;
+  const source = (id: string) => {
+    switch (id) {
+      case "title": return copy.sourceTitle;
+      case "metaDescription": return copy.sourceDescription;
+      case "body": return copy.sourceBody;
+      case "siteName": return copy.sourceSiteName;
+      case "author": return copy.sourceAuthor;
+      default: return copy.sourcePage;
+    }
+  };
+  const reason = classification.reasonCode !== undefined && Object.hasOwn(copy.classificationReasons, classification.reasonCode)
+    ? copy.classificationReasons[classification.reasonCode as keyof typeof copy.classificationReasons]
+    : classification.reason;
+  const lines = [copy.classificationTitle];
+  if (classification.status === "review") lines.push(`${copy.verdict}: ${copy.classificationStatusReview}`);
+  if (classification.status === "not_applicable") lines.push(`${copy.verdict}: ${copy.classificationStatusNotApplicable}`);
+  if (classification.primary) lines.push(`${copy.classificationPrimary}: ${category(classification.primary)}`);
+  if (classification.secondary) lines.push(`${copy.classificationSecondary}: ${category(classification.secondary)}`);
+  if (classification.evidence) {
+    lines.push(`${copy.classificationEvidence} (${source(classification.evidence.source)}): ${classification.evidence.text}`);
+  }
+  if (reason) lines.push(`${copy.classificationReason}: ${reason}`);
+  if (classification.confidence !== undefined) lines.push(`${copy.classificationConfidence}: ${percentage(classification.confidence, locale)}`);
+  if (classification.secondaryConfidence !== undefined) {
+    lines.push(`${copy.classificationSecondary} · ${copy.classificationConfidence}: ${percentage(classification.secondaryConfidence, locale)}`);
+  }
+  if (classification.confidence !== undefined || classification.secondaryConfidence !== undefined) lines.push(copy.classificationConfidenceHelp);
+  return lines;
+}
+
 export function reportFilename(record: StoredRecord): string {
   const host = record.snapshot.hostname.replace(/[^a-zA-Z0-9.-]+/g, "") || "page";
   const day = record.createdAt.slice(0, 10);
@@ -50,6 +86,7 @@ export function reportFilename(record: StoredRecord): string {
 export function reportDocument(record: StoredRecord, locale: ResolvedLocale): string {
   const copy = copyFor(locale);
   const snapshot = record.snapshot;
+  const definitionVersion = record.report.definition?.version;
   const hosts = snapshot.outboundHosts.length === 0 ? copy.noHosts : snapshot.outboundHosts.join(", ");
   const lines = [
     snapshot.title || copy.untitled,
@@ -67,12 +104,14 @@ export function reportDocument(record: StoredRecord, locale: ResolvedLocale): st
     `${copy.links}: ${snapshot.linkCount}`,
     `${copy.hosts}: ${hosts}`,
     "",
+    ...classificationLines(record, locale),
+    "",
   ];
   for (const item of record.report.items) {
-    lines.push(questionLabel(item.id, locale));
+    lines.push(questionLabel(item.id, locale, definitionVersion));
     lines.push(`${copy.verdict}: ${copy.verdictLabels[item.verdict]}`);
-    lines.push(...answerLines(item.id, item.answer, locale));
-    const remark = verdictRemark(item.id, item.verdict, locale);
+    lines.push(...answerLines(item.id, item.answer, locale, definitionVersion));
+    const remark = verdictRemark(item.id, item.verdict, locale, definitionVersion);
     if (remark) lines.push(`${copy.remark}: ${remark}`);
     if (item.cite) {
       const source = citeSource(snapshot, item.cite, item.citeLocation);

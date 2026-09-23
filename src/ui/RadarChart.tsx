@@ -4,6 +4,7 @@ import { questionAxisLabel, questionLabel } from "../lib/labels.js";
 import { polarPoint, radarAxes, type RadarAxis } from "../lib/radar-values.js";
 import type { ItemResult, Verdict } from "../lib/checkkit.js";
 import { useCopy, useLocale } from "./useLocale.js";
+import { CATEGORY_RUBRICS, type ContentCategoryId } from "../lib/category-rubrics.js";
 
 const RINGS = [1 / 3, 2 / 3, 1];
 const GROW_MS = 1100;
@@ -175,30 +176,34 @@ export function ResultRadars({
   compact = false,
   siteQuestionIds,
   bodyQuestionIds,
+  bodyQuestionGroups,
+  definitionVersion,
 }: {
   items: readonly ItemResult[];
   compact?: boolean;
   siteQuestionIds: readonly string[];
   bodyQuestionIds: readonly string[];
+  bodyQuestionGroups?: readonly { categoryId: string; questionIds: readonly string[] }[];
+  definitionVersion?: number;
 }) {
   const locale = useLocale();
   const copy = useCopy();
   const site = radarAxes(
     items,
     siteQuestionIds,
-    (id) => questionLabel(id, locale),
-    (id) => questionAxisLabel(id, locale),
+    (id) => questionLabel(id, locale, definitionVersion),
+    (id) => questionAxisLabel(id, locale, definitionVersion),
   );
-  const page = radarAxes(
-    items,
-    bodyQuestionIds,
-    (id) => questionLabel(id, locale),
-    (id) => questionAxisLabel(id, locale),
-  );
+  const groups = bodyQuestionGroups?.length ? bodyQuestionGroups : [{ categoryId: "body", questionIds: bodyQuestionIds }];
   return (
     <div className={`radar-pair${compact ? " compact" : ""}`}>
       <RadarChart title={copy.site} axes={site} compact={compact} verdict={worstVerdict(items, siteQuestionIds)} />
-      <RadarChart title={copy.body} axes={page} compact={compact} verdict={worstVerdict(items, bodyQuestionIds)} />
+      {groups.map((group) => {
+        const rubric = CATEGORY_RUBRICS[group.categoryId as ContentCategoryId];
+        const title = rubric?.label[locale] ?? copy.body;
+        const axes = radarAxes(items, group.questionIds, (id) => questionLabel(id, locale, definitionVersion), (id) => questionAxisLabel(id, locale, definitionVersion));
+        return <RadarChart key={group.categoryId} title={title} axes={axes} compact={compact} verdict={worstVerdict(items, group.questionIds)} />;
+      })}
     </div>
   );
 }
