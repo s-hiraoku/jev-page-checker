@@ -1,4 +1,5 @@
 import { parseDefinition } from "../lib/checkkit.js";
+import { buildCategoryDefinition } from "../lib/category-definition.js";
 import type { Bridge } from "../lib/bridge.js";
 import { JEV_ENGLISH_CHARS_PER_TOKEN, bodyTokenBudget } from "../lib/jev-budget.js";
 import { checkReplay, REPLAY_CLOCK, type ReplayFixture } from "../lib/replay.js";
@@ -9,7 +10,10 @@ import definitionRaw from "../../fixtures/page-credibility.checker.json";
 import failReplay from "../../fixtures/replay/page-credibility-fail.json";
 import passReplay from "../../fixtures/replay/page-credibility-pass.json";
 
-const definition = parseDefinition(definitionRaw);
+const legacyDefinition = parseDefinition(definitionRaw);
+// Preview fixtures keep their v8 Jev answers; the shell and Settings page still
+// expose the current v9 question list used by the extension runtime.
+const definition = buildCategoryDefinition(legacyDefinition);
 
 function previewClassification(replay: ReplayFixture): ContentClassificationSummary {
   if (!replay.state.hasArticle || !replay.state.hasBody || replay.state.text.length === 0) {
@@ -29,7 +33,7 @@ function previewClassification(replay: ReplayFixture): ContentClassificationSumm
 }
 
 async function recordFrom(replay: ReplayFixture, id: string, createdAt: string): Promise<StoredRecord> {
-  const report = await checkReplay(definition, replay);
+  const report = await checkReplay(legacyDefinition, replay);
   return {
     id,
     tabId: 1,
