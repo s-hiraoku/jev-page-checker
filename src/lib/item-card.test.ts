@@ -38,17 +38,16 @@ const snapshot = {
 
 function htmlFor(item: ItemResult): string {
   return renderToStaticMarkup(
-    createElement(
-      LocaleProvider,
-      { locale: "ja" },
-      createElement(ItemList, {
+    createElement(LocaleProvider, {
+      locale: "ja",
+      children: createElement(ItemList, {
         items: [item],
         siteIds: [],
         bodyIds: [item.id],
         snapshot,
         definitionVersion: 9,
       }),
-    ),
+    }),
   );
 }
 
@@ -116,9 +115,12 @@ test("a lane summary keeps the worst category remarks and the bar names the cate
         },
         classification: { status: "classified", primary: "reporting", confidence: 0.34 },
       },
-    } as StoredRecord;
+    } as unknown as StoredRecord;
     const html = renderToStaticMarkup(
-      createElement(LocaleProvider, { locale: "ja" }, createElement(ReportView, { record, compact: true })),
+      createElement(LocaleProvider, {
+        locale: "ja",
+        children: createElement(ReportView, { record, compact: true }),
+      }),
     );
     const summary = html.slice(html.indexOf("report-summary"), html.indexOf("lane-stack"));
     assert.match(summary, /サイト 警告/);
