@@ -579,7 +579,16 @@ a:hover {
 }
 
 .radar-pair.compact .radar-svg {
-  max-width: 168px;
+  max-width: 232px;
+}
+
+.radar-pair.compact {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.radar-pair.compact .radar-card + .radar-card {
+  border-top: 1px solid var(--line);
+  border-left: 0;
 }
 
 .radar-grid polygon {

@@ -134,17 +134,16 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
         <Lane title={copy.site} verdict={siteVerdict} />
         <Lane title={copy.body} verdict={bodyVerdict} />
       </div>
-      {!compact ? (
-        <section className="report-charts" aria-label={copy.chartDetails}>
-          <h2>{copy.chartDetails}</h2>
-          <ResultRadars
-            key={record.id}
-            items={record.report.items}
-            siteQuestionIds={siteIds}
-            bodyQuestionIds={bodyIds}
-          />
-        </section>
-      ) : null}
+      <section className="report-charts" aria-label={copy.chartDetails}>
+        <h2>{copy.chartDetails}</h2>
+        <ResultRadars
+          key={record.id}
+          items={record.report.items}
+          compact={compact}
+          siteQuestionIds={siteIds}
+          bodyQuestionIds={bodyIds}
+        />
+      </section>
       {sendKind === "unread" ? <p className="notice">{copy.truncatedNotice}</p> : null}
       {sendKind === "chunked" ? <p className="help chunked-note">{copy.chunkedNotice} {copy.synthesisHelp}</p> : null}
       <p className="help result-help">{copy.resultHelp}</p>
