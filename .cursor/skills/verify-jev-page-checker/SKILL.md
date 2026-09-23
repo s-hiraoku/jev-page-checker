@@ -94,7 +94,7 @@ Stable handles (accessible names / labels from the real UI, not test ids):
 - Locale options: `システム` (default), `日本語`, `English`. Preview daemon locale is `ja-JP`, so system copy is Japanese.
 - Language options: `システム` (default), `日本語`, `English`
 - Settings actions: button `保存`, status `保存しました。`, heading `質問 18`. English locale uses button `Save` and status `Saved.` Cite questions include the note `選択肢は、このページから切った文です。サイトの問も本文の問も、その判定の原因になった文を出します。Review と Alert の行は空にしません。この選択は判定のチップを動かしません。`
-- Details: meta `Report · v8`, panel head `送った文`, title label `タイトル`. No history list. The pass body row `主張の根拠` includes the page sentence with `12 September`.
+- Details: meta `Report · v8`, panel head `送った文`, title label `タイトル`. No history list. The pass body row `主張の検証手掛かり` includes the page sentence with `12 September`.
 - History: meta `History · v8`, heading `History` (not `履歴`), row names are snapshot titles, each row shows `Audit した時刻`, and each row has `この記録を消す`
 
 `click --name` matches a **button** exactly. `fill --label` matches the wrapping `<label>` text exactly. `check --label` is a substring match. The approval checkbox label is `このチェックリスト全体を承認する。`

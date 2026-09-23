@@ -1,16 +1,20 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { replayGateway, parseDefinition, type JevAnswer, type JevGateway } from "./checkkit.js";
-import { bodyQuestionIds, siteQuestionIds, worstVerdict } from "./groups.js";
+import { buildCategoryDefinition } from "./category-definition.js";
+import { replayGateway, parseDefinition, type CheckReport, type JevAnswer, type JevGateway } from "./checkkit.js";
+import { siteQuestionIds, worstVerdict } from "./groups.js";
 import { bodyTokenBudget, JEV_ENGLISH_CHARS_PER_TOKEN } from "./jev-budget.js";
 import type { PageSnapshot } from "./page-state.js";
 import { checkSnapshot } from "./run-check.js";
 
-const definition = JSON.parse(readFileSync(new URL("../../fixtures/page-credibility.checker.json", import.meta.url), "utf8"));
-const parsed = parseDefinition(definition);
-const SITE_QUESTION_IDS = siteQuestionIds(parsed.questions);
-const PAGE_QUESTION_IDS = bodyQuestionIds(parsed.questions);
+const raw = JSON.parse(readFileSync(new URL("../../fixtures/page-credibility.checker.json", import.meta.url), "utf8"));
+const definition = buildCategoryDefinition(parseDefinition(raw));
+const SITE_QUESTION_IDS = siteQuestionIds(definition.questions);
+
+function bodyLaneIds(report: CheckReport): string[] {
+  return (report.inspection?.bodyQuestionIds ?? []).filter((id) => !id.endsWith("_cite") && !id.endsWith("_trigger"));
+}
 
 function loadReplay(name: string) {
   return JSON.parse(readFileSync(new URL(`../../fixtures/replay/${name}`, import.meta.url), "utf8")) as {
@@ -46,45 +50,56 @@ function twoWindowText(base: string): string {
   return `${base} ${"x".repeat(extra)}`;
 }
 
-function scriptedGateway(answersList: Record<string, JevAnswer>[]): JevGateway & { calls: number } {
-  const gateway: JevGateway & { calls: number } = {
-    calls: 0,
-    async ask() {
-      const answers = answersList[Math.min(gateway.calls, answersList.length - 1)] ?? {};
-      gateway.calls += 1;
-      return { answers, usage: { input_tokens: 1, output_tokens: 1 } };
+function tracingReplay(answers: Parameters<typeof replayGateway>[0], usage: Parameters<typeof replayGateway>[1]) {
+  const inner = replayGateway(answers, usage);
+  const asked: string[] = [];
+  const gateway: JevGateway = {
+    async ask(request) {
+      asked.push(Object.keys(request.questions)[0] ?? "");
+      return inner.ask(request);
     },
   };
-  return gateway;
+  return { gateway, asked };
 }
 
-test("a sourced news article passes site safety and body scrutiny", async () => {
+test("a sourced news article passes site safety and the reporting body checks", async () => {
   const report = await reportOf("page-credibility-pass.json");
-  assert.equal(report.definition.version, 8);
+  const bodyIds = bodyLaneIds(report);
+  assert.equal(report.definition.version, 10);
+  assert.equal(report.classification?.status, "classified");
+  assert.equal(report.classification?.primary, "reporting");
   assert.equal(report.items.every((item) => item.verdict === "pass"), true);
   assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
-  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "pass");
+  assert.equal(worstVerdict(report.items, bodyIds), "pass");
+  assert.deepEqual(bodyIds, [
+    "reporting_event_time",
+    "reporting_attribution",
+    "reporting_verification",
+    "reporting_context",
+    "reporting_uncertainty",
+  ]);
   assert.match(report.items.find((item) => item.id === "identifiable_publisher")?.basis ?? "", /identifiable as responsible/);
-  assert.match(report.items.find((item) => item.id === "evidence_for_claims")?.basis ?? "", /presented as established/);
-  assert.match(report.items.find((item) => item.id === "evidence_for_claims")?.cite ?? "", /12 September/);
-  assert.equal(report.items.find((item) => item.id === "evidence_for_claims")?.citeLocation, "body");
-  assert.match(report.items.find((item) => item.id === "separates_fact_and_opinion")?.cite ?? "", /does not add costs/);
-  assert.match(report.items.find((item) => item.id === "unsourced_specifics")?.cite ?? "", /photograph of the south pier/);
-  assert.match(report.items.find((item) => item.id === "self_consistent")?.cite ?? "", /hairline cracks/);
-  assert.match(report.items.find((item) => item.id === "certainty_matches_evidence")?.cite ?? "", /opening date/);
+  assert.match(report.items.find((item) => item.id === "reporting_verification")?.basis ?? "", /checkable cue/);
+  assert.match(report.items.find((item) => item.id === "reporting_verification")?.cite ?? "", /12 September/);
+  assert.equal(report.items.find((item) => item.id === "reporting_verification")?.citeLocation, "body");
+  assert.match(report.items.find((item) => item.id === "reporting_attribution")?.cite ?? "", /does not add costs/);
+  assert.match(report.items.find((item) => item.id === "reporting_context")?.cite ?? "", /photograph of the south pier/);
+  assert.match(report.items.find((item) => item.id === "reporting_event_time")?.cite ?? "", /hairline cracks/);
+  assert.match(report.items.find((item) => item.id === "reporting_uncertainty")?.cite ?? "", /opening date/);
   assert.notEqual(
-    report.items.find((item) => item.id === "separates_fact_and_opinion")?.cite,
-    report.items.find((item) => item.id === "certainty_matches_evidence")?.cite,
+    report.items.find((item) => item.id === "reporting_attribution")?.cite,
+    report.items.find((item) => item.id === "reporting_uncertainty")?.cite,
   );
   assert.match(report.items.find((item) => item.id === "identifiable_publisher")?.cite ?? "", /Mina Ito/);
   assert.equal(report.items.find((item) => item.id === "identifiable_publisher")?.citeLocation, "author");
   assert.match(report.items.find((item) => item.id === "honest_identity")?.cite ?? "", /Example News/);
   assert.match(report.items.find((item) => item.id === "site_purpose")?.cite ?? "", /City delays river bridge/);
   assert.match(report.items.find((item) => item.id === "disclosed_incentives")?.cite ?? "", /postponed the opening/);
-  for (const id of SITE_QUESTION_IDS) {
+  for (const id of [...SITE_QUESTION_IDS, ...bodyIds]) {
     assert.ok((report.items.find((item) => item.id === id)?.cite ?? "").length > 0, id);
   }
   assert.equal(report.items.some((item) => item.id.endsWith("_cite")), false);
+  assert.equal(report.items.some((item) => item.id === "evidence_for_claims"), false);
 });
 
 test("Japanese pass replay keeps body and publisher citations in the right source", async () => {
@@ -105,7 +120,7 @@ test("Japanese pass replay keeps body and publisher citations in the right sourc
     ].join(""),
   });
   const report = await checkSnapshot(snapshot, definition, replayGateway(replay.answers, replay.usage));
-  const evidence = report.items.find((item) => item.id === "evidence_for_claims");
+  const evidence = report.items.find((item) => item.id === "reporting_verification");
   const publisher = report.items.find((item) => item.id === "identifiable_publisher");
   assert.equal(evidence?.verdict, "pass");
   assert.equal(evidence?.cite, evidenceSentence);
@@ -132,13 +147,13 @@ test("Japanese alert replay keeps the unsupported passage visible", async () => 
   });
   const answers = {
     ...replay.answers,
-    evidence_for_claims_cite: {
+    sales_offer_cost_cite: {
       type: "choice" as const,
       choice: "s1",
       confidence: 0.88,
       probabilities: { s1: 0.88, none: 0.12 },
     },
-    unsourced_specifics_cite: {
+    sales_claims_cite: {
       type: "choice" as const,
       choice: "s1",
       confidence: 0.9,
@@ -146,13 +161,13 @@ test("Japanese alert replay keeps the unsupported passage visible", async () => 
     },
   };
   const report = await checkSnapshot(snapshot, definition, replayGateway(answers, replay.usage));
-  const evidence = report.items.find((item) => item.id === "evidence_for_claims");
-  const specifics = report.items.find((item) => item.id === "unsourced_specifics");
-  assert.equal(evidence?.verdict, "fail");
-  assert.equal(specifics?.verdict, "fail");
-  assert.equal(evidence?.cite, unsupportedSentence);
-  assert.equal(specifics?.cite, unsupportedSentence);
-  assert.equal(evidence?.citeLocation, "body");
+  const offer = report.items.find((item) => item.id === "sales_offer_cost");
+  const claims = report.items.find((item) => item.id === "sales_claims");
+  assert.equal(offer?.verdict, "fail");
+  assert.equal(claims?.verdict, "fail");
+  assert.equal(offer?.cite, unsupportedSentence);
+  assert.equal(claims?.cite, unsupportedSentence);
+  assert.equal(offer?.citeLocation, "body");
 });
 
 test("a low-confidence cite still shows that span and the parent chip stays", async () => {
@@ -160,7 +175,7 @@ test("a low-confidence cite still shows that span and the parent chip stays", as
   const snapshot = snapshotOf("page-credibility-pass.json");
   const low = {
     ...replay.answers,
-    evidence_for_claims_cite: {
+    reporting_verification_cite: {
       type: "choice" as const,
       choice: "s2",
       confidence: 0.2,
@@ -168,7 +183,7 @@ test("a low-confidence cite still shows that span and the parent chip stays", as
     },
   };
   const lowReport = await checkSnapshot(snapshot, definition, replayGateway(low, replay.usage));
-  const lowEvidence = lowReport.items.find((item) => item.id === "evidence_for_claims");
+  const lowEvidence = lowReport.items.find((item) => item.id === "reporting_verification");
   assert.equal(lowEvidence?.verdict, "pass");
   assert.match(lowEvidence?.cite ?? "", /12 September/);
   assert.equal(lowEvidence?.citeSource, "jev");
@@ -179,57 +194,71 @@ test("Review and Alert rows show the causing sentence, not the Pass sentence", a
   const snapshot = snapshotOf("page-credibility-pass.json");
   const collapsed = {
     ...replay.answers,
-    unsourced_specifics: {
+    reporting_attribution: {
       type: "choice" as const,
-      choice: "many",
+      choice: "alert",
       confidence: 0.92,
-      probabilities: { none: 0.02, some: 0.06, many: 0.92 },
+      probabilities: { alert: 0.92, pass: 0.08 },
     },
-    unsourced_specifics_cite: {
+    reporting_attribution_cite: {
       type: "choice" as const,
       choice: "none",
       confidence: 0.2,
-      probabilities: { none: 0.8, s2: 0.2 },
+      probabilities: { none: 0.8, s1: 0.2 },
     },
-    self_consistent: { type: "noul" as const, noul: 0.4 },
-    self_consistent_cite: {
+    reporting_context: {
       type: "choice" as const,
-      choice: "s2",
+      choice: "review",
+      confidence: 0.9,
+      probabilities: { review: 0.9, pass: 0.1 },
+    },
+    reporting_context_cite: {
+      type: "choice" as const,
+      choice: "none",
       confidence: 0.3,
-      probabilities: { s2: 0.3, none: 0.7 },
+      probabilities: { none: 0.7, s3: 0.3 },
     },
   };
   const gateway = replayGateway(collapsed, replay.usage);
   const report = await checkSnapshot(snapshot, definition, gateway);
-  const evidence = report.items.find((item) => item.id === "evidence_for_claims");
-  const specifics = report.items.find((item) => item.id === "unsourced_specifics");
-  const consistent = report.items.find((item) => item.id === "self_consistent");
+  const evidence = report.items.find((item) => item.id === "reporting_verification");
+  const attribution = report.items.find((item) => item.id === "reporting_attribution");
+  const context = report.items.find((item) => item.id === "reporting_context");
   assert.equal(evidence?.verdict, "pass");
-  assert.equal(specifics?.verdict, "fail");
-  assert.equal(consistent?.verdict, "review");
+  assert.equal(attribution?.verdict, "fail");
+  assert.equal(context?.verdict, "review");
   assert.match(evidence?.cite ?? "", /12 September/);
-  assert.ok((specifics?.cite ?? "").length > 0);
-  assert.ok((consistent?.cite ?? "").length > 0);
-  assert.notEqual(specifics?.cite, evidence?.cite);
-  assert.notEqual(consistent?.cite, evidence?.cite);
-  assert.notEqual(specifics?.cite, consistent?.cite);
+  assert.ok((attribution?.cite ?? "").length > 0);
+  assert.ok((context?.cite ?? "").length > 0);
+  assert.notEqual(attribution?.cite, evidence?.cite);
+  assert.notEqual(context?.cite, evidence?.cite);
+  assert.notEqual(attribution?.cite, context?.cite);
   assert.equal(evidence?.citeSource, "jev");
-  assert.equal(specifics?.citeSource, "related");
-  assert.equal(consistent?.citeSource, "related");
+  assert.equal(attribution?.citeSource, "related");
+  assert.equal(context?.citeSource, "related");
   assert.equal(report.items.some((item) => item.id.endsWith("_cite")), false);
-  assert.equal(gateway.calls, 2);
 });
 
-test("each cite question asks for the sentence that bears on that question", () => {
-  const cites = parsed.questions.filter((question) => question.type === "choice" && question.citeFor !== undefined);
-  const texts = cites.map((question) => (typeof question.instructions === "string" ? question.instructions : ""));
-  assert.equal(new Set(texts).size, 9);
-  for (const text of texts) {
+test("site cites keep the failure sentence and category cites keep the body-11 sentence", () => {
+  const cites = definition.questions.flatMap((question) =>
+    question.type === "choice" && question.citeFor !== undefined ? [question] : [],
+  );
+  const siteCites = cites.filter((question) => SITE_QUESTION_IDS.includes(question.citeFor ?? ""));
+  const bodyCites = cites.filter((question) => !SITE_QUESTION_IDS.includes(question.citeFor ?? ""));
+  assert.equal(siteCites.length, 4);
+  assert.ok(bodyCites.length > siteCites.length);
+  for (const question of siteCites) {
+    const text = typeof question.instructions === "string" ? question.instructions : "";
     assert.match(text, /causes the failure/);
     assert.equal(text.includes("most carries"), false);
   }
-  for (const id of [...SITE_QUESTION_IDS, ...PAGE_QUESTION_IDS]) {
-    const question = parsed.questions.find((item) => item.id === id);
+  for (const question of bodyCites) {
+    const text = typeof question.instructions === "string" ? question.instructions : "";
+    assert.match(text, /exact sentence cut from the main body/);
+    assert.equal(text.includes("causes the failure"), false);
+  }
+  for (const id of SITE_QUESTION_IDS) {
+    const question = definition.questions.find((item) => item.id === id);
     const text = typeof question?.instructions === "string" ? question.instructions : "";
     assert.equal(text.includes("Do not write a new sentence"), false);
   }
@@ -237,124 +266,181 @@ test("each cite question asks for the sentence that bears on that question", () 
 
 test("a miracle-cure sales page fails safety and body scrutiny without penalizing clear purpose", async () => {
   const report = await reportOf("page-credibility-fail.json");
+  const bodyIds = bodyLaneIds(report);
+  assert.equal(report.classification?.primary, "sales");
   assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "fail");
-  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "fail");
+  assert.equal(worstVerdict(report.items, bodyIds), "fail");
   assert.equal(report.items.find((item) => item.id === "identifiable_publisher")?.verdict, "fail");
-  assert.equal(report.items.find((item) => item.id === "unsourced_specifics")?.verdict, "fail");
+  assert.equal(report.items.find((item) => item.id === "sales_claims")?.verdict, "fail");
   assert.match(report.items.find((item) => item.id === "identifiable_publisher")?.basis ?? "", /missing, anonymous/);
-  assert.match(report.items.find((item) => item.id === "evidence_for_claims")?.basis ?? "", /little or no supporting evidence/);
-  assert.match(report.items.find((item) => item.id === "evidence_for_claims")?.cite ?? "", /11 days/);
-  assert.match(report.items.find((item) => item.id === "separates_fact_and_opinion")?.cite ?? "", /hiding it/);
-  assert.match(report.items.find((item) => item.id === "unsourced_specifics")?.cite ?? "", /94 percent/);
+  assert.match(report.items.find((item) => item.id === "sales_offer_cost")?.basis ?? "", /Offer and cost/);
+  assert.match(report.items.find((item) => item.id === "sales_offer_cost")?.cite ?? "", /11 days/);
+  assert.match(report.items.find((item) => item.id === "sales_risks")?.cite ?? "", /hiding it/);
+  assert.match(report.items.find((item) => item.id === "sales_claims")?.cite ?? "", /94 percent/);
   assert.notEqual(
-    report.items.find((item) => item.id === "evidence_for_claims")?.cite,
-    report.items.find((item) => item.id === "unsourced_specifics")?.cite,
+    report.items.find((item) => item.id === "sales_offer_cost")?.cite,
+    report.items.find((item) => item.id === "sales_claims")?.cite,
   );
-  assert.match(report.items.find((item) => item.id === "self_consistent")?.cite ?? "", /three days/);
-  assert.match(report.items.find((item) => item.id === "certainty_matches_evidence")?.cite ?? "", /one unmarked capsule reverses aging in 11 days/);
+  assert.match(report.items.find((item) => item.id === "sales_terms")?.cite ?? "", /three days/);
+  assert.match(report.items.find((item) => item.id === "sales_testimonials")?.cite ?? "", /manufacturer is named/);
   assert.match(report.items.find((item) => item.id === "identifiable_publisher")?.cite ?? "", /manufacturer is named/);
   assert.equal(report.items.find((item) => item.id === "site_purpose")?.verdict, "pass");
   assert.match(report.items.find((item) => item.id === "site_purpose")?.cite ?? "", /six-month supply/);
   assert.equal(report.items.find((item) => item.id === "disclosed_incentives")?.verdict, "fail");
   assert.match(report.items.find((item) => item.id === "disclosed_incentives")?.cite ?? "", /Order now/);
-  for (const id of [...SITE_QUESTION_IDS, ...PAGE_QUESTION_IDS]) {
+  for (const id of [...SITE_QUESTION_IDS, ...bodyIds]) {
     assert.ok((report.items.find((item) => item.id === id)?.cite ?? "").length > 0, id);
   }
 });
 
 test("a listing skips body questions because there is no single text to scrutinize", async () => {
   const report = await reportOf("page-credibility-portal.json");
+  assert.equal(report.classification?.status, "not_applicable");
   assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
-  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "not_applicable");
-  for (const id of PAGE_QUESTION_IDS) {
-    assert.equal(report.items.find((item) => item.id === id)?.verdict, "not_applicable");
-  }
+  assert.deepEqual(report.inspection?.bodyQuestionIds, []);
+  assert.equal(report.items.some((item) => item.id.startsWith("reporting_")), false);
 });
 
 test("an essay purpose is not a site-safety failure", async () => {
   const report = await reportOf("page-credibility-essay.json");
+  assert.equal(report.classification?.primary, "opinion");
   assert.equal(report.items.find((item) => item.id === "site_purpose")?.verdict, "pass");
   assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
-  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "pass");
+  assert.equal(worstVerdict(report.items, bodyLaneIds(report)), "pass");
+  assert.ok(bodyLaneIds(report).every((id) => id.startsWith("opinion_")));
 });
 
 test("a truncated extract cannot pass body scrutiny even when Jev would pass the prefix", async () => {
   const report = await reportOf("page-credibility-pass.json", { textTruncated: true });
   assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
-  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "review");
-  for (const id of PAGE_QUESTION_IDS) {
-    assert.equal(report.items.find((item) => item.id === id)?.verdict, "review");
-  }
+  assert.equal(report.classification?.status, "review");
+  assert.equal(report.classification?.reasonCode, "incomplete_body");
+  assert.deepEqual(report.inspection?.bodyQuestionIds, ["content_classification"]);
+  assert.equal(report.items.find((item) => item.id === "content_classification")?.verdict, "review");
+  assert.equal(report.items.some((item) => item.id.startsWith("reporting_")), false);
 });
 
-test("a truncated extract still reports a body fail found in the prefix", async () => {
+test("a truncated extract does not grade the category battery from the prefix", async () => {
   const report = await reportOf("page-credibility-fail.json", { textTruncated: true });
-  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "fail");
-  assert.equal(report.items.find((item) => item.id === "unsourced_specifics")?.verdict, "fail");
+  assert.equal(report.classification?.reasonCode, "incomplete_body");
+  assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "fail");
+  assert.deepEqual(report.inspection?.bodyQuestionIds, ["content_classification"]);
+  assert.equal(report.items.find((item) => item.id === "content_classification")?.verdict, "review");
+  assert.equal(report.items.some((item) => item.id.startsWith("sales_")), false);
 });
 
 test("a truncated listing still skips body questions", async () => {
   const report = await reportOf("page-credibility-portal.json", { textTruncated: true });
-  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "not_applicable");
+  assert.deepEqual(report.inspection?.bodyQuestionIds, []);
 });
 
-test("an article that fits the Jev token budget is one call", async () => {
+test("an article that fits one window asks classification, site type, site, triggers, body, and the content-class battery", async () => {
   const pass = loadReplay("page-credibility-pass.json");
   const snapshot = snapshotOf("page-credibility-pass.json", { text: `${pass.state.text} ${"x".repeat(12_000)}` });
-  const gateway = replayGateway(pass.answers, pass.usage);
-  const report = await checkSnapshot(snapshot, definition, gateway);
-  assert.equal(gateway.calls, 1);
+  const traced = tracingReplay(pass.answers, pass.usage);
+  const report = await checkSnapshot(snapshot, definition, traced.gateway);
+  assert.deepEqual(traced.asked, [
+    "content_primary",
+    "site_type",
+    "identifiable_publisher",
+    "reporting_high_stakes_trigger",
+    "reporting_event_time",
+    "content_class",
+    "publisher_identifiable",
+  ]);
   assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
-  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "pass");
+  assert.equal(worstVerdict(report.items, bodyLaneIds(report)), "pass");
 });
 
-test("a long article asks overlapping body windows and a synthesis, then can pass", async () => {
+test("a long article asks two classification windows, site type, site, triggers, body windows, synthesis, and the content-class battery", async () => {
   const pass = loadReplay("page-credibility-pass.json");
   const snapshot = snapshotOf("page-credibility-pass.json", { text: twoWindowText(pass.state.text) });
-  const gateway = replayGateway(pass.answers, pass.usage);
-  const report = await checkSnapshot(snapshot, definition, gateway);
-  assert.ok(gateway.calls >= 3);
+  const traced = tracingReplay(pass.answers, pass.usage);
+  const report = await checkSnapshot(snapshot, definition, traced.gateway);
+  assert.deepEqual(traced.asked, [
+    "content_primary",
+    "content_primary",
+    "site_type",
+    "identifiable_publisher",
+    "reporting_high_stakes_trigger",
+    "reporting_high_stakes_trigger",
+    "reporting_event_time",
+    "reporting_event_time",
+    "reporting_event_time",
+    "content_class",
+    "publisher_identifiable",
+  ]);
   assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
-  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "pass");
+  assert.equal(worstVerdict(report.items, bodyLaneIds(report)), "pass");
 });
+
+function bodyRoundGateway(passAnswers: Record<string, JevAnswer>, failOnBodyCall: number): JevGateway & { calls: number } {
+  let bodyCalls = 0;
+  const gateway: JevGateway & { calls: number } = {
+    calls: 0,
+    async ask(request) {
+      gateway.calls += 1;
+      const ids = Object.keys(request.questions);
+      const isBody = ids.some((id) => id.startsWith("reporting_") && !id.endsWith("_trigger"));
+      let answers = passAnswers;
+      if (isBody) {
+        bodyCalls += 1;
+        if (bodyCalls === failOnBodyCall) {
+          answers = {
+            ...passAnswers,
+            reporting_event_time: {
+              type: "choice",
+              choice: "alert",
+              confidence: 0.9,
+              probabilities: { alert: 0.9, pass: 0.1 },
+            },
+          };
+        }
+      }
+      return { answers, usage: { input_tokens: 1, output_tokens: 1 } };
+    },
+  };
+  return gateway;
+}
 
 test("a later window fail is not overwritten by other window passes", async () => {
   const pass = loadReplay("page-credibility-pass.json");
-  const fail = loadReplay("page-credibility-fail.json");
   const snapshot = snapshotOf("page-credibility-pass.json", { text: twoWindowText(pass.state.text) });
-  const gateway = scriptedGateway([pass.answers, fail.answers, pass.answers]);
+  const gateway = bodyRoundGateway(pass.answers, 2);
   const report = await checkSnapshot(snapshot, definition, gateway);
-  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "fail");
-  assert.equal(report.items.find((item) => item.id === "unsourced_specifics")?.verdict, "fail");
+  assert.equal(report.items.find((item) => item.id === "reporting_event_time")?.verdict, "fail");
+  assert.equal(worstVerdict(report.items, bodyLaneIds(report)), "fail");
   assert.equal(worstVerdict(report.items, SITE_QUESTION_IDS), "pass");
 });
 
 test("synthesis fail catches a contradiction that no single window failed", async () => {
   const pass = loadReplay("page-credibility-pass.json");
-  const synthesisFail = {
-    ...pass.answers,
-    self_consistent: { type: "noul" as const, noul: 0.05 },
-  };
   const snapshot = snapshotOf("page-credibility-pass.json", { text: twoWindowText(pass.state.text) });
-  const gateway = scriptedGateway([pass.answers, pass.answers, synthesisFail]);
+  const gateway = bodyRoundGateway(pass.answers, 3);
   const report = await checkSnapshot(snapshot, definition, gateway);
-  assert.equal(report.items.find((item) => item.id === "self_consistent")?.verdict, "fail");
-  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "fail");
+  assert.equal(report.items.find((item) => item.id === "reporting_event_time")?.verdict, "fail");
+  assert.equal(worstVerdict(report.items, bodyLaneIds(report)), "fail");
 });
 
-test("a long listing still makes one call and skips body questions", async () => {
+test("a long listing asks site type, site, and the content-class battery, and skips body questions", async () => {
   const portal = loadReplay("page-credibility-portal.json");
   const snapshot = snapshotOf("page-credibility-portal.json", { text: `${portal.state.text} ${"word ".repeat(4000)}` });
-  const gateway = replayGateway(portal.answers, portal.usage);
-  const report = await checkSnapshot(snapshot, definition, gateway);
-  assert.equal(gateway.calls, 1);
-  assert.equal(worstVerdict(report.items, PAGE_QUESTION_IDS), "not_applicable");
+  const traced = tracingReplay(portal.answers, portal.usage);
+  const report = await checkSnapshot(snapshot, definition, traced.gateway);
+  assert.deepEqual(traced.asked, ["site_type", "identifiable_publisher", "content_class", "publisher_identifiable"]);
+  assert.deepEqual(report.inspection?.bodyQuestionIds, []);
 });
 
 test("checkSnapshot records window coverage and lane ids from the definition", async () => {
   const short = await reportOf("page-credibility-pass.json");
   assert.deepEqual(short.inspection?.siteQuestionIds, SITE_QUESTION_IDS);
-  assert.deepEqual(short.inspection?.bodyQuestionIds, PAGE_QUESTION_IDS);
+  assert.deepEqual(bodyLaneIds(short), [
+    "reporting_event_time",
+    "reporting_attribution",
+    "reporting_verification",
+    "reporting_context",
+    "reporting_uncertainty",
+  ]);
   assert.equal(short.inspection?.windowCount, 1);
   assert.deepEqual(short.inspection?.windows, [{ start: 0, end: snapshotOf("page-credibility-pass.json").text.length }]);
   assert.equal(short.inspection?.covered, true);

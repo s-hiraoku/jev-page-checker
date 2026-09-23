@@ -19,99 +19,239 @@
     "linkCount": 4,
     "wordCount": 210,
     "citationCount": 3,
-    "outboundHosts": ["transport.example.gov", "doi.example.org"],
+    "outboundHosts": [
+      "transport.example.gov",
+      "doi.example.org"
+    ],
     "text": "The city transportation bureau said Thursday it will delay the river bridge opening after inspectors found hairline cracks in two piers. Bureau director Ken Sato told reporters the cracks were documented in an inspection memo dated 12 September. The bureau posted that memo and a photograph of the south pier. Sato said no opening date has been set. The story cites the posted memo and does not add costs or causes beyond what the bureau released.",
     "textTruncated": false
   },
   "answers": {
-    "identifiable_publisher": { "type": "noul", "noul": 0.94 },
-    "honest_identity": { "type": "noul", "noul": 0.93 },
+    "identifiable_publisher": {
+      "type": "noul",
+      "noul": 0.94
+    },
+    "honest_identity": {
+      "type": "noul",
+      "noul": 0.93
+    },
     "site_purpose": {
       "type": "choice",
       "choice": "clear",
       "confidence": 0.9,
-      "probabilities": { "clear": 0.9, "mixed": 0.05, "hidden": 0.05 }
+      "probabilities": {
+        "clear": 0.9,
+        "mixed": 0.05,
+        "hidden": 0.05
+      }
     },
     "disclosed_incentives": {
       "type": "choice",
       "choice": "no_pitch",
       "confidence": 0.9,
-      "probabilities": { "no_pitch": 0.9, "named_beneficiary": 0.06, "hidden_beneficiary": 0.04 }
+      "probabilities": {
+        "no_pitch": 0.9,
+        "named_beneficiary": 0.06,
+        "hidden_beneficiary": 0.04
+      }
     },
     "identifiable_publisher_cite": {
       "type": "choice",
       "choice": "s3",
       "confidence": 0.9,
-      "probabilities": { "s3": 0.9, "none": 0.1 }
+      "probabilities": {
+        "s3": 0.9,
+        "none": 0.1
+      }
     },
     "honest_identity_cite": {
       "type": "choice",
       "choice": "s2",
       "confidence": 0.88,
-      "probabilities": { "s2": 0.88, "none": 0.12 }
+      "probabilities": {
+        "s2": 0.88,
+        "none": 0.12
+      }
     },
     "site_purpose_cite": {
       "type": "choice",
       "choice": "s1",
       "confidence": 0.86,
-      "probabilities": { "s1": 0.86, "none": 0.14 }
+      "probabilities": {
+        "s1": 0.86,
+        "none": 0.14
+      }
     },
     "disclosed_incentives_cite": {
       "type": "choice",
       "choice": "s4",
       "confidence": 0.84,
-      "probabilities": { "s4": 0.84, "none": 0.16 }
+      "probabilities": {
+        "s4": 0.84,
+        "none": 0.16
+      }
     },
-    "evidence_for_claims_cite": {
+    "content_primary": {
       "type": "choice",
-      "choice": "s2",
-      "confidence": 0.84,
-      "probabilities": { "s2": 0.84, "none": 0.16 }
+      "choice": "reporting",
+      "confidence": 0.34,
+      "probabilities": {
+        "reporting": 0.34,
+        "explanation": 0.22,
+        "announcement": 0.18,
+        "unclear": 0.26
+      }
     },
-    "separates_fact_and_opinion_cite": {
-      "type": "choice",
-      "choice": "s5",
-      "confidence": 0.81,
-      "probabilities": { "s5": 0.81, "none": 0.19 }
-    },
-    "unsourced_specifics_cite": {
-      "type": "choice",
-      "choice": "s3",
-      "confidence": 0.77,
-      "probabilities": { "s3": 0.77, "none": 0.23 }
-    },
-    "self_consistent_cite": {
-      "type": "choice",
-      "choice": "s1",
-      "confidence": 0.8,
-      "probabilities": { "s1": 0.8, "none": 0.2 }
-    },
-    "certainty_matches_evidence_cite": {
-      "type": "choice",
-      "choice": "s4",
-      "confidence": 0.79,
-      "probabilities": { "s4": 0.79, "none": 0.21 }
-    },
-    "evidence_for_claims": {
-      "type": "score",
-      "score": 1.85,
-      "confidence": 0.88,
-      "legend": {
-        "0": "Established factual claims are made with little or no supporting evidence, data, or sources on the page.",
-        "1": "Some established claims have sources or data, or the writing is a proposal or hypothesis whose main particulars are not checkable; important established claims or measurements are still missing.",
-        "2": "The main factual claims presented as established are backed by named sources, data, documents, or the author's inspectable work."
-      },
-      "probabilities": { "0": 0.02, "1": 0.11, "2": 0.87 }
-    },
-    "separates_fact_and_opinion": { "type": "noul", "noul": 0.89 },
-    "unsourced_specifics": {
+    "content_secondary": {
       "type": "choice",
       "choice": "none",
-      "confidence": 0.86,
-      "probabilities": { "none": 0.86, "some": 0.12, "many": 0.02 }
+      "confidence": 0.8,
+      "probabilities": {
+        "none": 0.8
+      }
     },
-    "self_consistent": { "type": "noul", "noul": 0.95 },
-    "certainty_matches_evidence": { "type": "noul", "noul": 0.87 }
+    "content_evidence": {
+      "type": "choice",
+      "choice": "title",
+      "confidence": 0.8,
+      "probabilities": {
+        "title": 0.8,
+        "none": 0.2
+      }
+    },
+    "reporting_high_stakes_trigger": {
+      "type": "choice",
+      "choice": "no",
+      "confidence": 0.9,
+      "probabilities": {
+        "yes": 0.05,
+        "no": 0.9,
+        "unclear": 0.05
+      }
+    },
+    "reporting_serious_allegation_trigger": {
+      "type": "choice",
+      "choice": "no",
+      "confidence": 0.9,
+      "probabilities": {
+        "yes": 0.05,
+        "no": 0.9,
+        "unclear": 0.05
+      }
+    },
+    "reporting_numeric_conclusion_trigger": {
+      "type": "choice",
+      "choice": "no",
+      "confidence": 0.9,
+      "probabilities": {
+        "yes": 0.05,
+        "no": 0.9,
+        "unclear": 0.05
+      }
+    },
+    "reporting_event_time": {
+      "type": "choice",
+      "choice": "pass",
+      "confidence": 0.9,
+      "probabilities": {
+        "pass": 0.9,
+        "review": 0.03,
+        "alert": 0.02,
+        "not_applicable": 0.01
+      }
+    },
+    "reporting_event_time_cite": {
+      "type": "choice",
+      "choice": "s1",
+      "confidence": 0.86,
+      "probabilities": {
+        "s1": 0.86,
+        "none": 0.14
+      }
+    },
+    "reporting_attribution": {
+      "type": "choice",
+      "choice": "pass",
+      "confidence": 0.9,
+      "probabilities": {
+        "pass": 0.9,
+        "review": 0.03,
+        "alert": 0.02,
+        "not_applicable": 0.01
+      }
+    },
+    "reporting_attribution_cite": {
+      "type": "choice",
+      "choice": "s5",
+      "confidence": 0.86,
+      "probabilities": {
+        "s5": 0.86,
+        "none": 0.14
+      }
+    },
+    "reporting_verification": {
+      "type": "choice",
+      "choice": "pass",
+      "confidence": 0.9,
+      "probabilities": {
+        "pass": 0.9,
+        "review": 0.03,
+        "alert": 0.02,
+        "not_applicable": 0.01
+      }
+    },
+    "reporting_verification_cite": {
+      "type": "choice",
+      "choice": "s2",
+      "confidence": 0.86,
+      "probabilities": {
+        "s2": 0.86,
+        "none": 0.14
+      }
+    },
+    "reporting_context": {
+      "type": "choice",
+      "choice": "pass",
+      "confidence": 0.9,
+      "probabilities": {
+        "pass": 0.9,
+        "review": 0.03,
+        "alert": 0.02,
+        "not_applicable": 0.01
+      }
+    },
+    "reporting_context_cite": {
+      "type": "choice",
+      "choice": "s3",
+      "confidence": 0.86,
+      "probabilities": {
+        "s3": 0.86,
+        "none": 0.14
+      }
+    },
+    "reporting_uncertainty": {
+      "type": "choice",
+      "choice": "pass",
+      "confidence": 0.9,
+      "probabilities": {
+        "pass": 0.9,
+        "review": 0.03,
+        "alert": 0.02,
+        "not_applicable": 0.01
+      }
+    },
+    "reporting_uncertainty_cite": {
+      "type": "choice",
+      "choice": "s4",
+      "confidence": 0.86,
+      "probabilities": {
+        "s4": 0.86,
+        "none": 0.14
+      }
+    }
   },
-  "usage": { "input_tokens": 980, "output_tokens": 27 }
+  "usage": {
+    "input_tokens": 980,
+    "output_tokens": 27
+  }
 }

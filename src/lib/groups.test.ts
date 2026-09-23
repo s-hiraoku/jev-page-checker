@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
+import { buildCategoryDefinition } from "./category-definition.js";
+import { CONTENT_CATEGORY_IDS } from "./category-rubrics.js";
 import { parseDefinition, type ItemResult, type Verdict } from "./checkkit.js";
 import {
   bodyQuestionIds,
@@ -17,24 +19,26 @@ import {
   worstVerdict,
 } from "./groups.js";
 
-const definition = parseDefinition(
+const base = parseDefinition(
   JSON.parse(readFileSync(new URL("../../fixtures/page-credibility.checker.json", import.meta.url), "utf8")),
 );
+const definition = buildCategoryDefinition(base);
 const siteIds = siteQuestionIds(definition.questions);
 const bodyIds = bodyQuestionIds(definition.questions);
+const sampleBody = ["reporting_event_time", "reporting_attribution", "reporting_verification"];
 const item = (id: string, verdict: Verdict) => ({ id, verdict });
 
-test("site and body lanes come from hasArticle applyWhen, not restated ids", () => {
+test("the checker fixture is the site checklist and the body lane is the category catalog", () => {
+  assert.equal(base.version, 10);
+  assert.equal(definition.version, 10);
+  assert.deepEqual(siteQuestionIds(base.questions), ["identifiable_publisher", "honest_identity", "site_purpose", "disclosed_incentives"]);
+  assert.deepEqual(bodyQuestionIds(base.questions), []);
+  assert.equal(base.questions.some((question) => question.id === "evidence_for_claims"), false);
   assert.deepEqual(siteIds, ["identifiable_publisher", "honest_identity", "site_purpose", "disclosed_incentives"]);
-  assert.deepEqual(bodyIds, [
-    "evidence_for_claims",
-    "separates_fact_and_opinion",
-    "unsourced_specifics",
-    "self_consistent",
-    "certainty_matches_evidence",
-  ]);
-  assert.equal(siteIds.length + bodyIds.length, 9);
-  assert.equal(citeQuestionIds(definition.questions).length, 9);
+  assert.equal(bodyIds.includes("evidence_for_claims"), false);
+  assert.equal(bodyIds.includes("reporting_event_time"), true);
+  assert.equal(bodyIds.every((id) => CONTENT_CATEGORY_IDS.some((category) => id.startsWith(`${category}_`))), true);
+  assert.equal(citeQuestionIds(base.questions).length, 4);
   for (const question of definition.questions) {
     const inBodyLane = isBodyQuestion(question.applyWhen) && !isCiteQuestion(question);
     assert.equal(inBodyLane, bodyIds.includes(question.id));
@@ -47,12 +51,12 @@ test("worstVerdict prefers fail over review over pass and ignores the other lane
     item("honest_identity", "pass"),
     item("site_purpose", "review"),
     item("disclosed_incentives", "pass"),
-    item("evidence_for_claims", "fail"),
-    item("self_consistent", "pass"),
+    item("reporting_event_time", "fail"),
+    item("reporting_attribution", "pass"),
   ];
   assert.equal(worstVerdict(items, siteIds), "review");
-  assert.equal(worstVerdict(items, bodyIds), "fail");
-  assert.equal(worstVerdict([item("self_consistent", "not_applicable")], bodyIds), "not_applicable");
+  assert.equal(worstVerdict(items, sampleBody), "fail");
+  assert.equal(worstVerdict([item("reporting_attribution", "not_applicable")], sampleBody), "not_applicable");
 });
 
 test("laneRemarkLines keeps the worst three remarks and skips not-applicable while another verdict exists", () => {
@@ -84,25 +88,25 @@ test("worseVerdict compares two verdicts without inventing question ids", () => 
 test("withholdBodyPassOnTruncation turns body pass into review and leaves fail and site pass", () => {
   const items: ItemResult[] = [
     { id: "identifiable_publisher" as ItemResult["id"], verdict: "pass", reason: "noul 0.9 is at or above passAt 0.8" },
-    { id: "evidence_for_claims" as ItemResult["id"], verdict: "pass", reason: "score 1.8 is at or above passAt 1.5" },
-    { id: "self_consistent" as ItemResult["id"], verdict: "fail", reason: "noul 0.1 is at or below failAt 0.2" },
-    { id: "unsourced_specifics" as ItemResult["id"], verdict: "review", reason: "choice some maps to review" },
+    { id: "reporting_event_time" as ItemResult["id"], verdict: "pass", reason: "choice pass maps to pass" },
+    { id: "reporting_attribution" as ItemResult["id"], verdict: "fail", reason: "choice alert maps to fail" },
+    { id: "reporting_verification" as ItemResult["id"], verdict: "review", reason: "choice review maps to review" },
   ];
-  const withheld = withholdBodyPassOnTruncation(items, true, bodyIds);
+  const withheld = withholdBodyPassOnTruncation(items, true, sampleBody);
   assert.equal(withheld.find((entry) => entry.id === "identifiable_publisher")?.verdict, "pass");
-  assert.equal(withheld.find((entry) => entry.id === "evidence_for_claims")?.verdict, "review");
-  assert.match(withheld.find((entry) => entry.id === "evidence_for_claims")?.reason ?? "", /character limit/);
-  assert.equal(withheld.find((entry) => entry.id === "self_consistent")?.verdict, "fail");
-  assert.equal(withheld.find((entry) => entry.id === "unsourced_specifics")?.verdict, "review");
-  assert.deepEqual(withholdBodyPassOnTruncation(items, false, bodyIds), items);
+  assert.equal(withheld.find((entry) => entry.id === "reporting_event_time")?.verdict, "review");
+  assert.match(withheld.find((entry) => entry.id === "reporting_event_time")?.reason ?? "", /character limit/);
+  assert.equal(withheld.find((entry) => entry.id === "reporting_attribution")?.verdict, "fail");
+  assert.equal(withheld.find((entry) => entry.id === "reporting_verification")?.verdict, "review");
+  assert.deepEqual(withholdBodyPassOnTruncation(items, false, sampleBody), items);
 });
 
 test("softenSynthesisErrors turns body errors into review", () => {
   const items: ItemResult[] = [
     { id: "identifiable_publisher" as ItemResult["id"], verdict: "error", reason: "timeout" },
-    { id: "self_consistent" as ItemResult["id"], verdict: "error", reason: "timeout" },
+    { id: "reporting_event_time" as ItemResult["id"], verdict: "error", reason: "timeout" },
   ];
-  const softened = softenSynthesisErrors(items, bodyIds);
+  const softened = softenSynthesisErrors(items, sampleBody);
   assert.equal(softened[0]?.verdict, "error");
   assert.equal(softened[1]?.verdict, "review");
 });

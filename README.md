@@ -39,7 +39,7 @@ The checker shows a site lane and a body lane. Report shows each verdict, Jev's 
 
 ## 質問
 
-定義の土台は `fixtures/page-credibility.checker.json` です。実行時は、そのサイト項目に、本文分類で選んだカテゴリの choice 項目を足します。その定義版は v10 です。本文の 11 分類は信頼スコアの分類ではありません。Jev には意味だけを聞きます。サイトの質問は 1 回にまとめます。主本文が入力枠に収まるときは 1 回で送ります。入力枠は、state と最長の質問で 32,000 トークン、1 回のリクエストで 64,000 トークンです。超えたら重ねて分割し、本文の 5 問を聞き、厳しめにまとめます。特定のサイト向けに合格線は動かしません。詳細は [`docs/judgement.md`](docs/judgement.md) です。
+定義の土台は `fixtures/page-credibility.checker.json` です。このファイルはサイトの 4 問です。実行時は、そのサイト項目に、本文分類で選んだカテゴリの choice 項目を足します。その定義版は v10 です。本文の 11 分類は信頼スコアの分類ではありません。Jev には意味だけを聞きます。サイトの質問は 1 回にまとめます。主本文が入力枠に収まるときは 1 回で送ります。入力枠は、state と最長の質問で 32,000 トークン、1 回のリクエストで 64,000 トークンです。超えたら重ねて分割し、選んだカテゴリの本文項目を聞き、厳しめにまとめます。特定のサイト向けに合格線は動かしません。詳細は [`docs/judgement.md`](docs/judgement.md) です。
 
 | id | レーン | 型 | 聞くこと |
 | --- | --- | --- | --- |
@@ -47,23 +47,20 @@ The checker shows a site lane and a body lane. Report shows each verdict, Jev's 
 | `honest_identity` | サイト | noul | 表示がホストと一致するか。なりすましは Alert である。批評であること自体はなりすましではない。 |
 | `site_purpose` | サイト | choice | 目的のラベルである。報道、意見、一覧は Pass。販売は、報道に見せたアフィリエイトを含めて Review。風刺も Review。判別できないときは Alert。 |
 | `disclosed_incentives` | サイト | choice | 勧誘がない、または誰が得をするかが書いてあるなら Pass。隠しているなら Alert。 |
-| `evidence_for_claims` | 本文 | score | 確定として出した主張が、このページ上の根拠で支えられているか。仮説や未検証と書いた提案は、出典のない報道と同じ失敗にしない。記事でなければ N/A。 |
-| `separates_fact_and_opinion` | 本文 | noul | 事実と意見を読み分けられるか。エッセイであること自体は失敗ではない。 |
-| `unsourced_specifics` | 本文 | choice | 出典のない具体値があるか。宣伝の丸い数字も含む。未検証と書いた仮説の数値は `many` にしない。`none` は Pass、`some` は Review、`many` は Alert。 |
-| `self_consistent` | 本文 | noul | 同じ事実が食い違っていないか。同じ主張の繰り返しは矛盾ではない。 |
-| `certainty_matches_evidence` | 本文 | noul | 断定の強さが根拠に見合っているか。仮説や未検証と書いた点は、すでに不確かさとして書いてある。健康、金、身元、法には、より強い根拠が要る。 |
 
-サイトのレーンは、誰が責任者か、なりすましか、何のためのページか、隠し勧誘かを見ます。本文のレーンは、根拠、事実と意見、出典、矛盾、断定を見ます。意見であること自体は失敗ではありません。各問ではページから切った文から Jev に一本を選ばせます。選んだ文と、選択が無い場合などにアプリが表示用に添えた関連箇所を区別します。Jev は文を書きません。この選択は合否を動かしません。画面には Noul の「はい」の確率、Choice の選択肢と確信度、Score の値と確信度を型ごとに表示します。
+本文の項目はチェッカーファイルには置きません。分類が決まったあと、`src/lib/category-rubrics.ts` のその分類の項目だけを聞きます。11 分類の意味は変えません。
 
-リンクが多く、リンクあたりの本文が短いページは一覧です。一覧では本文の 5 問は走りません。パスが `/` だから一覧、有名なサイトだから通過、という例外はありません。
+サイトのレーンは、誰が責任者か、なりすましか、何のためのページか、隠し勧誘かを見ます。本文のレーンは、選んだ分類の項目です。意見であること自体は失敗ではありません。各問ではページから切った文から Jev に一本を選ばせます。選んだ文と、選択が無い場合などにアプリが表示用に添えた関連箇所を区別します。Jev は文を書きません。この選択は合否を動かしません。画面には Noul の「はい」の確率、Choice の選択肢と確信度、Score の値と確信度を型ごとに表示します。
+
+リンクが多く、リンクあたりの本文が短いページは一覧です。一覧では本文の項目は走りません。パスが `/` だから一覧、有名なサイトだから通過、という例外はありません。
 
 noul の Pass は 0.8 以上です。choice と score の確信度の床は 0.6 です。迷ったら Review です。判定は Pass、Review、Alert、N/A、Error の 5 つです。一つの信頼スコアにはしません。
 
-HTTPS、著者、日付、語数、リンク密度、外部ホスト、主本文が入力枠で切れたかは、コードが見ます。収まる主本文は 1 回で送ります。超えたら重ねて分割します。切れ残りがあるとき、本文の 5 問は Pass にしません。文字数の独自上限や、URL ごとの例外では直しません。定義を変えたら、Settings でリスト全体を承認し直します。
+HTTPS、著者、日付、語数、リンク密度、外部ホスト、主本文が入力枠で切れたかは、コードが見ます。収まる主本文は 1 回で送ります。超えたら重ねて分割します。切れ残りがあるとき、本文は Pass にしません。文字数の独自上限や、URL ごとの例外では直しません。定義を変えたら、Settings でリスト全体を承認し直します。
 
 ### Questions
 
-The base definition is `fixtures/page-credibility.checker.json`. At runtime the site checks are joined with the choice checks for the page's content category. That definition is v10. The eleven content categories are not a trust score. Jev is asked for meaning only. The four site questions go in one request. A main body that fits the input window goes in one request. The window is 32,000 tokens for state plus the longest question, and 64,000 tokens per request. A longer body is split with overlap, the five body questions are asked, and the answers are combined strictly. The pass line is not moved for one site. See [`docs/judgement.md`](docs/judgement.md).
+The base definition is `fixtures/page-credibility.checker.json`. That file is the four site checks. At runtime the site checks are joined with the choice checks for the page's content category. That definition is v10. The eleven content categories are not a trust score. Jev is asked for meaning only. The four site questions go in one request. A main body that fits the input window goes in one request. The window is 32,000 tokens for state plus the longest question, and 64,000 tokens per request. A longer body is split with overlap, the selected category's body checks are asked, and the answers are combined strictly. The pass line is not moved for one site. See [`docs/judgement.md`](docs/judgement.md).
 
 | id | lane | type | question |
 | --- | --- | --- | --- |
@@ -71,19 +68,16 @@ The base definition is `fixtures/page-credibility.checker.json`. At runtime the 
 | `honest_identity` | site | noul | Does the displayed identity match the host? Impersonation is Alert. Being a critique is not impersonation. |
 | `site_purpose` | site | choice | What the page is for. News, opinion, and a listing are Pass. A sale, including affiliate copy dressed as news, is Review. Satire is Review. If the purpose cannot be told, the verdict is Alert. |
 | `disclosed_incentives` | site | choice | No pitch, or a named beneficiary, is Pass. Hiding who benefits is Alert. |
-| `evidence_for_claims` | body | score | Are claims stated as fact supported by evidence on this page? A proposal marked as a hypothesis or as unverified is not the same failure as unsourced news. If the page is not an article, the verdict is N/A. |
-| `separates_fact_and_opinion` | body | noul | Can fact and opinion be told apart? An essay is not a failure by itself. |
-| `unsourced_specifics` | body | choice | Are there specific figures with no source, including round promotional numbers? A number marked as an unverified hypothesis is not `many`. `none` is Pass, `some` is Review, `many` is Alert. |
-| `self_consistent` | body | noul | Does the same fact disagree with itself? Repeating one claim is not a contradiction. |
-| `certainty_matches_evidence` | body | noul | Does the strength of the wording match the evidence? A point marked as a hypothesis or as unverified already states its uncertainty. Health, money, identity, and law need stronger evidence. |
 
-The site lane asks who is responsible, whether the page impersonates someone, what the page is for, and whether a pitch hides who benefits. The body lane asks about evidence, fact and opinion, sources, contradiction, and certainty. Opinion is not a failure by itself. For each question, Jev selects a span cut from the page. The report distinguishes a Jev-selected span from related page text attached by the app for display when Jev has no selection. Jev does not write the span. The selection does not change the verdict. The interface shows Noul's probability of yes, Choice's selected label and confidence, and Score's value and confidence according to their distinct types.
+Body checks are not stored in the checker file. After classification, the checker asks only that category's items from `src/lib/category-rubrics.ts`. The meaning of the eleven categories stays as it is.
 
-A page with many links and little text per link is a listing. The five body questions do not run on a listing. There is no exception because the path is `/`, or because the site is famous.
+The site lane asks who is responsible, whether the page impersonates someone, what the page is for, and whether a pitch hides who benefits. The body lane asks the selected category's items. Opinion is not a failure by itself. For each question, Jev selects a span cut from the page. The report distinguishes a Jev-selected span from related page text attached by the app for display when Jev has no selection. Jev does not write the span. The selection does not change the verdict. The interface shows Noul's probability of yes, Choice's selected label and confidence, and Score's value and confidence according to their distinct types.
+
+A page with many links and little text per link is a listing. Body checks do not run on a listing. There is no exception because the path is `/`, or because the site is famous.
 
 Noul passes at 0.8 or above. The confidence floor for choice and score is 0.6. An uncertain result is Review. The verdicts are Pass, Review, Alert, N/A, and Error. There is no single trust score.
 
-The code judges HTTPS, author, date, word count, link density, outbound hosts, and whether the main text was cut by the input window. A body that fits is sent once. A longer body is split with overlap. If any remainder is unread, the five body questions do not pass. The fix is not a private character cap, and not an exception for one URL. If the definition changes, accept the whole list again in Settings.
+The code judges HTTPS, author, date, word count, link density, outbound hosts, and whether the main text was cut by the input window. A body that fits is sent once. A longer body is split with overlap. If any remainder is unread, the body does not pass. The fix is not a private character cap, and not an exception for one URL. If the definition changes, accept the whole list again in Settings.
 
 ## Chrome ウェブストア
 
