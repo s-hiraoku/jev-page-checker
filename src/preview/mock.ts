@@ -34,6 +34,8 @@ function previewClassification(replay: ReplayFixture): ContentClassificationSumm
 
 async function recordFrom(replay: ReplayFixture, id: string, createdAt: string): Promise<StoredRecord> {
   const report = await checkReplay(legacyDefinition, replay);
+  const classification = previewClassification(replay);
+  const bodyQuestionIds = report.inspection?.bodyQuestionIds ?? [];
   return {
     id,
     tabId: 1,
@@ -42,7 +44,13 @@ async function recordFrom(replay: ReplayFixture, id: string, createdAt: string):
       extractedAt: REPLAY_CLOCK,
       textTruncated: replay.state.textTruncated ?? false,
     },
-    report: { ...report, classification: previewClassification(replay) },
+    report: {
+      ...report,
+      classification,
+      inspection: report.inspection === undefined || classification.primary === undefined || bodyQuestionIds.length === 0
+        ? report.inspection
+        : { ...report.inspection, bodyQuestionGroups: [{ categoryId: classification.primary, questionIds: bodyQuestionIds }] },
+    },
     createdAt,
   };
 }
