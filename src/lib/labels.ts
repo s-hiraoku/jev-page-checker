@@ -1,6 +1,7 @@
 import type { JevAnswer, Verdict } from "./checkkit.js";
 import { copyFor } from "./copy.js";
 import type { ResolvedLocale } from "./locale.js";
+import { CATEGORY_RUBRICS } from "./category-rubrics.js";
 
 export const APP_NAME = "Audit";
 export const APP_NAME_FULL = "Jev Audit";
@@ -111,10 +112,20 @@ const SPECIFIC_LABELS: Record<ResolvedLocale, Record<string, string>> = {
 };
 
 export function questionLabel(id: string, locale: ResolvedLocale = "ja"): string {
+  const category = Object.values(CATEGORY_RUBRICS).find((rubric) => [...rubric.items, ...rubric.conditionalProbes].some((entry) => entry.id === id || `${entry.id}_cite` === id));
+  if (category !== undefined) {
+    const entry = [...category.items, ...category.conditionalProbes].find((item) => item.id === id || `${item.id}_cite` === id);
+    if (entry !== undefined) return entry.label[locale];
+  }
   return QUESTION_LABELS[locale][id] ?? id;
 }
 
 export function questionAxisLabel(id: string, locale: ResolvedLocale = "ja"): string {
+  const category = Object.values(CATEGORY_RUBRICS).find((rubric) => [...rubric.items, ...rubric.conditionalProbes].some((entry) => entry.id === id || `${entry.id}_cite` === id));
+  if (category !== undefined) {
+    const entry = [...category.items, ...category.conditionalProbes].find((item) => item.id === id || `${item.id}_cite` === id);
+    if (entry !== undefined) return entry.axisLabel[locale];
+  }
   return QUESTION_AXIS_LABELS[locale][id] ?? questionLabel(id, locale);
 }
 
@@ -135,6 +146,10 @@ export function choiceLabel(questionId: string, choice: string, locale: Resolved
   if (questionId === "site_purpose") return PURPOSE_LABELS[locale][choice] ?? choice;
   if (questionId === "disclosed_incentives") return DISCLOSURE_LABELS[locale][choice] ?? choice;
   if (questionId === "unsourced_specifics") return SPECIFIC_LABELS[locale][choice] ?? choice;
+  if (choice === "pass") return locale === "ja" ? "通過" : "Pass";
+  if (choice === "review") return locale === "ja" ? "要確認" : "Review";
+  if (choice === "alert") return locale === "ja" ? "警告" : "Alert";
+  if (choice === "not_applicable") return locale === "ja" ? "対象外" : "N/A";
   return choice;
 }
 
@@ -481,6 +496,11 @@ export function instructionLabel(id: string, locale: ResolvedLocale, fallback: s
 
 export function basisEntries(id: string, locale: ResolvedLocale = "ja"): { key: string; text: string }[] {
   const table = BASIS_LABELS[locale][id] ?? BASIS_LABELS.en[id];
-  if (table === undefined) return [];
+  if (table === undefined) {
+    const category = Object.values(CATEGORY_RUBRICS).find((rubric) => [...rubric.items, ...rubric.conditionalProbes].some((entry) => entry.id === id));
+    const entry = category?.items.concat(category.conditionalProbes).find((item) => item.id === id);
+    if (entry !== undefined) return Object.entries(entry.criteria).map(([key, text]) => ({ key, text }));
+    return [];
+  }
   return Object.keys(table).map((key) => ({ key, text: table[key] ?? "" }));
 }
