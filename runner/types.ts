@@ -97,6 +97,8 @@ export interface ReportInspection {
   unreadRemainder: boolean;
   siteQuestionIds: readonly string[];
   bodyQuestionIds: readonly string[];
+  /** Category-specific body groups used to keep primary and secondary radars separate. */
+  bodyQuestionGroups?: readonly { categoryId: string; questionIds: readonly string[] }[];
 }
 
 /** Optional content classification captured when the report was created. */

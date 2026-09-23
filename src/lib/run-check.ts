@@ -179,7 +179,8 @@ async function checkCategorizedSnapshot(snapshot: PageSnapshot, definition: Appr
     for (const id of probes.active) active.add(id);
     for (const id of probes.uncertain) uncertain.add(id);
   }
-  const bodyIds = selected.flatMap((category) => categoryQuestionIds(definition, category, active));
+  const bodyGroups = selected.map((category) => ({ categoryId: category, questionIds: categoryQuestionIds(definition, category, active) }));
+  const bodyIds = bodyGroups.flatMap((group) => group.questionIds);
   const bodyDefinition = withQuestions(definition, bodyIds);
   const windowReports = await Promise.all(split.windows.map((window) => evaluate(bodyDefinition, stateForWindow(snapshot, window.text), jev)));
   let rounds = windowReports;
@@ -201,7 +202,7 @@ async function checkCategorizedSnapshot(snapshot: PageSnapshot, definition: Appr
     usage: addUsage(usage, merged.usage),
     timing: { wallMs: site.timing.wallMs + classification.timing.wallMs + merged.timing.wallMs, jevMs: jevMs + merged.timing.jevMs },
     classification,
-    inspection: { windowCount: split.windows.length, windows: split.windows.map(({ start, end }) => ({ start, end })), covered: split.covered, unreadRemainder: snapshot.textTruncated === true || !split.covered, siteQuestionIds: siteIds, bodyQuestionIds: bodyIds },
+    inspection: { windowCount: split.windows.length, windows: split.windows.map(({ start, end }) => ({ start, end })), covered: split.covered, unreadRemainder: snapshot.textTruncated === true || !split.covered, siteQuestionIds: siteIds, bodyQuestionIds: bodyIds, bodyQuestionGroups: bodyGroups },
   };
 }
 

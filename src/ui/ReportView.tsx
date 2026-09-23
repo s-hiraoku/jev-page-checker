@@ -206,6 +206,7 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
           compact={compact}
           siteQuestionIds={siteIds}
           bodyQuestionIds={bodyIds}
+          bodyQuestionGroups={inspection?.bodyQuestionGroups}
         />
       </section>
       {sendKind === "unread" ? <p className="notice">{copy.truncatedNotice}</p> : null}
