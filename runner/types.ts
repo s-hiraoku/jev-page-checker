@@ -99,10 +99,29 @@ export interface ReportInspection {
   bodyQuestionIds: readonly string[];
 }
 
+/** Optional content classification captured when the report was created. */
+export interface ContentClassificationSummary {
+  status: "classified" | "review" | "not_applicable";
+  reasonCode?: string;
+  reason?: string;
+  primary?: string;
+  secondary?: string;
+  confidence?: number;
+  secondaryConfidence?: number;
+  evidence?: {
+    text: string;
+    source: PageSpanSource;
+    /** Present only for a citation from the body. */
+    start?: number;
+    end?: number;
+  };
+}
+
 export interface CheckReport {
   definition: { id: CheckerId; version: number };
   items: ItemResult[];
   usage: Usage;
   timing: { wallMs: number; jevMs: number };
   inspection?: ReportInspection;
+  classification?: ContentClassificationSummary;
 }

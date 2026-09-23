@@ -99,13 +99,16 @@ test("keeps an explicitly material secondary category", async () => {
 test("holds low confidence and unclear results for review", async () => {
   const low = await classifyContent(snapshot(), [windowFor(body)], scriptedGateway(() => choices("reporting", "none", "s1", 0.59)), categories);
   assert.equal(low.status, "review");
+  assert.equal(low.reasonCode, "low_confidence");
   const unclear = await classifyContent(snapshot(), [windowFor(body)], scriptedGateway(() => choices("unclear")), categories);
   assert.equal(unclear.status, "review");
+  assert.equal(unclear.reasonCode, "unclear_category");
 });
 
 test("holds Jev labels that are outside the supplied category options", async () => {
   const result = await classifyContent(snapshot(), [windowFor(body)], scriptedGateway(() => choices("invented_category")), categories);
   assert.equal(result.status, "review");
+  assert.equal(result.reasonCode, "unknown_primary");
   assert.match(result.reason ?? "", /outside the supplied options/);
 });
 
@@ -133,4 +136,5 @@ test("holds unread remainder and reports pages without one body as not applicabl
   assert.equal(missingWindows.status, "review");
   const noArticle = await classifyContent(snapshot({ hasArticle: false }), [windowFor(body)], scriptedGateway(() => choices("reporting")), categories);
   assert.equal(noArticle.status, "not_applicable");
+  assert.equal(noArticle.reasonCode, "no_single_body");
 });

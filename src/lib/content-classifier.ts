@@ -6,6 +6,22 @@ import type { BodyWindow } from "./body-windows.js";
 import type { PageSnapshot } from "./page-state.js";
 
 export type ContentClassificationStatus = "classified" | "review" | "not_applicable";
+export type ContentClassificationReasonCode =
+  | "no_single_body"
+  | "invalid_category_options"
+  | "reserved_category_option"
+  | "incomplete_body"
+  | "no_evidence_candidates"
+  | "missing_window_answers"
+  | "missing_primary"
+  | "unknown_primary"
+  | "unknown_secondary"
+  | "low_confidence"
+  | "unclear_category"
+  | "duplicate_categories"
+  | "too_many_categories"
+  | "primary_disagreement"
+  | "unexplained_secondary";
 
 export interface ContentEvidence {
   text: string;
@@ -32,6 +48,7 @@ export interface WindowClassification {
 
 export interface ContentClassification {
   status: ContentClassificationStatus;
+  reasonCode?: ContentClassificationReasonCode;
   reason?: string;
   primary?: string;
   secondary?: string;
@@ -113,6 +130,7 @@ function choiceAnswer(reply: Awaited<ReturnType<JevGateway["ask"]>>, id: string)
 }
 
 function review(
+  reasonCode: ContentClassificationReasonCode,
   reason: string,
   windows: readonly WindowClassification[],
   usage: Usage,
@@ -121,6 +139,7 @@ function review(
 ): ContentClassification {
   return {
     status: "review",
+    reasonCode,
     reason,
     windows,
     usage,
@@ -139,6 +158,7 @@ export async function classifyContent(
   if (!snapshot.hasArticle || !snapshot.hasBody || snapshot.text.length === 0) {
     return {
       status: "not_applicable",
+      reasonCode: "no_single_body",
       reason: "This page has no single body to classify.",
       windows: [],
       usage: ZERO_USAGE,
@@ -146,13 +166,13 @@ export async function classifyContent(
     };
   }
   if (Object.keys(categoryDescriptions).length === 0 || Object.values(categoryDescriptions).some((text) => !text.trim())) {
-    return review("Category descriptions are missing or empty.", [], ZERO_USAGE, started, 0);
+    return review("invalid_category_options", "Category descriptions are missing or empty.", [], ZERO_USAGE, started, 0);
   }
   if (Object.hasOwn(categoryDescriptions, UNCLEAR) || Object.hasOwn(categoryDescriptions, NONE)) {
-    return review('Category descriptions must not define reserved labels "unclear" or "none".', [], ZERO_USAGE, started, 0);
+    return review("reserved_category_option", 'Category descriptions must not define reserved labels "unclear" or "none".', [], ZERO_USAGE, started, 0);
   }
   if (!completeCoverage(snapshot, windows)) {
-    return review("The supplied windows do not cover the complete, untruncated page body.", [], ZERO_USAGE, started, 0);
+    return review("incomplete_body", "The supplied windows do not cover the complete, untruncated page body.", [], ZERO_USAGE, started, 0);
   }
 
   const primaryCriteria: ChoiceCriteria = { ...categoryDescriptions, [UNCLEAR]: "The page's primary content category cannot be determined." };
@@ -167,7 +187,7 @@ export async function classifyContent(
   for (const window of windows) {
     const spans = spansForWindow(snapshot, window);
     if (spans.length === 0) {
-      return review("A content window has no selectable page sentence for evidence.", resultWindows, usage, started, jevMs);
+      return review("no_evidence_candidates", "A content window has no selectable page sentence for evidence.", resultWindows, usage, started, jevMs);
     }
     const evidenceCriteria: ChoiceCriteria = Object.fromEntries([
       ...spans.map((span) => [span.id, span.text]),
@@ -189,7 +209,7 @@ export async function classifyContent(
     const secondary = choiceAnswer(reply, secondaryId);
     const evidenceAnswer = choiceAnswer(reply, evidenceId);
     if (primary === undefined || secondary === undefined || evidenceAnswer === undefined) {
-      return review("Jev did not return all three classification choices for a window.", resultWindows, usage, started, jevMs);
+      return review("missing_window_answers", "Jev did not return all three classification choices for a window.", resultWindows, usage, started, jevMs);
     }
     const evidence = findEvidence(spans, evidenceAnswer.choice);
     resultWindows.push({
@@ -203,21 +223,21 @@ export async function classifyContent(
 
   for (const [index, result] of resultWindows.entries()) {
     if (result.primary === undefined || result.confidence === undefined) {
-      return review("Jev did not return a primary category for every window.", resultWindows, usage, started, jevMs);
+      return review("missing_primary", "Jev did not return a primary category for every window.", resultWindows, usage, started, jevMs);
     }
     if (!Object.hasOwn(categoryDescriptions, result.primary) && result.primary !== UNCLEAR) {
-      return review("Jev returned a primary category outside the supplied options.", resultWindows, usage, started, jevMs);
+      return review("unknown_primary", "Jev returned a primary category outside the supplied options.", resultWindows, usage, started, jevMs);
     }
     if (result.secondary !== undefined && !Object.hasOwn(categoryDescriptions, result.secondary)) {
-      return review("Jev returned a secondary category outside the supplied options.", resultWindows, usage, started, jevMs);
+      return review("unknown_secondary", "Jev returned a secondary category outside the supplied options.", resultWindows, usage, started, jevMs);
     }
     if (result.confidence < CONFIDENCE_FLOOR || (result.secondaryConfidence ?? 0) < CONFIDENCE_FLOOR) {
-      return review("At least one category choice is below the 0.6 confidence floor.", resultWindows, usage, started, jevMs);
+      return review("low_confidence", "At least one category choice is below the 0.6 confidence floor.", resultWindows, usage, started, jevMs);
     }
-    if (result.primary === UNCLEAR) return review("At least one window has an unclear primary category.", resultWindows, usage, started, jevMs);
-    if (result.primary === result.secondary) return review("A window selected the same primary and secondary category.", resultWindows, usage, started, jevMs);
+    if (result.primary === UNCLEAR) return review("unclear_category", "At least one window has an unclear primary category.", resultWindows, usage, started, jevMs);
+    if (result.primary === result.secondary) return review("duplicate_categories", "A window selected the same primary and secondary category.", resultWindows, usage, started, jevMs);
     if (result.evidence === undefined || result.evidenceConfidence === undefined || result.evidenceConfidence < CONFIDENCE_FLOOR) {
-      return review("A window has no supported page-span evidence at or above the 0.6 confidence floor.", resultWindows, usage, started, jevMs);
+      return review("low_confidence", "A window has no supported page-span evidence at or above the 0.6 confidence floor.", resultWindows, usage, started, jevMs);
     }
   }
 
@@ -230,16 +250,16 @@ export async function classifyContent(
     }
     if (item.secondary !== undefined) categories.add(item.secondary);
   }
-  if (categories.size > 2) return review("The windows contain more than two material categories.", resultWindows, usage, started, jevMs);
+  if (categories.size > 2) return review("too_many_categories", "The windows contain more than two material categories.", resultWindows, usage, started, jevMs);
   const ranked = [...primaryCounts.entries()].sort((left, right) => right[1] - left[1]);
   const primary = ranked[0]?.[0];
   const secondPlace = ranked[1];
   if (primary === undefined || (secondPlace !== undefined && ranked[0]?.[1] === secondPlace[1])) {
-    return review("The windows disagree about the primary category without a clear majority.", resultWindows, usage, started, jevMs);
+    return review("primary_disagreement", "The windows disagree about the primary category without a clear majority.", resultWindows, usage, started, jevMs);
   }
   const secondary = [...categories].find((category) => category !== primary);
   if (secondary !== undefined && !resultWindows.some((item) => item.secondary === secondary)) {
-    return review("Window differences are not explained by an explicit material secondary category.", resultWindows, usage, started, jevMs);
+    return review("unexplained_secondary", "Window differences are not explained by an explicit material secondary category.", resultWindows, usage, started, jevMs);
   }
   const evidence = resultWindows.find((item) => item.primary === primary)?.evidence ?? resultWindows[0]?.evidence;
   return {

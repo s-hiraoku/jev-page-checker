@@ -1061,6 +1061,76 @@ a:hover {
   margin: -4px 0 0;
 }
 
+.classification-result {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 10px 0;
+  border-top: 1px solid var(--line-strong);
+  border-bottom: 1px solid var(--line);
+}
+
+.classification-result h2 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.classification-status {
+  margin: 0;
+  font-weight: 650;
+}
+
+.classification-status.review {
+  color: var(--review);
+}
+
+.classification-reason,
+.classification-confidence-help {
+  margin: 0;
+}
+
+.classification-fields {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+}
+
+.classification-fields > div {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.35fr) minmax(0, 1fr);
+  gap: 6px 12px;
+}
+
+.classification-fields dt {
+  color: var(--muted);
+}
+
+.classification-fields dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.classification-evidence {
+  min-width: 0;
+  margin: 0;
+  padding: 8px 10px;
+  border-inline-start: 2px solid var(--focus);
+  background: color-mix(in srgb, var(--input) 72%, var(--surface));
+}
+
+.classification-evidence figcaption {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.classification-evidence blockquote {
+  margin: 4px 0 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
 .result-groups {
   display: grid;
   gap: 18px;
