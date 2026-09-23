@@ -19,49 +19,98 @@
     "linkCount": 80,
     "wordCount": 180,
     "citationCount": 4,
-    "outboundHosts": ["sports.example.org"],
+    "outboundHosts": [
+      "sports.example.org"
+    ],
     "text": "Example News. Morning briefing. Sports. Weather. A board of headlines linking to other pages, not one article.",
     "textTruncated": false
   },
   "answers": {
-    "identifiable_publisher": { "type": "noul", "noul": 0.91 },
-    "honest_identity": { "type": "noul", "noul": 0.92 },
+    "identifiable_publisher": {
+      "type": "noul",
+      "noul": 0.91
+    },
+    "honest_identity": {
+      "type": "noul",
+      "noul": 0.92
+    },
     "site_purpose": {
       "type": "choice",
       "choice": "clear",
       "confidence": 0.9,
-      "probabilities": { "clear": 0.9, "mixed": 0.05, "hidden": 0.05 }
+      "probabilities": {
+        "clear": 0.9,
+        "mixed": 0.05,
+        "hidden": 0.05
+      }
     },
     "disclosed_incentives": {
       "type": "choice",
       "choice": "no_pitch",
       "confidence": 0.86,
-      "probabilities": { "no_pitch": 0.86, "named_beneficiary": 0.08, "hidden_beneficiary": 0.06 }
+      "probabilities": {
+        "no_pitch": 0.86,
+        "named_beneficiary": 0.08,
+        "hidden_beneficiary": 0.06
+      }
     },
     "identifiable_publisher_cite": {
       "type": "choice",
       "choice": "s1",
       "confidence": 0.9,
-      "probabilities": { "s1": 0.9, "none": 0.1 }
+      "probabilities": {
+        "s1": 0.9,
+        "none": 0.1
+      }
     },
     "honest_identity_cite": {
       "type": "choice",
       "choice": "s1",
       "confidence": 0.88,
-      "probabilities": { "s1": 0.88, "none": 0.12 }
+      "probabilities": {
+        "s1": 0.88,
+        "none": 0.12
+      }
     },
     "site_purpose_cite": {
       "type": "choice",
       "choice": "s3",
       "confidence": 0.87,
-      "probabilities": { "s3": 0.87, "none": 0.13 }
+      "probabilities": {
+        "s3": 0.87,
+        "none": 0.13
+      }
     },
     "disclosed_incentives_cite": {
       "type": "choice",
       "choice": "s2",
       "confidence": 0.8,
-      "probabilities": { "s2": 0.8, "none": 0.2 }
+      "probabilities": {
+        "s2": 0.8,
+        "none": 0.2
+      }
+    },
+    "site_type": {
+      "type": "choice",
+      "choice": "news_wire",
+      "confidence": 0.88,
+      "probabilities": {
+        "news_wire": 0.88,
+        "unknown_other": 0.12
+      }
+    },
+    "content_class": {
+      "type": "choice",
+      "choice": "news_wire",
+      "confidence": 0.88,
+      "probabilities": {
+        "news_wire": 0.88,
+        "unknown_other": 0.12
+      }
     }
   },
-  "usage": { "input_tokens": 240, "output_tokens": 12 }
+  "usage": {
+    "input_tokens": 240,
+    "output_tokens": 12
+  }
 }

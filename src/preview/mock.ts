@@ -1,11 +1,8 @@
-import type { JevGateway } from "../../runner/index.js";
 import { parseDefinition } from "../lib/checkkit.js";
 import { buildCategoryDefinition } from "../lib/category-definition.js";
-import { categoryChoiceDescriptions } from "../lib/category-rubrics.js";
-import { classifyContent } from "../lib/content-classifier.js";
 import type { Bridge } from "../lib/bridge.js";
 import { JEV_ENGLISH_CHARS_PER_TOKEN, bodyTokenBudget } from "../lib/jev-budget.js";
-import { checkReplay, REPLAY_CLOCK, snapshotFromReplay, type ReplayFixture } from "../lib/replay.js";
+import { checkReplay, REPLAY_CLOCK, type ReplayFixture } from "../lib/replay.js";
 import { DEFAULT_SETTINGS, parseSettings, type ExtensionSettings } from "../lib/settings.js";
 import { buildSessionPayload, withoutRecord, type SessionPayload, type StoredRecord } from "../lib/session.js";
 import definitionRaw from "../../fixtures/page-credibility.checker.json";
@@ -14,47 +11,10 @@ import failReplay from "../../fixtures/replay/page-credibility-fail.json";
 import passReplay from "../../fixtures/replay/page-credibility-pass.json";
 import portalReplay from "../../fixtures/replay/page-credibility-portal.json";
 
-const legacyDefinition = parseDefinition(definitionRaw);
-// Preview fixtures keep their v8 Jev answers; the shell and Settings page still
-// expose the current category question list used by the extension runtime.
-const definition = buildCategoryDefinition(legacyDefinition);
+const definition = buildCategoryDefinition(parseDefinition(definitionRaw));
 
-function classificationGateway(distribution: Readonly<Record<string, number>>): JevGateway {
-  const ranked = Object.entries(distribution).sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]));
-  const [choice, confidence] = ranked[0] ?? ["unclear", 0];
-  return {
-    async ask() {
-      return {
-        answers: {
-          content_primary: { type: "choice", choice: choice ?? "unclear", confidence: confidence ?? 0, probabilities: { ...distribution } },
-          content_secondary: { type: "choice", choice: "none", confidence: 0.8, probabilities: { none: 0.8 } },
-          content_evidence: { type: "choice", choice: "title", confidence: 0.8, probabilities: { title: 0.8 } },
-        },
-        usage: { input_tokens: 0, output_tokens: 0 },
-      };
-    },
-  };
-}
-
-async function previewClassification(replay: ReplayFixture, distribution: Readonly<Record<string, number>>) {
-  const snapshot = snapshotFromReplay(replay.state);
-  return classifyContent(
-    snapshot,
-    [{ text: snapshot.text, start: 0, end: snapshot.text.length }],
-    classificationGateway(distribution),
-    categoryChoiceDescriptions(),
-  );
-}
-
-async function recordFrom(
-  replay: ReplayFixture,
-  id: string,
-  createdAt: string,
-  distribution: Readonly<Record<string, number>>,
-): Promise<StoredRecord> {
-  const report = await checkReplay(legacyDefinition, replay);
-  const classification = await previewClassification(replay, distribution);
-  const bodyQuestionIds = report.inspection?.bodyQuestionIds ?? [];
+async function recordFrom(replay: ReplayFixture, id: string, createdAt: string): Promise<StoredRecord> {
+  const report = await checkReplay(definition, replay);
   return {
     id,
     tabId: 1,
@@ -63,32 +23,21 @@ async function recordFrom(
       extractedAt: REPLAY_CLOCK,
       textTruncated: replay.state.textTruncated ?? false,
     },
-    report: {
-      ...report,
-      classification,
-      inspection: report.inspection === undefined || classification.primary === undefined || bodyQuestionIds.length === 0
-        ? report.inspection
-        : { ...report.inspection, bodyQuestionGroups: [{ categoryId: classification.primary, questionIds: bodyQuestionIds }] },
-    },
+    report,
     createdAt,
   };
 }
 
-const ARTICLE_DISTRIBUTION = { reporting: 0.34, explanation: 0.22, announcement: 0.18, unclear: 0.26 };
-const SALES_DISTRIBUTION = { sales: 0.37, announcement: 0.24, reporting: 0.21, unclear: 0.18 };
-const ESSAY_DISTRIBUTION = { opinion: 0.36, explanation: 0.28, reporting: 0.2, unclear: 0.16 };
-
 export async function createPreviewBridge(scene: string): Promise<Bridge> {
   const passFile = passReplay as ReplayFixture;
-  const pass = await recordFrom(passFile, "preview-pass", "2026-09-20T08:00:00.000Z", ARTICLE_DISTRIBUTION);
-  const fail = await recordFrom(failReplay as ReplayFixture, "preview-fail", "2026-09-20T09:30:00.000Z", SALES_DISTRIBUTION);
-  const essay = await recordFrom(essayReplay as ReplayFixture, "preview-essay", "2026-09-20T10:00:00.000Z", ESSAY_DISTRIBUTION);
-  const portal = await recordFrom(portalReplay as ReplayFixture, "preview-portal", "2026-09-20T10:30:00.000Z", ARTICLE_DISTRIBUTION);
+  const pass = await recordFrom(passFile, "preview-pass", "2026-09-20T08:00:00.000Z");
+  const fail = await recordFrom(failReplay as ReplayFixture, "preview-fail", "2026-09-20T09:30:00.000Z");
+  const essay = await recordFrom(essayReplay as ReplayFixture, "preview-essay", "2026-09-20T10:00:00.000Z");
+  const portal = await recordFrom(portalReplay as ReplayFixture, "preview-portal", "2026-09-20T10:30:00.000Z");
   const truncated = await recordFrom(
     { ...passFile, state: { ...passFile.state, textTruncated: true } },
     "preview-truncated",
     "2026-09-20T11:00:00.000Z",
-    ARTICLE_DISTRIBUTION,
   );
   const chunked = await recordFrom(
     {
@@ -101,7 +50,6 @@ export async function createPreviewBridge(scene: string): Promise<Bridge> {
     },
     "preview-chunked",
     "2026-09-20T12:15:00.000Z",
-    ARTICLE_DISTRIBUTION,
   );
   let settings: ExtensionSettings = {
     ...DEFAULT_SETTINGS,
