@@ -83,7 +83,6 @@ function ResultCard({ item, snapshot, locale, compact, definitionVersion }: { it
         <h4>{copy.criteria}</h4>
         <h3 id={`question-${item.id}`}>{question}</h3>
         {criterion ? <p className="result-criterion">{criterion}</p> : null}
-        <p className="result-level">{copy.appliedLevel(copy.verdictLabels[item.verdict])}</p>
       </section>
       <section className="result-block result-remark-block">
         <h4>{copy.remark}</h4>

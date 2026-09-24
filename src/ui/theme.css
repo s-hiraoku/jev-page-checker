@@ -1,12 +1,12 @@
-/* Quiet scan, instrument plate. One gothic for JP labels and EN chrome. No Inter, stamps, CMYK, cream, acid green, or broadsheet. */
+/* Keep the interface on the platform text face, with a consistent Japanese fallback. */
 :root {
   color: var(--ink);
   background: var(--bg);
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: 100%;
   line-height: 1.5;
   font-feature-settings: "kern" 1, "palt" 0;
-  --font-body: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Yu Gothic", "Noto Sans CJK JP", "Noto Sans JP", "WenQuanYi Micro Hei", Meiryo, "Segoe UI", "SF Pro Text", sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Noto Sans CJK JP", "Noto Sans JP", "Yu Gothic UI", "Yu Gothic", Meiryo, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", "Noto Sans Mono CJK JP", "WenQuanYi Micro Hei Mono", monospace;
   --radius: 12px;
   --radius-sm: 8px;
@@ -21,7 +21,7 @@ html[data-theme="dark"] {
   --header: #0c1015;
   --header-ink: #e7eef4;
   --ink: #e4ecf2;
-  --muted: #84919e;
+  --muted: #a0aebb;
   --line: #2a3540;
   --line-strong: #5a6876;
   --focus: #7a93c9;
@@ -117,6 +117,7 @@ body,
 
 body {
   overflow-y: auto;
+  font-size: 0.875rem;
 }
 
 button,
@@ -175,7 +176,7 @@ a:hover {
   align-items: center;
   gap: 8px;
   color: color-mix(in srgb, var(--header-ink) 62%, transparent);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -197,7 +198,7 @@ a:hover {
 .app-header .app-meta {
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0;
   font-variant-numeric: tabular-nums;
@@ -263,7 +264,7 @@ a:hover {
   gap: 4px 8px;
   margin: 0 0 10px;
   font-size: 0.95rem;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.4;
 }
 
@@ -279,8 +280,8 @@ a:hover {
   list-style: none;
   color: var(--muted);
   font-size: 0.82rem;
-  font-weight: 500;
-  line-height: 1.45;
+  font-weight: 400;
+  line-height: 1.5;
 }
 
 .lane-remarks li + li {
@@ -291,7 +292,7 @@ a:hover {
   margin: 6px 0 0;
   color: var(--ink);
   font-size: 0.82rem;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.45;
 }
 
@@ -321,7 +322,7 @@ a:hover {
 
 .lane strong {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--muted);
   letter-spacing: 0.02em;
@@ -416,7 +417,7 @@ a:hover {
 .meta-table th,
 .result-table thead th {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
   background: transparent;
@@ -424,7 +425,7 @@ a:hover {
 
 .result-table thead th {
   letter-spacing: 0;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .result-table tbody th {
@@ -593,7 +594,7 @@ a:hover {
 
 .radar-card h3 {
   margin: 0 0 4px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--muted);
   text-align: center;
@@ -915,7 +916,7 @@ a:hover {
   align-items: center;
   gap: 6px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0;
 }
@@ -1117,12 +1118,13 @@ a:hover {
 
 .classification-result h2 {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .classification-status {
   margin: 0;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .classification-status.review {
@@ -1142,7 +1144,7 @@ a:hover {
 
 .classification-fields > div {
   display: grid;
-  grid-template-columns: minmax(110px, 0.35fr) minmax(0, 1fr);
+  grid-template-columns: minmax(8.5rem, 0.35fr) minmax(0, 1fr);
   gap: 6px 12px;
 }
 
@@ -1181,6 +1183,13 @@ a:hover {
   gap: 18px;
 }
 
+.report-charts h2 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
 .report .result-group {
   overflow: visible;
   border: 0;
@@ -1204,10 +1213,12 @@ a:hover {
 
 .result-card {
   min-width: 0;
-  padding: 12px;
   border: 1px solid var(--line);
   border-inline-start: 3px solid var(--line-strong);
+  border-radius: var(--radius-sm);
   background: var(--surface);
+  overflow: hidden;
+  container-type: inline-size;
 }
 
 .result-pass { border-inline-start-color: var(--pass); }
@@ -1215,48 +1226,78 @@ a:hover {
 .result-fail { border-inline-start-color: var(--fail); }
 .result-error { border-inline-start-color: var(--error); }
 
-.result-block {
-  margin-top: 12px;
+.result-verdict {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--input) 35%, var(--surface));
 }
 
-.result-block:first-child {
-  margin-top: 0;
+.result-verdict .chip-large {
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 2px 8px;
+}
+
+.result-criteria {
+  padding: 12px 14px 0;
 }
 
 .result-block h3 {
   min-width: 0;
-  margin: 2px 0 0;
-  font-size: 0.98rem;
+  margin: 3px 0 0;
+  font-size: 0.9375rem;
   line-height: 1.4;
-  text-wrap: pretty;
+  text-wrap: balance;
 }
 
 .result-block h4 {
   margin: 0;
   color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 650;
-  letter-spacing: 0.04em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .result-criterion,
-.result-level,
 .evidence-empty {
-  margin: 4px 0 0;
-  line-height: 1.5;
+  margin: 6px 0 0;
+  line-height: 1.6;
 }
 
-.result-level,
 .evidence-empty,
 .result-id {
   color: var(--muted);
   font-size: 0.84rem;
 }
 
+.result-remark-block,
+.result-evidence {
+  margin: 12px 14px 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+@container (min-width: 30rem) {
+  .result-remark-block,
+  .result-evidence {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+  }
+}
+
 .result-details {
-  margin-top: 10px;
+  margin-top: 12px;
+  padding: 8px 14px;
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--input) 20%, var(--surface));
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
 }
 
 .result-details summary {
@@ -1276,7 +1317,7 @@ a:hover {
 
 .answer-label {
   font-size: 1.05rem;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .answer-metric,
@@ -1339,11 +1380,24 @@ a:hover {
   line-height: 1.5;
 }
 
+@container (min-width: 30rem) {
+  .result-remark-block .result-remark {
+    margin-top: 0;
+  }
+}
+
 .evidence-quote {
-  margin: 10px 0 0;
+  margin: 6px 0 0;
   padding: 8px 10px;
   border-inline-start: 2px solid var(--focus);
   background: color-mix(in srgb, var(--input) 72%, var(--surface));
+}
+
+@container (min-width: 30rem) {
+  .result-evidence .evidence-quote,
+  .result-evidence .evidence-empty {
+    margin-top: 0;
+  }
 }
 
 .evidence-quote figcaption {
@@ -1366,7 +1420,7 @@ a:hover {
 .evidence-quote blockquote {
   margin: 4px 0 0;
   color: var(--ink);
-  font-size: 0.92rem;
+  font-size: 0.875rem;
   line-height: 1.65;
   overflow-wrap: anywhere;
 }
@@ -1388,7 +1442,7 @@ a:hover {
 .report-disclosure > summary {
   display: list-item;
   cursor: pointer;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .body-disclosure > summary > span:last-child {
@@ -1531,10 +1585,6 @@ a:hover {
 @media (max-width: 620px) {
   .metadata-list {
     grid-template-columns: 1fr;
-  }
-
-  .result-card {
-    padding: 10px;
   }
 
   .checklist-criteria li {
@@ -1749,7 +1799,7 @@ a:hover {
   border: 1px solid var(--line);
   border-radius: 999px;
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 
 .settings-approval {
