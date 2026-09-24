@@ -53,7 +53,7 @@ const ja = {
     unexplained_secondary: "副分類では説明できない本文範囲間の違いがあります。",
     classification_error: "本文分類の依頼に失敗したため、分類を保留しました。",
   },
-  verdictLabels: { pass: "通過", fail: "警告", review: "要確認", not_applicable: "対象外", error: "エラー" } satisfies Record<Verdict, string>,
+  verdictLabels: { pass: "適合", fail: "警告", review: "要確認", not_applicable: "対象外", error: "エラー" } satisfies Record<Verdict, string>,
   detailsHelp: "判定と根拠を確認できます。このチェックで外部に送信するのは、Jev への評価依頼です。",
   noResult: "まだ結果がありません。チェック画面から実行してください。",
   report: "レポート",
@@ -131,7 +131,6 @@ const ja = {
   verdict: "判定",
   remark: "寸評",
   criteria: "基準",
-  appliedLevel: (level: string) => `当たった段: ${level}`,
   evidence: "根拠",
   noEvidence: "この項目の根拠になる記載はない。",
   itemDetails: "詳細",
@@ -159,14 +158,14 @@ const ja = {
   branchNo: "いいえ",
   articleOnly: "一つの文章として読める記事にだけ適用します。",
   noulBand: (passAt: number, failAt: number) =>
-    `${passAt} 以上で通過。${failAt} 以下で警告。その間は要確認。`,
+    `${passAt} 以上で基準を満たす。${failAt} 以下で警告。その間は要確認。`,
   scoreBand: (passAt: number, failAt: number, floor: number) =>
-    `${passAt} 以上で通過。${failAt} 以下で警告。その間は要確認。確信度が ${floor} 未満なら要確認。`,
+    `${passAt} 以上で基準を満たす。${failAt} 以下で警告。その間は要確認。確信度が ${floor} 未満なら要確認。`,
   choiceFloor: (floor: number) => `確信度が ${floor} 未満なら要確認。それ以外は、選んだラベルに対応する判定です。`,
   citeChoices:
     "選択肢は、このページから切り出した文です。要確認や警告の項目には、判定の原因に関係する文を表示します。選択結果は判定に影響しません。",
   truncatedNotice:
-    "主本文が Jev の入力上限を超え、後半は確認できていません。本文の判定は通過にしません。",
+    "主本文が Jev の入力上限を超え、後半は確認できていません。本文は基準を満たすと判定しません。",
   chunkedNotice: "主本文が長いので、重ねて分割し、厳しめにまとめて見ました。",
   synthesisHelp: "範囲ごとの回答と重なった箇所を合わせて、本文全体も確認します。",
   radarLabel: (title: string, parts: string) => `${title}のレーダー。${parts}`,
@@ -340,7 +339,6 @@ const en: typeof ja = {
   verdict: "Verdict",
   remark: "Remark",
   criteria: "Criteria",
-  appliedLevel: (level: string) => `Level applied: ${level}`,
   evidence: "Evidence",
   noEvidence: "No page text is attached to this item.",
   itemDetails: "Details",

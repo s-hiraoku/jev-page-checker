@@ -67,7 +67,7 @@ test("a category item card renders verdict, criteria, remark, and an empty evide
   assert.match(html, /中心事実と時点/);
   assert.match(html, /中心事実と時点は、要確認である。/);
   assert.match(html, /ページの記述だけでは判断できない/);
-  assert.match(html, /当たった段: 要確認/);
+  assert.equal(html.includes("判定区分"), false);
   assert.match(html, /この項目の根拠になる記載はない。/);
   assert.match(html, /<summary>詳細<\/summary>/);
   assert.match(html, /reporting_event_time/);
@@ -75,6 +75,18 @@ test("a category item card renders verdict, criteria, remark, and an empty evide
   const details = html.indexOf("result-details");
   const confidence = html.indexOf("回答分布の確信度");
   assert.ok(details >= 0 && confidence > details);
+});
+
+test("a Japanese Pass card uses the short verdict label without using 通過", () => {
+  const html = htmlFor({
+    id: "reporting_event_time" as ItemResult["id"],
+    verdict: "pass",
+    reason: "choice pass maps to pass",
+    answer: { type: "choice", choice: "pass", confidence: 0.93, probabilities: { pass: 0.93 } },
+  });
+  assert.match(html, /class="chip chip-pass chip-large">適合<\/span>/);
+  assert.equal(html.includes("判定区分"), false);
+  assert.equal(html.includes("通過"), false);
 });
 
 test("a lane summary keeps the worst category remarks and the bar names the category", () => {
