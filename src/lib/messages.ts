@@ -2,6 +2,7 @@ import type { SessionPayload } from "./session.js";
 
 export type ClientMessage =
   | { type: "GET_SESSION"; windowId?: number }
+  | { type: "SIDEBAR_OPENED"; windowId?: number }
   | { type: "CHECK_NOW"; windowId?: number }
   | { type: "SAVE_SETTINGS"; settings: unknown; windowId?: number }
   | { type: "OPEN_DETAILS"; id?: string; windowId?: number }

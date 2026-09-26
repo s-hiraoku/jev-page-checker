@@ -79,6 +79,7 @@ export async function createPreviewBridge(scene: string): Promise<Bridge> {
 
   return {
     getSession: async () => payload(),
+    sidebarOpened: async () => payload(),
     saveSettings: async (next) => {
       settings = parseSettings(next);
       notify();

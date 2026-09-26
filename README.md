@@ -18,8 +18,9 @@ Chrome で `chrome://extensions` を開き、デベロッパーモードをオ�
 
 1. Settings でチェックリストを読み、リスト全体を承認します。テーマと言語の「システム」は、端末の設定に合わせます。
 2. TypeSafe の API キーを保存します。キーは拡張のストレージにだけ置き、Jev への問い合わせ以外には使いません。
-3. 「タブに追従する」をオンにしておくと、タブの切り替えと読み込み完了のたびにやり直します。
-4. チェック画面はサイトと本文を別レーンで表示します。Report では質問ごとの判定と Jev の回答、根拠になったページ上の記載を確認できます。本文の引用は抽出した本文中で強調し、分割した場合はチェック時に記録した各範囲を開いて確認できます。タイトル、サイト名、著者、説明などのページ情報も表示します。結果は端末内のファイルに保存できます。過去のチェックは履歴に時刻つきで並び、1 件ずつ削除できます。
+3. チェック機能の On/Off はサイドバー上部で切り替えられます。オフにすると新しい手動・自動チェックを停止します。Settings の「サイドバーを開いたときだけチェックする」をオンにすると、サイドバーを開いたときかサイドバー内で手動チェックしたときだけ実行します。
+4. 「タブに追従する」をオンにしておくと、タブの切り替えと読み込み完了のたびにやり直します。
+5. チェック画面はサイトと本文を別レーンで表示します。Report では質問ごとの判定と Jev の回答、根拠になったページ上の記載を確認できます。本文の引用は抽出した本文中で強調し、分割した場合はチェック時に記録した各範囲を開いて確認できます。タイトル、サイト名、著者、説明などのページ情報も表示します。結果は端末内のファイルに保存できます。過去のチェックは履歴に時刻つきで並び、1 件ずつ削除できます。
 
 画面だけ見るときは `npm run preview` です。ストア提出用の zip は `npm run zip` で `.output/` に出ます。zip のルートは `manifest.json` です。親フォルダは挟みません。`v*` タグを push すると、CI が同じ zip を GitHub Release に付けます。main と pull request では、テスト、型検査、ビルドのあと、同じ zip を Actions の成果物にも残します。掲載文は [`store/listing.md`](store/listing.md)、プライバシーポリシーは [`docs/privacy.html`](docs/privacy.html) です。Chrome ウェブストアには、その zip をそのまま上げてください。展開してフォルダごと固め直すと、ストアはマニフェストが無いと見なします。
 
@@ -31,7 +32,7 @@ The repo is self-contained. It is not jev-checkkit.
 
 You need Node 26 or newer. `npm install`, `npm test`, and `npm run build` produce `.output/chrome-mv3`. Load that folder from `chrome://extensions` with developer mode on. The toolbar icon opens Inspector.
 
-In Settings, read the checklist and accept the whole list. System theme and system language follow the device. Save a TypeSafe API key. The key stays in extension storage and is used only to call Jev. Follow the tab reruns the check when you switch tabs or a page finishes loading.
+In Settings, read the checklist and accept the whole list. System theme and system language follow the device. Save a TypeSafe API key. The key stays in extension storage and is used only to call Jev. Use the On/Off switch at the top of the sidebar to stop new automatic and manual checks. In Settings, turn on "Check only when opening the sidebar" to run checks only when the sidebar opens or when you manually check from the sidebar. Follow the tab reruns the check when you switch tabs or a page finishes loading.
 
 The checker shows a site lane and a body lane. Report shows each verdict, Jev's typed answer, and the page passage used as evidence. Body citations are highlighted in the extracted text; when a body is split, the report shows the ranges recorded at check time. It also shows page information used in the check, such as the title, site name, author, and description. Save a report to a file on the device. History lists past checks by time and lets you delete one record.
 

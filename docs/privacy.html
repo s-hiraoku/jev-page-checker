@@ -47,7 +47,7 @@
     <p>API キー、承認記録、History は Chrome の <code>storage.local</code> に保存します。拡張を削除するか、利用者が保存内容を消すまで残ります。History の 1 件は、利用者がその記録を消したときに消えます。ログにキーは出しません。端末に残したレポートのファイルは、ブラウザのダウンロード先に残ります。拡張を削除しても、そのファイルは消えません。</p>
 
     <h2>利用者の選択</h2>
-    <p>チェックリスト全体を承認し、API キーを保存するまで Audit は始まりません。「タブに追従する」をオフにすると、必要なときだけ手動で Audit します。拡張を削除すると、端末上の拡張の保存データは消えます。</p>
+    <p>チェックリスト全体を承認し、API キーを保存するまで Audit は始まりません。サイドバー上部の On/Off をオフにすると、新しい手動・自動チェックを停止できます。Settings の「サイドバーを開いたときだけチェックする」をオンにすると、サイドバーを開いたときか、サイドバー内で手動チェックしたときだけ実行します。「タブに追従する」をオフにすると、タブ切替や読み込み完了では自動チェックしません。拡張を削除すると、端末上の拡張の保存データは消えます。</p>
 
     <h2>問い合わせ</h2>
     <p>質問は <a href="https://github.com/s-hiraoku/jev-page-checker/issues">GitHub Issues</a> へ送ってください。</p>
@@ -59,7 +59,7 @@
     <p lang="en">When you run Audit, the extension sends a <code>state</code> that includes the body and metadata to TypeSafe AI (<a href="https://api.typesafe.ai">https://api.typesafe.ai</a>). A long body may be sent to that same API in more than one request. The call is authenticated with the API key you saved. The key and the body are not sent to a server run by the extension's developer. A verdict does not publish, forward, or block the page. "Save a file on this device" writes a file on this device. The extension does not upload that file.</p>
     <p lang="en">TypeSafe's handling of the request follows TypeSafe's terms and privacy policy.</p>
     <p lang="en">The API key, the checklist acceptance, and History stay in Chrome <code>storage.local</code> until you remove the extension or clear what you saved. Deleting one History record removes that record. The key is not written to logs. A report file you saved stays in the browser's download location. Removing the extension does not delete that file.</p>
-    <p lang="en">Audit does not start until you accept the whole checklist and save an API key. Turn off "Follow the tab" to run Audit only when you ask. Removing the extension deletes the data it stored on the device.</p>
+    <p lang="en">Audit does not start until you accept the whole checklist and save an API key. Turn off the switch at the top of the sidebar to stop new automatic and manual checks. In Settings, turn on "Check only when opening the sidebar" to run checks only when the sidebar opens or when you manually check from the sidebar. Turn off "Follow the tab" to stop automatic checks on tab changes and page load completion. Removing the extension deletes the data it stored on the device.</p>
     <p lang="en">Questions: <a href="https://github.com/s-hiraoku/jev-page-checker/issues">GitHub Issues</a>.</p>
   </body>
 </html>

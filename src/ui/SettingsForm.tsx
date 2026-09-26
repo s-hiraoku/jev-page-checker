@@ -144,6 +144,14 @@ function SettingsFields({
         <fieldset className="fieldset settings-card settings-behavior">
           <legend>{copy.behavior}</legend>
           <label className="setting-toggle">
+            <input
+              type="checkbox"
+              checked={draft.checkOnlyWhenSidebarOpens}
+              onChange={(event) => update("checkOnlyWhenSidebarOpens", event.target.checked)}
+            />
+            <span><strong>{copy.checkOnlyWhenSidebarOpens}</strong><small>{copy.checkOnlyWhenSidebarOpensHelp}</small></span>
+          </label>
+          <label className="setting-toggle">
             <input type="checkbox" checked={draft.followTab} onChange={(event) => update("followTab", event.target.checked)} />
             <span><strong>{copy.followTab}</strong><small>{copy.followTabHelp}</small></span>
           </label>
