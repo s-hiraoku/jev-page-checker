@@ -5,6 +5,7 @@ import { sessionUpdateApplies } from "./window-session.js";
 
 export interface Bridge {
   getSession(): Promise<SessionPayload>;
+  sidebarOpened(): Promise<SessionPayload>;
   saveSettings(settings: ExtensionSettings): Promise<SessionPayload>;
   checkNow(): Promise<SessionPayload>;
   openDetails(id?: string): Promise<void>;
@@ -35,6 +36,7 @@ export function liveBridge(options?: { isolateWindow?: boolean }): Bridge {
   };
   return {
     getSession: () => send<SessionPayload>({ type: "GET_SESSION" }),
+    sidebarOpened: () => send<SessionPayload>({ type: "SIDEBAR_OPENED" }),
     saveSettings: (settings) => send<SessionPayload>({ type: "SAVE_SETTINGS", settings }),
     checkNow: () => send<SessionPayload>({ type: "CHECK_NOW" }),
     openDetails: async (id) => {

@@ -140,8 +140,9 @@ function errorMessage(error: unknown, locale: ResolvedLocale): string {
   return unknownErrorMessage(error);
 }
 
-async function checkTab(definition: ApprovedDefinition, tabId: number, force: boolean): Promise<void> {
+async function checkTab(definition: ApprovedDefinition, tabId: number, force: boolean, fromSidebarOpen = false): Promise<void> {
   const settings = await readSettings();
+  if (!settings.checksEnabled || (settings.checkOnlyWhenSidebarOpens && !fromSidebarOpen && !force)) return;
   if (setupGap(settings, definition.version) !== null) {
     await publishForTab(definition, tabId);
     return;
@@ -234,6 +235,15 @@ export function startBackground(definitionRaw: unknown): void {
       try {
         if (message.type === "GET_SESSION") {
           sendResponse(await paint(definition, await targetTabId(windowId, senderTabId)));
+          return;
+        }
+        if (message.type === "SIDEBAR_OPENED") {
+          const id = await targetTabId(windowId, senderTabId);
+          const settings = await readSettings();
+          if (id !== undefined && settings.checkOnlyWhenSidebarOpens) {
+            await checkTab(definition, id, false, true);
+          }
+          sendResponse(await payload(definition, id));
           return;
         }
         if (message.type === "SAVE_SETTINGS") {

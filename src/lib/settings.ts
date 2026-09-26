@@ -4,6 +4,8 @@ export type LocalePreference = "system" | "ja" | "en";
 export interface ExtensionSettings {
   apiKey: string;
   ackedVersion: number | null;
+  checksEnabled: boolean;
+  checkOnlyWhenSidebarOpens: boolean;
   followTab: boolean;
   recheckOnChange: boolean;
   debounceMs: number;
@@ -15,6 +17,8 @@ export interface ExtensionSettings {
 export const DEFAULT_SETTINGS: ExtensionSettings = {
   apiKey: "",
   ackedVersion: null,
+  checksEnabled: true,
+  checkOnlyWhenSidebarOpens: false,
   followTab: true,
   recheckOnChange: true,
   debounceMs: 1500,
@@ -41,6 +45,8 @@ export function parseSettings(raw: unknown): ExtensionSettings {
   return {
     apiKey: typeof record.apiKey === "string" ? record.apiKey : "",
     ackedVersion: typeof record.ackedVersion === "number" && Number.isInteger(record.ackedVersion) ? record.ackedVersion : null,
+    checksEnabled: record.checksEnabled !== false,
+    checkOnlyWhenSidebarOpens: record.checkOnlyWhenSidebarOpens === true,
     followTab: record.followTab !== false,
     recheckOnChange: record.recheckOnChange !== false,
     debounceMs: finiteInt(record.debounceMs, DEFAULT_SETTINGS.debounceMs, 250, 15000),

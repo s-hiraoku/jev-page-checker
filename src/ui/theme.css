@@ -213,6 +213,89 @@ a:hover {
   gap: 12px;
 }
 
+.sidebar-check-setting {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.sidebar-check-switch {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  cursor: pointer;
+}
+
+.sidebar-check-switch input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.sidebar-check-track {
+  display: flex;
+  flex: 0 0 40px;
+  align-items: center;
+  width: 40px;
+  height: 23px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--line-strong);
+  transition: background-color 120ms ease;
+}
+
+.sidebar-check-track span {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 3px color-mix(in srgb, #000 35%, transparent);
+  transition: transform 120ms ease;
+}
+
+.sidebar-check-switch input:checked + .sidebar-check-track {
+  background: var(--focus);
+}
+
+.sidebar-check-switch input:checked + .sidebar-check-track span {
+  transform: translateX(17px);
+}
+
+.sidebar-check-switch input:focus-visible + .sidebar-check-track {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.sidebar-check-switch input:disabled + .sidebar-check-track,
+.sidebar-check-switch input:disabled ~ .sidebar-check-copy {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.sidebar-check-copy {
+  min-width: 0;
+}
+
+.sidebar-check-copy strong {
+  display: block;
+  font-size: 0.9rem;
+}
+
+.sidebar-check-copy small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
 .app.wide .shell {
   max-width: 960px;
   margin: 0 auto;

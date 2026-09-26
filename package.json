@@ -1,7 +1,7 @@
 {
   "name": "jev-page-checker",
   "private": true,
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Follow the current tab and audit site plus body with TypeSafe Jev",
   "homepage": "https://github.com/s-hiraoku/jev-page-checker",
   "type": "module",
