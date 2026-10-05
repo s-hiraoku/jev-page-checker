@@ -79,7 +79,8 @@ Verdicts are Pass, Review, Alert, N/A, and Error. There is no single trust score
 - **storage:** API キー、チェックリストの承認、History を、この端末の中に保存するため。
 - **tabs:** 追従しているタブの URL を知り、そのタブに Audit を割り当てるため。
 - **host_permissions (http://\*/\* and https://\*/\*):** 表示中のページのタイトル、メタ情報、本文、外部リンクを読むため。http と https 以外のページは対象にしない。
-- **host_permissions (https://api.typesafe.ai/\*):** 利用者が開始した Audit を、TypeSafe の Jev へ送るため。長い本文は、同じ API へ複数回に分けることがある。それ以外の宛先はない。
+- **host_permissions (https://api.typesafe.ai/\*):** 利用者が開始した Audit を、TypeSafe の Jev へ送るため。長い本文は、同じ API へ複数回に分けることがある。
+- **host_permissions (https://api.anthropic.com/\*):** 利用者が Settings で回答エンジンに Claude を選んだとき、利用者が開始した Audit を Anthropic の Claude へ送るため。送る内容は Jev のときと同じ。この 2 つ以外の宛先はない。
 
 ### Data use
 

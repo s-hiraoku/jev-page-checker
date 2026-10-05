@@ -1,8 +1,15 @@
+import { DEFAULT_CLAUDE_MODEL, isClaudeModel, type ClaudeModel } from "./claude-models.js";
+
 export type ThemePreference = "system" | "light" | "dark";
 export type LocalePreference = "system" | "ja" | "en";
+/** Which model answers the checklist. Both receive the same questions and the same pass lines. */
+export type AuditEngine = "jev" | "claude";
 
 export interface ExtensionSettings {
   apiKey: string;
+  engine: AuditEngine;
+  anthropicApiKey: string;
+  claudeModel: ClaudeModel;
   ackedVersion: number | null;
   checksEnabled: boolean;
   checkOnlyWhenSidebarOpens: boolean;
@@ -16,6 +23,9 @@ export interface ExtensionSettings {
 
 export const DEFAULT_SETTINGS: ExtensionSettings = {
   apiKey: "",
+  engine: "jev",
+  anthropicApiKey: "",
+  claudeModel: DEFAULT_CLAUDE_MODEL,
   ackedVersion: null,
   checksEnabled: true,
   checkOnlyWhenSidebarOpens: false,
@@ -44,6 +54,9 @@ export function parseSettings(raw: unknown): ExtensionSettings {
   const record = raw !== null && typeof raw === "object" && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {};
   return {
     apiKey: typeof record.apiKey === "string" ? record.apiKey : "",
+    engine: record.engine === "claude" ? "claude" : "jev",
+    anthropicApiKey: typeof record.anthropicApiKey === "string" ? record.anthropicApiKey : "",
+    claudeModel: isClaudeModel(record.claudeModel) ? record.claudeModel : DEFAULT_CLAUDE_MODEL,
     ackedVersion: typeof record.ackedVersion === "number" && Number.isInteger(record.ackedVersion) ? record.ackedVersion : null,
     checksEnabled: record.checksEnabled !== false,
     checkOnlyWhenSidebarOpens: record.checkOnlyWhenSidebarOpens === true,
@@ -58,6 +71,11 @@ export function parseSettings(raw: unknown): ExtensionSettings {
 
 export function setupGap(settings: ExtensionSettings, definitionVersion: number): "api-key" | "approval" | null {
   if (settings.ackedVersion !== definitionVersion) return "approval";
-  if (settings.apiKey.trim() === "") return "api-key";
+  if (activeApiKey(settings) === "") return "api-key";
   return null;
+}
+
+/** The key for the selected engine. */
+export function activeApiKey(settings: ExtensionSettings): string {
+  return (settings.engine === "claude" ? settings.anthropicApiKey : settings.apiKey).trim();
 }

@@ -32,6 +32,7 @@
 - 定義を変えたら、リスト全体を承認し直す。一部だけの承認はしない。
 - 仮説、未検証、実験が必要と本文に書いてある提案は、出典のない報道の断定と同じ失敗にしない。出典や計測がない提案は、通過ではなく要確認である。
 - 発行元は、画面の著者、署名、発行者の表示を見る。主本文からナビゲーションとして外したことは、発行元がいないことではない。
+- 回答エンジンは Jev か Claude を選べる。どちらにも同じ state と同じ質問を送り、どちらの答えも同じ型（noul の確率、choice の選択と確信度と分布、score の期待値と確信度と分布）に直してから、同じ合格線と確信度の床で判定する。Claude には、ラベルの確率分布を返させ、ページの中身はデータとして扱わせ、サイトの評判や知名度で答えさせない。エンジンごとに閾値や指示を変えない。
 
 ## English
 
@@ -65,3 +66,4 @@ What the check may do:
 - If the definition changes, the whole list must be accepted again. A partial acceptance is not enough.
 - A proposal that the text marks as a hypothesis, as unverified, or as needing an experiment is not the same failure as an unsourced news assertion. A proposal with no source or measurement is Review, not Pass.
 - Publisher identity uses the author, byline, and publisher chrome on the page. Removing navigation from the main text does not mean there is no publisher.
+- The answer engine is Jev or Claude. Both receive the same state and the same questions. Both answers are turned into the same types (noul probability, choice label with confidence and distribution, score expectation with confidence and distribution) and judged with the same pass lines and confidence floors. Claude returns a probability distribution over the labels, treats the page content as data, and does not answer from a site's reputation or fame. Thresholds and instructions do not change per engine.

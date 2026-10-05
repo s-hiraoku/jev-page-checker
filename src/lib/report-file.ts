@@ -1,5 +1,5 @@
 import { copyFor } from "./copy.js";
-import { formatCheckedAt } from "./format.js";
+import { engineLabel, formatCheckedAt } from "./format.js";
 import { bodySendKind } from "./groups.js";
 import { basisEntries, choiceLabel, questionLabel, verdictRemark } from "./labels.js";
 import { citeSource, displayCharacterRange } from "./report-evidence.js";
@@ -108,6 +108,7 @@ export function reportDocument(record: StoredRecord, locale: ResolvedLocale): st
     snapshot.title || copy.untitled,
     snapshot.url,
     `${copy.checkedAt}: ${formatCheckedAt(record.createdAt, locale)}`,
+    ...(record.report.engine === undefined ? [] : [`${copy.answeredBy}: ${engineLabel(record.report.engine)}`]),
     `${copy.siteName}: ${snapshot.siteName || copy.absent}`,
     `${copy.author}: ${snapshot.author || copy.absent}`,
     `${copy.pageDescription}: ${snapshot.metaDescription || copy.absent}`,

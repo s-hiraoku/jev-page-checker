@@ -1,3 +1,4 @@
+import Anthropic from "@anthropic-ai/sdk";
 import { TypeSafeError } from "@typesafe-ai/sdk";
 import { applyActionIcon, applyDefaultActionIcon } from "./action-icon.js";
 import { parseDefinition, type ApprovedDefinition } from "./checkkit.js";
@@ -5,8 +6,9 @@ import { copyFor } from "./copy.js";
 import { unknownErrorMessage } from "./errors.js";
 import { resolveLocale, type ResolvedLocale } from "./locale.js";
 import { isInspectableUrl, snapshotFingerprint, type PageSnapshot } from "./page-state.js";
+import { ClaudeAnswerError, createLiveClaude } from "./claude-gateway.js";
 import { checkSnapshot, createLiveJev } from "./run-check.js";
-import { DEFAULT_SETTINGS, parseSettings, setupGap, type ExtensionSettings } from "./settings.js";
+import { activeApiKey, DEFAULT_SETTINGS, parseSettings, setupGap, type ExtensionSettings } from "./settings.js";
 import type { ClientMessage, ExtractMessage } from "./messages.js";
 import { buildSessionPayload, withoutRecord, type SessionPayload, type StoredRecord, type TabSession } from "./session.js";
 import { activeTabQuery, isWindowActiveTab, TabDebouncer } from "./window-session.js";
@@ -131,6 +133,8 @@ async function extractTab(tabId: number, settings: ExtensionSettings): Promise<P
 function errorMessage(error: unknown, locale: ResolvedLocale): string {
   const copy = copyFor(locale);
   if (error instanceof TypeSafeError) return copy.jevSendFailed;
+  if (error instanceof Anthropic.APIError) return copy.claudeSendFailed;
+  if (error instanceof ClaudeAnswerError) return copy.claudeAnswerFailed;
   if (error instanceof Error) {
     if (error.message.includes("Could not establish connection")) {
       return copy.extractFailed;
@@ -170,7 +174,12 @@ async function checkTab(definition: ApprovedDefinition, tabId: number, force: bo
   tabs.set(tabId, { status: "checking", snapshot, fingerprint });
   await publishForTab(definition, tabId);
   try {
-    const report = await checkSnapshot(snapshot, definition, createLiveJev(settings.apiKey.trim()));
+    const key = activeApiKey(settings);
+    const gateway = settings.engine === "claude" ? createLiveClaude(key, settings.claudeModel) : createLiveJev(key);
+    const report = {
+      ...(await checkSnapshot(snapshot, definition, gateway)),
+      engine: settings.engine === "claude" ? { id: "claude" as const, model: settings.claudeModel } : { id: "jev" as const },
+    };
     const record: StoredRecord = {
       id: crypto.randomUUID(),
       tabId,
@@ -249,7 +258,7 @@ export function startBackground(definitionRaw: unknown): void {
         if (message.type === "SAVE_SETTINGS") {
           const next = parseSettings(message.settings);
           const previous = await readSettings();
-          await writeSettings({ ...DEFAULT_SETTINGS, ...previous, ...next, apiKey: next.apiKey });
+          await writeSettings({ ...DEFAULT_SETTINGS, ...previous, ...next, apiKey: next.apiKey, anthropicApiKey: next.anthropicApiKey });
           sendResponse(await payload(definition, await targetTabId(windowId, senderTabId)));
           await notifyUi(undefined);
           return;

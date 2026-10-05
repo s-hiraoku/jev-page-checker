@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import type { Check } from "../lib/checkkit.js";
+import { CLAUDE_MODELS, isClaudeModel } from "../lib/claude-models.js";
 import { unknownErrorMessage } from "../lib/errors.js";
 import { parseLocale, parseTheme, type ExtensionSettings } from "../lib/settings.js";
 import { ChecklistView } from "./ChecklistView.js";
@@ -101,14 +102,53 @@ function SettingsFields({
           <legend>{copy.connection}</legend>
           <p className="settings-card-help">{copy.connectionHelp}</p>
           <label className="field">
-            <span>{copy.apiKey}</span>
-            <input
-              type="password"
-              autoComplete="off"
-              value={draft.apiKey}
-              onChange={(event) => update("apiKey", event.target.value)}
-            />
+            <span>{copy.engine}</span>
+            <select
+              aria-label={copy.engine}
+              value={draft.engine}
+              onChange={(event) => update("engine", event.target.value === "claude" ? "claude" : "jev")}
+            >
+              <option value="jev">{copy.engineJev}</option>
+              <option value="claude">{copy.engineClaude}</option>
+            </select>
+            {draft.engine === "claude" ? <small>{copy.engineHelp}</small> : null}
           </label>
+          {draft.engine === "claude" ? (
+            <>
+              <label className="field">
+                <span>{copy.anthropicApiKey}</span>
+                <input
+                  type="password"
+                  autoComplete="off"
+                  value={draft.anthropicApiKey}
+                  onChange={(event) => update("anthropicApiKey", event.target.value)}
+                />
+              </label>
+              <label className="field">
+                <span>{copy.claudeModel}</span>
+                <select
+                  aria-label={copy.claudeModel}
+                  value={draft.claudeModel}
+                  onChange={(event) => {
+                    if (isClaudeModel(event.target.value)) update("claudeModel", event.target.value);
+                  }}
+                >
+                  {CLAUDE_MODELS.map((model) => <option key={model} value={model}>{model}</option>)}
+                </select>
+                <small>{copy.claudeModelHelp}</small>
+              </label>
+            </>
+          ) : (
+            <label className="field">
+              <span>{copy.apiKey}</span>
+              <input
+                type="password"
+                autoComplete="off"
+                value={draft.apiKey}
+                onChange={(event) => update("apiKey", event.target.value)}
+              />
+            </label>
+          )}
         </fieldset>
 
         <fieldset className="fieldset settings-card">

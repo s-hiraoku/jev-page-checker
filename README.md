@@ -1,6 +1,6 @@
 # Jev Audit
 
-表示中のタブを Inspector が追い、TypeSafe の Jev で発行元と本文を分けて Audit する Chrome 拡張です。React と Manifest V3 で動きます。結果は根拠です。ページは遮断しません。公開もしません。送る先は、Audit のための Jev だけです。
+表示中のタブを Inspector が追い、TypeSafe の Jev で発行元と本文を分けて Audit する Chrome 拡張です。React と Manifest V3 で動きます。結果は根拠です。ページは遮断しません。公開もしません。送る先は、Audit のための Jev か、Settings で選んだときの Claude だけです。
 
 このリポジトリだけで完結します。jev-checkkit とは別です。
 
@@ -22,11 +22,19 @@ Chrome で `chrome://extensions` を開き、デベロッパーモードをオ�
 4. 「タブに追従する」をオンにしておくと、タブの切り替えと読み込み完了のたびにやり直します。
 5. チェック画面はサイトと本文を別レーンで表示します。Report では質問ごとの判定と Jev の回答、根拠になったページ上の記載を確認できます。本文の引用は抽出した本文中で強調し、分割した場合はチェック時に記録した各範囲を開いて確認できます。タイトル、サイト名、著者、説明などのページ情報も表示します。結果は端末内のファイルに保存できます。過去のチェックは履歴に時刻つきで並び、1 件ずつ削除できます。
 
+### Claude で答える
+
+Settings の「回答エンジン」で Claude（Anthropic）を選ぶと、Jev の代わりに Claude がチェック項目に答えます。Anthropic API キーとモデル（既定は `claude-opus-5-5`、速さと費用を優先するなら `claude-sonnet-5-5`）を保存します。キーは拡張のストレージにだけ置きます。
+
+Claude に送るのは Jev に送るものと同じ state と質問です。Claude は質問ごとにラベルの確率分布を返し、拡張がそれを Jev と同じ型（noul の確率、choice の選択と確信度、score の期待値と確信度）に直します。合格線、確信度の床、分割、厳しめの合成、局所対応の禁止は変わりません。ページ本文はデータとして渡し、本文中の指示には従わせません。サイトの知名度や評判ではなく、そのページに書いてあることだけで答えさせます。
+
+同じページを両方のエンジンで比べるには、`ANTHROPIC_API_KEY`（と、あれば `TYPESAFE_API_KEY`）を環境変数に置いて `npm run compare -- fixtures/replay/page-credibility-essay.json` を実行します。ページ state の JSON なら何でも渡せます。
+
 画面だけ見るときは `npm run preview` です。ストア提出用の zip は `npm run zip` で `.output/` に出ます。zip のルートは `manifest.json` です。親フォルダは挟みません。`v*` タグを push すると、CI が同じ zip を GitHub Release に付けます。main と pull request では、テスト、型検査、ビルドのあと、同じ zip を Actions の成果物にも残します。掲載文は [`store/listing.md`](store/listing.md)、プライバシーポリシーは [`docs/privacy.html`](docs/privacy.html) です。Chrome ウェブストアには、その zip をそのまま上げてください。展開してフォルダごと固め直すと、ストアはマニフェストが無いと見なします。
 
 ## English
 
-Jev Audit is a Chrome extension. Inspector follows the tab you are reading. TypeSafe Jev checks the publisher and, when the page is one piece of writing, the body. The result is evidence. The extension does not block the page, publish it, or send it anywhere except to Jev for that check.
+Jev Audit is a Chrome extension. Inspector follows the tab you are reading. TypeSafe Jev checks the publisher and, when the page is one piece of writing, the body. The result is evidence. The extension does not block the page, publish it, or send it anywhere except to Jev, or to Claude when you choose it in Settings, for that check.
 
 The repo is self-contained. It is not jev-checkkit.
 
@@ -35,6 +43,8 @@ You need Node 26 or newer. `npm install`, `npm test`, and `npm run build` produc
 In Settings, read the checklist and accept the whole list. System theme and system language follow the device. Save a TypeSafe API key. The key stays in extension storage and is used only to call Jev. Use the On/Off switch at the top of the sidebar to stop new automatic and manual checks. In Settings, turn on "Check only when opening the sidebar" to run checks only when the sidebar opens or when you manually check from the sidebar. Follow the tab reruns the check when you switch tabs or a page finishes loading.
 
 The checker shows a site lane and a body lane. Report shows each verdict, Jev's typed answer, and the page passage used as evidence. Body citations are highlighted in the extracted text; when a body is split, the report shows the ranges recorded at check time. It also shows page information used in the check, such as the title, site name, author, and description. Save a report to a file on the device. History lists past checks by time and lets you delete one record.
+
+In Settings, the answer engine can be Claude (Anthropic) instead of Jev. Save an Anthropic API key and a model (`claude-opus-5-5` by default, `claude-sonnet-5-5` for speed and cost). Claude receives the same state and questions as Jev and returns a probability distribution over each question's labels. The extension turns that into the same typed answer Jev returns. The pass lines, confidence floors, splitting, strict synthesis, and the ban on per-site fixes do not change. The page is passed as data; instructions inside it are not followed, and the answer rests on what the page shows, not on the site's reputation. To compare both engines on one page state, set `ANTHROPIC_API_KEY` (and `TYPESAFE_API_KEY` if you have one) and run `npm run compare -- <state JSON>`.
 
 `npm run preview` shows the screens without a key. `npm run zip` writes the store zip under `.output/`. `manifest.json` is at the zip root. Pushing a `v*` tag makes CI attach that zip to a GitHub Release.
 

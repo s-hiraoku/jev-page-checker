@@ -9,7 +9,7 @@ export default defineConfig({
     description: "Audit the publisher and body of the current page with an approved Jev checklist",
     homepage_url: "https://github.com/s-hiraoku/jev-page-checker",
     permissions: ["sidePanel", "storage", "tabs"],
-    host_permissions: ["http://*/*", "https://*/*", "https://api.typesafe.ai/*"],
+    host_permissions: ["http://*/*", "https://*/*", "https://api.typesafe.ai/*", "https://api.anthropic.com/*"],
     options_ui: {
       open_in_tab: true,
     },
