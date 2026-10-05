@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { recordById, type Bridge } from "../lib/bridge.js";
+import { caseFromRecord, caseSlug } from "../lib/eval-case.js";
 import { downloadTextFile, reportDocument, reportFilename } from "../lib/report-file.js";
 import type { StoredRecord } from "../lib/session.js";
 import { AppChrome } from "./AppChrome.js";
@@ -37,6 +38,12 @@ function saveRecord(record: StoredRecord, locale: ReturnType<typeof useLocale>):
   downloadTextFile(reportFilename(record), reportDocument(record, locale));
 }
 
+/** The page exactly as the extension extracted it, for a person to label in eval/cases/. */
+function saveEvalCase(record: StoredRecord): void {
+  const slug = caseSlug(record);
+  downloadTextFile(`${slug}.json`, `${JSON.stringify(caseFromRecord(record, slug), null, 2)}\n`);
+}
+
 function LoadingCopy({ fallback }: { fallback: string | null }) {
   const copy = useCopy();
   return fallback ?? copy.loading;
@@ -52,6 +59,9 @@ function DetailsBody({ record }: { record: ReturnType<typeof recordById> }) {
         <div className="toolbar">
           <button type="button" className="btn secondary" onClick={() => saveRecord(record, locale)}>
             {copy.saveOnDevice}
+          </button>
+          <button type="button" className="btn secondary" onClick={() => saveEvalCase(record)}>
+            {copy.saveEvalCase}
           </button>
         </div>
       ) : null}

@@ -15,7 +15,9 @@
     "typecheck": "wxt prepare && tsc --noEmit",
     "preview": "vite --config vite.preview.config.ts --port 4173",
     "test": "wxt prepare && node --import tsx --test src/lib/*.test.ts",
-    "compare": "node --import tsx scripts/compare-engines.ts"
+    "compare": "node --import tsx scripts/compare-engines.ts",
+    "eval": "node --import tsx scripts/eval-run.ts",
+    "eval:capture": "node --import tsx scripts/eval-capture.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.131.0",

@@ -30,6 +30,10 @@ Claude に送るのは Jev に送るものと同じ state と質問です。Clau
 
 同じページを両方のエンジンで比べるには、`ANTHROPIC_API_KEY`（と、あれば `TYPESAFE_API_KEY`）を環境変数に置いて `npm run compare -- fixtures/replay/page-credibility-essay.json` を実行します。ページ state の JSON なら何でも渡せます。
 
+### 評価環境
+
+判定が人の判定とどれだけ合うかは、`eval/` の評価環境で測ります。ラベル付きのページを `eval/cases/` に置き、`npm run eval` でエンジンやプロンプトごとの一致率を出します。Report 画面の「評価ケースとして保存」で、いま見ているページをケースにできます。詳細は [`eval/README.md`](eval/README.md) です。
+
 画面だけ見るときは `npm run preview` です。ストア提出用の zip は `npm run zip` で `.output/` に出ます。zip のルートは `manifest.json` です。親フォルダは挟みません。`v*` タグを push すると、CI が同じ zip を GitHub Release に付けます。main と pull request では、テスト、型検査、ビルドのあと、同じ zip を Actions の成果物にも残します。掲載文は [`store/listing.md`](store/listing.md)、プライバシーポリシーは [`docs/privacy.html`](docs/privacy.html) です。Chrome ウェブストアには、その zip をそのまま上げてください。展開してフォルダごと固め直すと、ストアはマニフェストが無いと見なします。
 
 ## English

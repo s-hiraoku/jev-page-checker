@@ -1,0 +1,46 @@
+{
+  "id": "fixture-pass",
+  "tags": [
+    "fixture",
+    "source:replay-fixture",
+    "lang:en"
+  ],
+  "source": "fixture",
+  "labeledBy": "draft",
+  "notes": "Attributed local report that links the source memo.",
+  "snapshot": {
+    "url": "https://news.example.org/reports/bridge-delay",
+    "hostname": "news.example.org",
+    "protocol": "https:",
+    "title": "City delays river bridge opening after inspection, officials say",
+    "metaDescription": "The transportation bureau postponed the opening after hairline cracks were found in two piers.",
+    "author": "Mina Ito",
+    "publishedAt": "2026-09-18",
+    "siteName": "Example News",
+    "language": "en",
+    "isHttps": true,
+    "hasAuthor": true,
+    "hasPublishedAt": true,
+    "hasBody": true,
+    "hasArticle": true,
+    "pageKind": "article",
+    "linkCount": 4,
+    "wordCount": 210,
+    "citationCount": 3,
+    "outboundHosts": [
+      "transport.example.gov",
+      "doi.example.org"
+    ],
+    "text": "The city transportation bureau said Thursday it will delay the river bridge opening after inspectors found hairline cracks in two piers. Bureau director Ken Sato told reporters the cracks were documented in an inspection memo dated 12 September. The bureau posted that memo and a photograph of the south pier. Sato said no opening date has been set. The story cites the posted memo and does not add costs or causes beyond what the bureau released.",
+    "textTruncated": false
+  },
+  "expected": {
+    "items": {
+      "identifiable_publisher": "pass",
+      "honest_identity": "pass",
+      "disclosed_incentives": "pass",
+      "reporting_attribution": "pass"
+    },
+    "category": "reporting"
+  }
+}

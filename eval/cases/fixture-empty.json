@@ -1,0 +1,43 @@
+{
+  "id": "fixture-empty",
+  "tags": [
+    "fixture",
+    "source:replay-fixture",
+    "lang:en"
+  ],
+  "source": "fixture",
+  "labeledBy": "draft",
+  "notes": "Loading shell with four words and no named publisher.",
+  "snapshot": {
+    "url": "https://app.example/blank",
+    "hostname": "app.example",
+    "protocol": "https:",
+    "title": "Dashboard",
+    "metaDescription": "",
+    "author": "",
+    "publishedAt": "",
+    "siteName": "",
+    "language": "en",
+    "isHttps": true,
+    "hasAuthor": false,
+    "hasPublishedAt": false,
+    "hasBody": false,
+    "hasArticle": false,
+    "pageKind": "article",
+    "linkCount": 1,
+    "wordCount": 4,
+    "citationCount": 0,
+    "outboundHosts": [],
+    "text": "Loading workspace",
+    "textTruncated": false
+  },
+  "expected": {
+    "items": {
+      "identifiable_publisher": [
+        "review",
+        "fail"
+      ]
+    },
+    "category": null
+  }
+}

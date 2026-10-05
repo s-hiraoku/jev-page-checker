@@ -227,7 +227,7 @@ export async function askClaude(client: ClaudeMessagesClient, request: SystemOne
   } catch {
     throw new ClaudeAnswerError("Claude's answer was not valid JSON.");
   }
-  return { answers: toJevAnswers(request, parsed), usage: usageOf(message) };
+  return { answers: toJevAnswers(request, parsed), usage: usageOf(message), model: message.model };
 }
 
 /** A JevGateway backed by Claude. evaluate() and the classifiers keep their thresholds and rules unchanged. */

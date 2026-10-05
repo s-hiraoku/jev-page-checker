@@ -1,0 +1,43 @@
+{
+  "id": "fixture-portal",
+  "tags": [
+    "fixture",
+    "source:replay-fixture",
+    "lang:en"
+  ],
+  "source": "fixture",
+  "labeledBy": "draft",
+  "notes": "Headline board; the body lane should not run.",
+  "snapshot": {
+    "url": "https://news.example.org/",
+    "hostname": "news.example.org",
+    "protocol": "https:",
+    "title": "Example News",
+    "metaDescription": "Headlines",
+    "author": "",
+    "publishedAt": "",
+    "siteName": "Example News",
+    "language": "en",
+    "isHttps": true,
+    "hasAuthor": false,
+    "hasPublishedAt": false,
+    "hasBody": true,
+    "hasArticle": false,
+    "pageKind": "portal",
+    "linkCount": 80,
+    "wordCount": 180,
+    "citationCount": 4,
+    "outboundHosts": [
+      "sports.example.org"
+    ],
+    "text": "Example News. Morning briefing. Sports. Weather. A board of headlines linking to other pages, not one article.",
+    "textTruncated": false
+  },
+  "expected": {
+    "items": {
+      "identifiable_publisher": "pass",
+      "honest_identity": "pass"
+    },
+    "category": null
+  }
+}
