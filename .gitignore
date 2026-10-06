@@ -5,3 +5,7 @@ dist/
 .chrome-store-profile/
 __pycache__/
 .superdesign/
+.claude/hillclimb/*/*/traces/
+.claude/hillclimb/*/report.html
+.claude/hillclimb/*/state.json
+.claude/hillclimb/*/trajectory/

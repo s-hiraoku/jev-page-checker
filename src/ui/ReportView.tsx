@@ -1,6 +1,6 @@
 import type { Copy } from "../lib/copy.js";
 import { bodySendKind, laneRemarkLines, worstVerdict } from "../lib/groups.js";
-import { formatCheckedAt } from "../lib/format.js";
+import { engineLabel, formatCheckedAt } from "../lib/format.js";
 import type { PageKind, PageSnapshot } from "../lib/page-state.js";
 import type { ItemResult, Verdict } from "../lib/checkkit.js";
 import { CATEGORY_RUBRICS, type ContentCategoryId } from "../lib/category-rubrics.js";
@@ -269,7 +269,7 @@ export function ReportView({ record, compact = false }: { record: StoredRecord; 
         <details className="report-disclosure processing-details">
           <summary>{copy.technicalDetails}</summary>
           <dl className="metadata-list">
-            <div className="metadata-row"><dt>{copy.processing}</dt><dd>Jev {record.report.timing.jevMs} ms</dd></div>
+            <div className="metadata-row"><dt>{copy.processing}</dt><dd>{engineLabel(record.report.engine)} {record.report.timing.jevMs} ms</dd></div>
             <div className="metadata-row"><dt>{copy.input}</dt><dd>{record.report.usage.input_tokens}</dd></div>
             <div className="metadata-row"><dt>{copy.output}</dt><dd>{record.report.usage.output_tokens}</dd></div>
             <div className="metadata-row"><dt>{copy.extractionStatus}</dt><dd>{snapshot.textTruncated ? copy.incomplete : copy.complete}</dd></div>

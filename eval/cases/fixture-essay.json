@@ -1,0 +1,44 @@
+{
+  "id": "fixture-essay",
+  "tags": [
+    "fixture",
+    "source:replay-fixture",
+    "lang:en"
+  ],
+  "source": "fixture",
+  "labeledBy": "draft",
+  "notes": "Signed working note that marks its opinion and links its numbers.",
+  "snapshot": {
+    "url": "https://notes.example.org/users/ada/posts/why-types-beat-guesswork",
+    "hostname": "notes.example.org",
+    "protocol": "https:",
+    "title": "Why types beat guesswork",
+    "metaDescription": "A working note on checking claims before publishing them.",
+    "author": "Ada Example",
+    "publishedAt": "2026-09-18",
+    "siteName": "Example Notes",
+    "language": "en",
+    "isHttps": true,
+    "hasAuthor": true,
+    "hasPublishedAt": true,
+    "hasBody": true,
+    "hasArticle": true,
+    "pageKind": "article",
+    "linkCount": 6,
+    "wordCount": 420,
+    "citationCount": 2,
+    "outboundHosts": [
+      "docs.example.org"
+    ],
+    "text": "Ada Example writes on Example Notes that a typed check of a claim is more useful than a generated paragraph. She links the checklist she ran and the numbers from her own run, and she marks the rest as her opinion.",
+    "textTruncated": false
+  },
+  "expected": {
+    "items": {
+      "identifiable_publisher": "pass",
+      "honest_identity": "pass",
+      "disclosed_incentives": "pass"
+    },
+    "category": "opinion"
+  }
+}

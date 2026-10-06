@@ -11,3 +11,9 @@ export function formatCheckedAt(iso: string, locale: ResolvedLocale): string {
     minute: "2-digit",
   }).format(date);
 }
+
+/** The model that answered a stored report. Reports made before Claude was offered were all Jev. */
+export function engineLabel(engine: { id: "jev" | "claude"; model?: string } | undefined): string {
+  if (engine?.id !== "claude") return "Jev";
+  return engine.model ? `Claude (${engine.model})` : "Claude";
+}

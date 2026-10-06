@@ -15,6 +15,8 @@ import type { Check, JevAnswer } from "./types.js";
 export interface JevReply {
   answers: Record<string, JevAnswer>;
   usage: Usage;
+  /** The model that served the request, when the engine reports it. */
+  model?: string;
 }
 
 export interface JevGateway {
@@ -41,8 +43,8 @@ export function buildRequest(state: EntryType, checks: readonly Check[]): System
 export function liveGateway(connect: () => TypeSafeClient): JevGateway {
   return {
     async ask(request) {
-      const { answers, usage } = await connect().systemOne(request);
-      return { answers, usage };
+      const { answers, usage, model } = await connect().systemOne(request);
+      return { answers, usage, model };
     },
   };
 }

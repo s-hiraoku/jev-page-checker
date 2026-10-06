@@ -147,8 +147,15 @@ export interface SiteTypeSummary {
   confidence?: number;
 }
 
+/** Which model answered. Absent on reports made before Claude could answer, which were all Jev. */
+export interface ReportEngine {
+  id: "jev" | "claude";
+  model?: string;
+}
+
 export interface CheckReport {
   definition: { id: CheckerId; version: number };
+  engine?: ReportEngine;
   items: ItemResult[];
   usage: Usage;
   timing: { wallMs: number; jevMs: number };

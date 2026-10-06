@@ -1,0 +1,70 @@
+{
+  "flow": "page-audit",
+  "description": "Audit verdicts on labeled pages, graded against a person's labels.",
+  "metrics": [
+    {
+      "id": "verdict_acc",
+      "label": "Verdict acc",
+      "kind": "float",
+      "scale": 1
+    },
+    {
+      "id": "all_correct",
+      "label": "All correct",
+      "kind": "float",
+      "scale": 1
+    },
+    {
+      "id": "false_pass",
+      "label": "False pass",
+      "kind": "float",
+      "scale": 5,
+      "better": "lower"
+    },
+    {
+      "id": "false_alert",
+      "label": "False alert",
+      "kind": "float",
+      "scale": 5,
+      "better": "lower"
+    },
+    {
+      "id": "error_items",
+      "label": "Error items",
+      "kind": "float",
+      "scale": 5,
+      "better": "lower"
+    },
+    {
+      "id": "category_ok",
+      "label": "Category",
+      "kind": "float",
+      "scale": 1
+    }
+  ],
+  "perf_fields": [
+    {
+      "id": "cost_usd",
+      "label": "Cost",
+      "unit": "$"
+    },
+    {
+      "id": "in_tokens",
+      "label": "In tok"
+    },
+    {
+      "id": "out_tokens",
+      "label": "Out tok"
+    },
+    {
+      "id": "latency_s",
+      "label": "Latency",
+      "unit": "s"
+    }
+  ],
+  "harness_paths": [
+    "scripts/eval-run.ts",
+    "src/lib/eval-case.ts",
+    "eval/cases/*.json"
+  ]
+}
