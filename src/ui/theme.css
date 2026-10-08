@@ -684,6 +684,13 @@ a:hover {
   letter-spacing: 0;
 }
 
+.radar-legend {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+}
+
 .radar-empty {
   margin: 0;
   padding: 22px 8px;

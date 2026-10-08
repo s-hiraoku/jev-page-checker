@@ -7,14 +7,17 @@ import { ChecklistView } from "./ChecklistView.js";
 import { LocaleProvider, useCopy, useResolvedLocale } from "./useLocale.js";
 import { useTheme } from "./useTheme.js";
 
+const AUTO_OFF_CHOICES = [15, 30, 60, 120, 240, 480, 0] as const;
+
 interface Props {
+  checksToday?: number;
   settings: ExtensionSettings;
   questions: readonly Check[];
   definitionVersion: number;
   onSave: (settings: ExtensionSettings) => Promise<void>;
 }
 
-export function SettingsForm({ settings, questions, definitionVersion, onSave }: Props) {
+export function SettingsForm({ checksToday = 0, settings, questions, definitionVersion, onSave }: Props) {
   const [draft, setDraft] = useState(settings);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -30,6 +33,7 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
   return (
     <LocaleProvider locale={locale}>
       <SettingsFields
+        checksToday={checksToday}
         draft={draft}
         approved={approved}
         busy={busy}
@@ -60,6 +64,7 @@ export function SettingsForm({ settings, questions, definitionVersion, onSave }:
 }
 
 function SettingsFields({
+  checksToday,
   draft,
   approved,
   busy,
@@ -71,6 +76,7 @@ function SettingsFields({
   onDismissWarning,
   onSubmit,
 }: {
+  checksToday: number;
   draft: ExtensionSettings;
   approved: boolean;
   busy: boolean;
@@ -183,6 +189,37 @@ function SettingsFields({
 
         <fieldset className="fieldset settings-card settings-behavior">
           <legend>{copy.behavior}</legend>
+          <div className="settings-number-grid">
+            <label className="field">
+              <span>{copy.autoOffMinutes}</span>
+              <select
+                aria-label={copy.autoOffMinutes}
+                value={draft.autoOffMinutes}
+                onChange={(event) => update("autoOffMinutes", Number(event.target.value))}
+              >
+                {(AUTO_OFF_CHOICES as readonly number[]).includes(draft.autoOffMinutes) ? null : (
+                  <option value={draft.autoOffMinutes}>{copy.autoOffOption(draft.autoOffMinutes)}</option>
+                )}
+                {AUTO_OFF_CHOICES.map((minutes) => (
+                  <option key={minutes} value={minutes}>
+                    {minutes === 0 ? copy.autoOffNever : copy.autoOffOption(minutes)}
+                  </option>
+                ))}
+              </select>
+              <small>{copy.autoOffMinutesHelp}</small>
+            </label>
+            <label className="field">
+              <span>{copy.dailyCheckLimit}</span>
+              <input
+                type="number"
+                min={0}
+                max={10000}
+                value={draft.dailyCheckLimit}
+                onChange={(event) => update("dailyCheckLimit", Number(event.target.value))}
+              />
+              <small>{copy.dailyCheckLimitHelp(checksToday)}</small>
+            </label>
+          </div>
           <label className="setting-toggle">
             <input
               type="checkbox"

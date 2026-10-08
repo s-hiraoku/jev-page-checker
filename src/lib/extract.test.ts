@@ -47,10 +47,10 @@ test("extractSnapshot prefers article text, records author, and flags a short bo
 });
 
 test("classifyPageKind uses structure, not the URL path", () => {
-  assert.equal(classifyPageKind(1, 3, 80), "article");
-  assert.equal(classifyPageKind(0, 40, 80), "portal");
-  assert.equal(classifyPageKind(0, 4, 200), "article");
-  assert.equal(classifyPageKind(1, 80, 90), "article");
+  assert.equal(classifyPageKind(true, 3, 80), "article");
+  assert.equal(classifyPageKind(false, 40, 80), "portal");
+  assert.equal(classifyPageKind(false, 4, 200), "article");
+  assert.equal(classifyPageKind(true, 80, 90), "article");
 });
 
 test("extractSnapshot treats a link listing as a portal on any host", () => {
@@ -180,3 +180,38 @@ test("extractSnapshot does not treat nav labels as the author", () => {
   assert.equal(snapshot.hasAuthor, false);
 });
 
+
+const STORY = Array.from({ length: 60 }, () => "The council approved the budget on Monday after a long debate.").join(" ");
+const card = (index: number) => `<article><a href="/related/${index}">Related story ${index}</a></article>`;
+
+test("extractSnapshot reads the story, not a related-story card placed before it", () => {
+  const dom = new JSDOM(`<!doctype html><html><body>${card(1)}<main><h1>Budget</h1><p>${STORY}</p></main></body></html>`, {
+    url: "https://city.example.org/budget",
+  });
+  const snapshot = extractSnapshot(dom.window.document, dom.window.location, 40, () => "2026-09-20T00:00:00.000Z");
+  assert.match(snapshot.text, /council approved the budget/);
+  assert.equal(snapshot.text.includes("Related story 1"), false);
+  assert.equal(snapshot.pageKind, "article");
+  assert.equal(snapshot.hasArticle, true);
+});
+
+test("extractSnapshot picks the longest article when cards and the story are all articles", () => {
+  const dom = new JSDOM(`<!doctype html><html><body>${card(1)}${card(2)}<article><p>${STORY}</p></article>${card(3)}</body></html>`, {
+    url: "https://city.example.org/budget",
+  });
+  const snapshot = extractSnapshot(dom.window.document, dom.window.location, 40, () => "2026-09-20T00:00:00.000Z");
+  assert.match(snapshot.text, /^The council approved/);
+  assert.equal(snapshot.text.includes("Related story"), false);
+  assert.equal(snapshot.hasArticle, true);
+});
+
+test("extractSnapshot treats a board of article-wrapped headlines as a listing", () => {
+  const cards = Array.from({ length: 20 }, (_, index) => card(index)).join("");
+  const dom = new JSDOM(`<!doctype html><html><head><title>Headlines</title></head><body><main>${cards}</main></body></html>`, {
+    url: "https://city.example.org/",
+  });
+  const snapshot = extractSnapshot(dom.window.document, dom.window.location, 40, () => "2026-09-20T00:00:00.000Z");
+  assert.equal(snapshot.pageKind, "portal");
+  assert.equal(snapshot.linkCount, 20);
+  assert.equal(snapshot.hasArticle, false);
+});
