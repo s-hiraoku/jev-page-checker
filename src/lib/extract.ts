@@ -18,9 +18,12 @@ export function wordCount(text: string): number {
   return spaced + Math.floor(cjk / 2);
 }
 
+/** An <article> is the page's text only when it holds at least this share of the main region's text. */
+const ARTICLE_MIN_SHARE = 0.5;
+
 /** Listing vs one text. Do not special-case a host or path. */
-export function classifyPageKind(articleCount: number, linkCount: number, words: number): "article" | "portal" {
-  if (articleCount >= 1) return "article";
+export function classifyPageKind(rootIsArticle: boolean, linkCount: number, words: number): "article" | "portal" {
+  if (rootIsArticle) return "article";
   if (linkCount >= LISTING_MIN_LINKS && words / Math.max(linkCount, 1) < LISTING_MAX_WORDS_PER_LINK) return "portal";
   return "article";
 }
@@ -192,6 +195,35 @@ export function collectText(root: ParentNode, maxChars: number): { text: string;
   return { text: parts.join(" ").slice(0, maxChars), truncated };
 }
 
+function textLength(element: Element, limit: number): number {
+  return collectText(element, limit).text.length;
+}
+
+function longest(elements: Iterable<Element>, limit: number): { element: Element; length: number } | undefined {
+  let best: { element: Element; length: number } | undefined;
+  for (const element of elements) {
+    const length = textLength(element, limit);
+    if (best === undefined || length > best.length) best = { element, length };
+  }
+  return best;
+}
+
+/**
+ * The element whose text is the page's text. The longest <article> wins when it holds most of the main
+ * region's text; a teaser card or a related-story box above the story does not. Otherwise the main region,
+ * or the body, is the root, and link density decides whether it is a listing.
+ */
+export function mainTextRoot(doc: Document, limit = bodyCollectLimit()): { root: Element | null; rootIsArticle: boolean } {
+  const region = longest(doc.querySelectorAll("[role=main], main"), limit);
+  const container = region?.element ?? doc.body;
+  const containerLength = region?.length ?? (doc.body ? textLength(doc.body, limit) : 0);
+  const article = longest(doc.querySelectorAll("article"), limit);
+  if (article !== undefined && article.length > 0 && article.length >= containerLength * ARTICLE_MIN_SHARE) {
+    return { root: article.element, rootIsArticle: true };
+  }
+  return { root: container, rootIsArticle: false };
+}
+
 export function extractSnapshot(
   doc: Document,
   loc: Pick<Location, "href" | "hostname" | "protocol">,
@@ -204,8 +236,7 @@ export function extractSnapshot(
   const publishedAt = metaContent(doc, ["article:published_time", "date", "pubdate", "dc.date"]);
   const siteName = firstPlausible([metaContent(doc, ["og:site_name", "application-name"]), ld.publisher]);
   const metaDescription = metaContent(doc, ["description", "og:description"]);
-  const articleCount = doc.querySelectorAll("article").length;
-  const root = doc.querySelector("article, [role=main], main") ?? doc.body;
+  const { root, rootIsArticle } = mainTextRoot(doc, collectLimit);
   const hrefs = [...(root ?? doc).querySelectorAll("a[href]")].map((anchor) => {
     const href = anchor.getAttribute("href") ?? "";
     try {
@@ -217,7 +248,7 @@ export function extractSnapshot(
   const { hosts, citationCount } = collectOutbound(hrefs, loc.hostname);
   const { text, truncated } = collectText(root ?? doc.body, collectLimit);
   const words = wordCount(text);
-  const pageKind = classifyPageKind(articleCount, hrefs.length, words);
+  const pageKind = classifyPageKind(rootIsArticle, hrefs.length, words);
   return {
     url: loc.href,
     hostname: loc.hostname,
