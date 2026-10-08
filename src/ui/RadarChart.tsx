@@ -41,17 +41,22 @@ function useGrow(durationMs: number): number {
   return progress;
 }
 
-function pointsAttr(axes: readonly RadarAxis[], radius: number, valueOf: (axis: RadarAxis) => number): string {
-  return axes
-    .map((axis, index) => {
-      const point = polarPoint(index, axes.length, valueOf(axis), radius);
-      return `${point.x.toFixed(2)},${point.y.toFixed(2)}`;
-    })
+/** Value per axis; null leaves the axis out of the shape instead of pulling it to the center. */
+function plotPoints(axes: readonly RadarAxis[], radius: number, valueOf: (axis: RadarAxis) => number | null): { x: number; y: number }[] {
+  return axes.flatMap((axis, index) => {
+    const value = valueOf(axis);
+    return value === null ? [] : [polarPoint(index, axes.length, value, radius)];
+  });
+}
+
+function pointsAttr(axes: readonly RadarAxis[], radius: number, valueOf: (axis: RadarAxis) => number | null): string {
+  return plotPoints(axes, radius, valueOf)
+    .map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`)
     .join(" ");
 }
 
-function perimeter(axes: readonly RadarAxis[], radius: number, valueOf: (axis: RadarAxis) => number): number {
-  const points = axes.map((axis, index) => polarPoint(index, axes.length, valueOf(axis), radius));
+function perimeter(axes: readonly RadarAxis[], radius: number, valueOf: (axis: RadarAxis) => number | null): number {
+  const points = plotPoints(axes, radius, valueOf);
   let length = 0;
   for (let index = 0; index < points.length; index += 1) {
     const from = points[index];
@@ -111,7 +116,8 @@ export function RadarChart({
     );
   }
 
-  const valueOf = (axis: RadarAxis) => (axis.value ?? 0) * grow;
+  // N/A and Error are not a low score: they are left out of the shape, and their labels are muted.
+  const valueOf = (axis: RadarAxis) => (axis.value === null ? null : axis.value * grow);
   const grid = RINGS.map((ring) => pointsAttr(axes, radius, () => ring));
   const plot = pointsAttr(axes, radius, valueOf);
   const outline = Math.max(perimeter(axes, radius, valueOf), 1);
@@ -167,6 +173,7 @@ export function RadarChart({
           })}
         </g>
       </svg>
+      {compact ? null : <p className="radar-legend">{copy.radarBands}</p>}
     </div>
   );
 }

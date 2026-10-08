@@ -10,15 +10,28 @@ test("clamp01 bounds and NaN", () => {
   assert.equal(clamp01(Number.NaN), 0);
 });
 
-test("axisValue uses the same 0–1 scale as the old meters", () => {
-  assert.equal(axisValue({ verdict: "pass", answer: { type: "noul", noul: 0.94 } }), 0.94);
-  assert.equal(axisValue({ verdict: "fail", answer: { type: "score", score: 0.12 } }), 0.06);
-  assert.equal(axisValue({ verdict: "pass", answer: { type: "choice" } }), 1);
-  assert.equal(axisValue({ verdict: "review", answer: { type: "choice" } }), 0.5);
-  assert.equal(axisValue({ verdict: "fail", answer: { type: "choice" } }), 0);
+test("axisValue puts every verdict in its own band", () => {
+  const close = (actual: number | null, expected: number) => assert.ok(actual !== null && Math.abs(actual - expected) < 1e-9, `${actual} != ${expected}`);
+  close(axisValue({ verdict: "pass", answer: { type: "noul", noul: 1 } }), 1);
+  close(axisValue({ verdict: "pass", answer: { type: "noul", noul: 0.8 } }), 2 / 3);
+  // A Review just under the pass line stays under the Pass ring.
+  close(axisValue({ verdict: "review", answer: { type: "noul", noul: 0.78 } }), 1 / 3 + (0.58 / 0.6) / 3);
+  close(axisValue({ verdict: "review", answer: { type: "noul", noul: 0.35 } }), 1 / 3 + (0.15 / 0.6) / 3);
+  close(axisValue({ verdict: "fail", answer: { type: "noul", noul: 0.1 } }), 1 / 6);
+  close(axisValue({ verdict: "pass", answer: { type: "choice", confidence: 0.9 } }), 2 / 3 + 0.75 / 3);
+  close(axisValue({ verdict: "pass", answer: { type: "choice" } }), 5 / 6);
+  close(axisValue({ verdict: "review", answer: { type: "choice", confidence: 0.9 } }), 0.5);
+  close(axisValue({ verdict: "fail", answer: { type: "choice", confidence: 1 } }), 0);
+  close(axisValue({ verdict: "fail", answer: { type: "score", score: 0.12 } }), 0.02);
   assert.equal(axisValue({ verdict: "not_applicable" }), null);
   assert.equal(axisValue({ verdict: "error" }), null);
   assert.equal(axisValue(undefined), null);
+});
+
+test("a Review never reaches the Pass ring and an Alert never reaches the Review ring", () => {
+  for (const noul of [0.21, 0.5, 0.79]) assert.ok(axisValue({ verdict: "review", answer: { type: "noul", noul } })! <= 2 / 3);
+  for (const noul of [0, 0.2]) assert.ok(axisValue({ verdict: "fail", answer: { type: "noul", noul } })! <= 1 / 3);
+  for (const confidence of [0.6, 0.95]) assert.ok(axisValue({ verdict: "fail", answer: { type: "choice", confidence } })! <= 1 / 3);
 });
 
 test("radarAxes keeps question order and drops missing items as empty axes", () => {
@@ -30,7 +43,7 @@ test("radarAxes keeps question order and drops missing items as empty axes", () 
     axes.map((axis) => ({ id: axis.id, value: axis.value, label: axis.label })),
     [
       { id: "identifiable_publisher", value: null, label: "short:identifiable_publisher" },
-      { id: "honest_identity", value: 0.9, label: "short:honest_identity" },
+      { id: "honest_identity", value: 2 / 3 + 0.5 / 3, label: "short:honest_identity" },
     ],
   );
 });
