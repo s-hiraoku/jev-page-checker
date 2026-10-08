@@ -20,11 +20,13 @@ export function OptionsApp({ bridge }: { bridge: Bridge }) {
   return (
     <AppChrome wide meta={`v${session.definitionVersion}`} theme={theme} locale={locale}>
       <SettingsForm
+        checksToday={session.checksToday}
         settings={session.settings}
         questions={session.questions}
         definitionVersion={session.definitionVersion}
         onSave={async (settings) => {
-          accept(await bridge.saveSettings(settings));
+          // The on/off switch lives in the sidebar and may have turned off by itself; keep its current state.
+          accept(await bridge.saveSettings({ ...settings, checksEnabled: session.settings.checksEnabled }));
         }}
       />
     </AppChrome>

@@ -36,6 +36,8 @@ export function SidePanelApp({ bridge }: { bridge: Bridge }) {
       <PanelBody
         view={session?.view}
         checksEnabled={session?.settings.checksEnabled ?? true}
+        checksOffAt={session?.settings.checksOffAt ?? null}
+        dailyLimit={session && session.settings.dailyCheckLimit > 0 && session.checksToday >= session.settings.dailyCheckLimit ? session.settings.dailyCheckLimit : null}
         settingsSaving={settingsSaving}
         error={error}
         onToggleChecks={setChecksEnabled}
@@ -55,6 +57,8 @@ function LoadingCopy() {
 function PanelBody({
   view,
   checksEnabled,
+  checksOffAt,
+  dailyLimit,
   settingsSaving,
   error,
   onToggleChecks,
@@ -65,6 +69,8 @@ function PanelBody({
 }: {
   view: SessionView | undefined;
   checksEnabled: boolean;
+  checksOffAt: number | null;
+  dailyLimit: number | null;
   settingsSaving: boolean;
   error: string | null;
   onToggleChecks: (enabled: boolean) => void;
@@ -109,6 +115,10 @@ function PanelBody({
       {view?.status === "unsupported" ? <p className="notice">{copy.unsupported(view.url)}</p> : null}
 
       {!checksEnabled ? <p className="help">{copy.checksDisabled}</p> : null}
+      {checksEnabled && checksOffAt !== null ? (
+        <p className="help">{copy.autoOffAt(new Date(checksOffAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }))}</p>
+      ) : null}
+      {checksEnabled && dailyLimit !== null ? <p className="notice">{copy.dailyLimitReached(dailyLimit)}</p> : null}
       {checksEnabled && view?.status === "idle" ? <p className="help">{view.followTab ? copy.idleFollow : copy.idleManual}</p> : null}
 
       {view?.status === "checking" ? (

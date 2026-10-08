@@ -12,6 +12,12 @@ export interface ExtensionSettings {
   claudeModel: ClaudeModel;
   ackedVersion: number | null;
   checksEnabled: boolean;
+  /** Minutes after which checks turn themselves off. 0 keeps them on until turned off by hand. */
+  autoOffMinutes: number;
+  /** When checks turn off, in epoch ms. Set by the background when checks are on and autoOffMinutes > 0. */
+  checksOffAt: number | null;
+  /** Automatic checks allowed per local day. 0 means no limit. Manual checks are not limited. */
+  dailyCheckLimit: number;
   checkOnlyWhenSidebarOpens: boolean;
   followTab: boolean;
   recheckOnChange: boolean;
@@ -28,6 +34,9 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   claudeModel: DEFAULT_CLAUDE_MODEL,
   ackedVersion: null,
   checksEnabled: true,
+  autoOffMinutes: 60,
+  checksOffAt: null,
+  dailyCheckLimit: 50,
   checkOnlyWhenSidebarOpens: false,
   followTab: true,
   recheckOnChange: true,
@@ -59,6 +68,9 @@ export function parseSettings(raw: unknown): ExtensionSettings {
     claudeModel: isClaudeModel(record.claudeModel) ? record.claudeModel : DEFAULT_CLAUDE_MODEL,
     ackedVersion: typeof record.ackedVersion === "number" && Number.isInteger(record.ackedVersion) ? record.ackedVersion : null,
     checksEnabled: record.checksEnabled !== false,
+    autoOffMinutes: finiteInt(record.autoOffMinutes, DEFAULT_SETTINGS.autoOffMinutes, 0, 1440),
+    checksOffAt: typeof record.checksOffAt === "number" && Number.isFinite(record.checksOffAt) ? record.checksOffAt : null,
+    dailyCheckLimit: finiteInt(record.dailyCheckLimit, DEFAULT_SETTINGS.dailyCheckLimit, 0, 10000),
     checkOnlyWhenSidebarOpens: record.checkOnlyWhenSidebarOpens === true,
     followTab: record.followTab !== false,
     recheckOnChange: record.recheckOnChange !== false,

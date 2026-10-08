@@ -34,6 +34,8 @@ export interface SessionPayload {
   history: StoredRecord[];
   settings: ExtensionSettings;
   definitionVersion: number;
+  /** Checks sent to the engine today, for the daily limit. */
+  checksToday: number;
 }
 
 export function sessionView(
@@ -55,6 +57,7 @@ export function buildSessionPayload(
   settings: ExtensionSettings,
   history: StoredRecord[],
   session: TabSession | undefined,
+  checksToday = 0,
 ): SessionPayload {
   return {
     view: sessionView(settings, definition.version, session),
@@ -62,5 +65,6 @@ export function buildSessionPayload(
     history,
     settings,
     definitionVersion: definition.version,
+    checksToday,
   };
 }

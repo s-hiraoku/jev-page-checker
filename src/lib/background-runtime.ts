@@ -6,6 +6,7 @@ import { copyFor } from "./copy.js";
 import { unknownErrorMessage } from "./errors.js";
 import { resolveLocale, type ResolvedLocale } from "./locale.js";
 import { isInspectableUrl, snapshotFingerprint, type PageSnapshot } from "./page-state.js";
+import { applyAutoOff, countCheck, dailyLimitReached, extendAutoOff, parseUsage, settingsAfterSave, type DailyUsage } from "./check-guard.js";
 import { ClaudeAnswerError, createLiveClaude } from "./claude-gateway.js";
 import { checkSnapshot, createLiveJev } from "./run-check.js";
 import { activeApiKey, DEFAULT_SETTINGS, parseSettings, setupGap, type ExtensionSettings } from "./settings.js";
@@ -15,6 +16,7 @@ import { activeTabQuery, isWindowActiveTab, TabDebouncer } from "./window-sessio
 
 const SETTINGS_KEY = "settings";
 const HISTORY_KEY = "history";
+const USAGE_KEY = "usage";
 const HISTORY_LIMIT = 30;
 
 const tabs = new Map<number, TabSession>();
@@ -22,9 +24,34 @@ const inflight = new Map<number, string>();
 const debounce = new TabDebouncer();
 let historyChain: Promise<void> = Promise.resolve();
 
+/** Reads settings and applies auto-off, so every path sees checks off once their time is up. */
 async function readSettings(): Promise<ExtensionSettings> {
   const stored = await chrome.storage.local.get(SETTINGS_KEY);
-  return parseSettings(stored[SETTINGS_KEY]);
+  const settings = parseSettings(stored[SETTINGS_KEY]);
+  const guarded = applyAutoOff(settings, Date.now());
+  if (guarded.checksEnabled !== settings.checksEnabled || guarded.checksOffAt !== settings.checksOffAt) {
+    await writeSettings(guarded);
+    if (!guarded.checksEnabled) void notifyUi(undefined);
+  }
+  return guarded;
+}
+
+async function readUsage(): Promise<DailyUsage> {
+  const stored = await chrome.storage.local.get(USAGE_KEY);
+  return parseUsage(stored[USAGE_KEY], Date.now());
+}
+
+let usageChain: Promise<void> = Promise.resolve();
+
+function recordCheck(): Promise<void> {
+  const next = usageChain.then(async () => {
+    await chrome.storage.local.set({ [USAGE_KEY]: countCheck(await readUsage(), Date.now()) });
+  });
+  usageChain = next.then(
+    () => undefined,
+    () => undefined,
+  );
+  return next;
 }
 
 async function writeSettings(settings: ExtensionSettings): Promise<void> {
@@ -55,7 +82,8 @@ function appendHistory(record: StoredRecord): Promise<void> {
 async function payload(definition: ApprovedDefinition, tabId: number | undefined): Promise<SessionPayload> {
   const settings = await readSettings();
   const history = await readHistory();
-  return buildSessionPayload(definition, settings, history, tabId === undefined ? undefined : tabs.get(tabId));
+  const usage = await readUsage();
+  return buildSessionPayload(definition, settings, history, tabId === undefined ? undefined : tabs.get(tabId), usage.checks);
 }
 
 async function tabIdInWindow(windowId?: number): Promise<number | undefined> {
@@ -146,7 +174,8 @@ function errorMessage(error: unknown, locale: ResolvedLocale): string {
 
 async function checkTab(definition: ApprovedDefinition, tabId: number, force: boolean, fromSidebarOpen = false): Promise<void> {
   const settings = await readSettings();
-  if (!settings.checksEnabled || (settings.checkOnlyWhenSidebarOpens && !fromSidebarOpen && !force)) return;
+  const automatic = !force && !fromSidebarOpen;
+  if (!settings.checksEnabled || (settings.checkOnlyWhenSidebarOpens && automatic)) return;
   if (setupGap(settings, definition.version) !== null) {
     await publishForTab(definition, tabId);
     return;
@@ -170,10 +199,16 @@ async function checkTab(definition: ApprovedDefinition, tabId: number, force: bo
   const previous = tabs.get(tabId);
   if (!force && previous?.status === "ready" && previous.fingerprint === fingerprint) return;
   if (inflight.get(tabId) === fingerprint) return;
+  // Only automatic checks stop at the daily limit; a check someone asked for still runs.
+  if (automatic && dailyLimitReached(settings, await readUsage(), Date.now())) {
+    await publishForTab(definition, tabId);
+    return;
+  }
   inflight.set(tabId, fingerprint);
   tabs.set(tabId, { status: "checking", snapshot, fingerprint });
   await publishForTab(definition, tabId);
   try {
+    await recordCheck();
     const key = activeApiKey(settings);
     const gateway = settings.engine === "claude" ? createLiveClaude(key, settings.claudeModel) : createLiveJev(key);
     const report = {
@@ -258,7 +293,8 @@ export function startBackground(definitionRaw: unknown): void {
         if (message.type === "SAVE_SETTINGS") {
           const next = parseSettings(message.settings);
           const previous = await readSettings();
-          await writeSettings({ ...DEFAULT_SETTINGS, ...previous, ...next, apiKey: next.apiKey, anthropicApiKey: next.anthropicApiKey });
+          const merged = { ...DEFAULT_SETTINGS, ...previous, ...next, apiKey: next.apiKey, anthropicApiKey: next.anthropicApiKey };
+          await writeSettings(settingsAfterSave(previous, merged, Date.now()));
           sendResponse(await payload(definition, await targetTabId(windowId, senderTabId)));
           await notifyUi(undefined);
           return;
@@ -266,6 +302,8 @@ export function startBackground(definitionRaw: unknown): void {
         if (message.type === "CHECK_NOW") {
           const id = await targetTabId(windowId, senderTabId);
           if (id === undefined) throw new Error(copyFor(uiLocale(await readSettings())).noTargetTab);
+          const current = await readSettings();
+          if (current.checksEnabled) await writeSettings(extendAutoOff(current, Date.now()));
           await checkTab(definition, id, true);
           sendResponse(await payload(definition, id));
           return;
